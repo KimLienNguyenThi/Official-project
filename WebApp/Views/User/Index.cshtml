@@ -1,0 +1,181 @@
+﻿@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@* form đăng nhập*@
+<div class="row justify-content-center" style="max-width: 400px; margin: 5px auto; border: 1px solid #009999; background-color: #CCFFFF; padding: 20px; border-radius: 5px;">
+    <div class="col-md-12">
+        <form>
+            <div class="mb-3 mt-3">
+                <label for="phoneNumber" class="form-label">Số điện thoại:</label>
+                <input type="tel" class="form-control" id="phoneNumber" placeholder="Nhập số điện thoại" name="phoneNumber">
+            </div>
+            <div class="mb-3">
+                <label for="password" class="form-label">Mật khẩu:</label>
+                <input type="password" class="form-control" id="password" placeholder="Nhập mật khẩu" name="password">
+            </div>
+            <div class="form-check mb-3">
+                <input class="form-check-input" type="checkbox" id="rememberMe" name="rememberMe">
+                <label class="form-check-label" for="rememberMe">Remember me</label>
+            </div>
+            <button type="button" onclick="Login()" class="btn btn-primary">Đăng nhập</button>
+        </form>
+    </div>
+
+    <!-- Button login gg và đăng ký -->
+    <div class="mt-3">
+        <a asp-controller="User" asp-action="LoginByGoogle" class="btn btn-primary">Đăng nhập bằng Google</a>
+        <a asp-controller="User" asp-action="Register" type="button" class="btn btn-primary">Đăng ký</a>
+    </div>
+</div>
+
+
+<!-- Modal -->
+@* Modal thông báo đăng nhập thành công *@
+<div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="successModalLabel">Thành công!</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Đăng nhập thành công.
+            </div>
+            <div class="modal-footer">
+                <button id="buttonCloseModal" type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* Modal thông báo đăng nhập sai tài khoản *@
+<div class="modal fade" id="failModal" tabindex="-1" aria-labelledby="failModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="failModalLabel">Đăng nhập thất bại</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Sai tên đăng nhập hoặc mật khẩu.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* Modal yêu cầu nhập sdt cho login gg *@
+<div class="modal" id="RequiredSdtModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <!-- Modal Header -->
+            <div class="modal-header">
+                <h4 class="modal-title">Chào mừng bạn đến với Thư Viện. Vui lòng nhập số điện thoại để tiếp tục</h4>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="modal-body">
+                <input type="text" class="form-control" id="inputSdt">
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary">Close</button>
+                <button type="button" class="btn btn-primary" id="submitInfo">Submit</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+    <script>
+
+        document.getElementById("buttonCloseModal").addEventListener("click", function () {
+            window.location.href = '/Home/Index';
+        });
+
+        function Login() {
+            console.log("Function Login called");
+            // Lấy giá trị từ ô input
+            var phoneNumber = $("#phoneNumber").val();
+            console.log("dữ liệu nhận vào: ", phoneNumber);
+            var password = $("#password").val();
+            console.log("dữ liệu nhận vào: ", password);
+
+            $.ajax({
+                url: "/User/Login",
+                type: "GET",
+                data: 
+                { 
+                    phoneNumber: phoneNumber,
+                    password: password
+                },
+                success: function (result) {
+
+                    if (result.success) {
+                        $('#successModal').modal('show');
+                    } else if (!result.success) {
+                        $('#failModal').modal('show');
+                    }
+                },
+                error: function (result) {
+                    $('#failModal').modal('show');
+                }
+            });
+        }
+
+        function LoginByGoogle() {
+
+            $.ajax({
+                url: "/User/LoginByGoogle",
+                success: function (result) {
+
+                    if (result.success && result.trangThai == 1) {
+                        $('#successModal').modal('show');
+                    } else if (result.success && result.trangThai == 0) {
+                        $('#RequiredSdtModal').modal('show');
+                        RequiredSdt();
+                    }
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    alert(xhr.status); // Hiển thị mã lỗi
+                    alert(thrownError); // Hiển thị thông báo lỗi
+                }
+            });
+        }
+
+        function RequiredSdt() {
+            var sdt = $("#inputSdt").val();
+
+            $.ajax({
+                url: "/User/Register",
+                type: "POST",
+                data:
+                {
+                    phoneNumber: sdt,
+                    password: "null",
+                    username: username,
+                    email: email
+                },
+                success: function (result) {
+
+                    if (result.success && result.trangThai == 1) {
+                        $('#successModal').modal('show');
+                    } else if (result.success && result.trangThai == 0) {
+                        $('#RequiredSdtModal').modal('show');
+                        RequiredSdt();
+                    }
+                },
+                error: function (result) {
+                    alert("ERROR");
+                }
+            });
+        }
+
+    </script>
+    

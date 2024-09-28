@@ -1,0 +1,470 @@
+﻿@using WebApp.DTOs
+@model IEnumerable<WebAPI.DTOs.SachDTO>
+
+@{
+    ViewData["Title"] = "GioHang";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h3 style="text-align:center; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color:orangered">Thư viện sách của bạn</h3>
+@*Nút nhấn xác nhận mượn*@
+<nav>
+    <div class="container mt-5">
+        <div class="row align-items-center justify-content-between border-bottom mb-3">
+
+            <div class="col-1" style="margin-left: 46px;" id="SelectAll">
+                <input type="checkbox" class="form-check-input" style="transform:scale(1)">
+            </div>
+            <div class="col-2" style="margin-left:30px; font-weight:bold"> Sách </div>
+            <div class="col-4 text-center" style="font-weight: bold"> Tên sách </div>
+            <div class="col-2 text-center" style="font-weight: bold"> Số lượng </div>
+            <div class="col-1 text-center" style="margin-right:25px;font-weight: bold"> Thao tác </div>
+        </div>
+    </div>
+</nav>
+
+@*Danh sách sách mượn*@
+@if (ListSachMuon.listSachMuon.Count == 0)
+{
+    <p style="font-style:italic; padding-left:30px">Thư viện của bạn đang trống</p>
+}
+else
+{
+    <div class="row g-4 pt-5">
+        @foreach (var item in Model)
+        {
+
+            // Tạo URL đầy đủ từ đường dẫn tương đối
+            string urlImage = item.UrlImage.Replace("~\\", "/").Replace("\\", "/");
+            <nav>
+                <div class="container mt-5" id="sachMuon_@item.MaSach">
+                    <div class="row align-items-center justify-content-between border-bottom mb-3">
+
+                        <div class="col-1" style="margin-left: 60px; margin-bottom: 80px">
+                            <input id="checkbox_Sach" type="checkbox" class="form-check-input checkbox_Sach" style="transform:scale(1)" value="@item.MaSach">
+                        </div>
+                        <div class="col-2" style="margin-right: 70px; margin-bottom:80px">
+                            <img src="@urlImage" alt="" style="width: 150px; height: 150px;">
+                        </div>
+                        <div class="col-4 text-center" style="margin-bottom: 80px">
+                            <h4>@item.TenSach</h4>
+                            <p>Thể loại: @item.TheLoai</p>
+                            <input id="soLuongHienTai_@item.MaSach" value="@item.SoLuongHientai" hidden>
+                        </div>
+                        <div class="col-2 text-center" style="margin-bottom: 80px">
+                            <input id="soLuongSachMuon_@item.MaSach" type="number" min="0" max="2" value="@ListSachMuon.listSachMuon[item.MaSach]" class="form-control sach-input" onkeydown="validateInput(event, 2)">
+                        </div>
+                        <div class="col-1" style="margin-bottom: 80px">
+                            <button class="btn btn-danger" onclick="XoaSach(@item.MaSach)">Xóa</button>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+        }
+    </div>
+}
+
+<!-- Thông tin tổng cộng -->
+<nav class="sticky-top fixed-bottom " style="background-color:aliceblue; height:70px;" id="SelectAll">
+    <div class="row mt">
+
+        <div class="col-2" style="margin-left:60px; margin-top:27px">
+            <input type="checkbox" class="form-check-input" style="transform:scale(1)"><a style="margin-left:10px; font-weight:bold">Chọn tất cả</a>
+        </div>
+        <div class="col-6">
+            <p class="font-weight-bold" style="margin-left:400px; margin-top:30px; font-weight:bold" id="TongSoSachMuon"> Tổng số sách mượn:  </p>
+        </div>
+        <div class="col-2">
+            <button class="btn btn-primary" style="margin-left:50px; margin-top:20px" onclick="DangKyMuon()">Đăng ký mượn</button>
+        </div>
+    </div>
+</nav>
+
+
+<!-- Modal error-->
+<div class="modal fade" id="ModalError" tabindex="-1" role="dialog" aria-labelledby="ModalError" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-body text-center bg-danger" style="color: black;">
+                <span class="" id="contentModalError"></span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal success-->
+<div class="modal fade" id="ModalSuccess" tabindex="-1" role="dialog" aria-labelledby="ModalSuccess" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-body text-center" style="background-color: green;color: black;">
+                <span class="" id="contentModalSuccess"></span>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- Bootstrap JS và các script cần thiết -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+
+
+<!-- Include jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<script>
+    function validateInput(event, maxQuantity) {
+        // Ngăn chặn nhập ký tự không phải số
+        if (!isNumericInput(event)) {
+            event.preventDefault();
+        }
+        // Ngăn chặn nhập 'e' hoặc 'E'
+        if (event.key === 'e' || event.key === 'E') {
+            event.preventDefault();
+        }
+        // Kiểm tra giá trị sau khi nhập để đảm bảo nó nằm trong phạm vi cho phép
+        let inputValue = event.target.value + event.key;
+        if (inputValue < 0 || inputValue > maxQuantity) {
+            event.preventDefault();
+        }
+    }
+
+    function isNumericInput(event) {
+        const key = event.key;
+        // Chỉ cho phép các phím số từ '0' đến '2', phím Backspace, Delete và các phím mũi tên
+        return (key >= '0' && key <= '2') || key === 'Backspace' || key === 'Delete' || key === 'ArrowLeft' || key === 'ArrowRight';
+    }
+    // Mảng lưu giá trị của các checkbox_Sach được chọn
+    var selectedValues = [];
+
+    ////////////////////////// Xử lý checkbox ////////////////////////
+    $(document).ready(function () {
+
+        // Xử lý sự kiện khi checkbox "Chọn tất cả" được thay đổi
+        $('#SelectAll input[type="checkbox"]').change(function () {
+            var tongSoSachMuon = 0;
+
+            console.log('Sự kiện kiểm tra checkboxAll được gọi');
+
+            // Kiểm tra checkbox SelectAll có được nhấn hay không
+            var isChecked = $(this).prop('checked');
+
+            if (isChecked) {
+                // Cập nhật trạng thái của được chọn của tất cả các checkbox khác
+                $('input[type="checkbox"]').not(this).prop('checked', isChecked);
+
+                // Xóa toàn bộ phần tử trong mảng
+                selectedValues = [];
+
+                // Duyệt qua tất cả các checkbox và thêm giá trị của những checkbox được chọn vào mảng
+                $('.checkbox_Sach').each(function () {
+                    if ($(this).prop('checked')) {
+                        selectedValues.push($(this).val());
+                    }
+                });
+
+
+                // Lặp qua danh sách các ID và lấy giá trị của mỗi input
+                selectedValues.forEach(function (id) {
+                    // Lấy tham chiếu đến phần tử input theo ID
+                    var inputElement = document.getElementById('soLuongSachMuon_' + id);
+
+                    // Kiểm tra xem input có tồn tại không
+                    if (inputElement) {
+                        // Lấy giá trị của thuộc tính value
+                        var giaTri = parseInt(inputElement.value);
+                        tongSoSachMuon = tongSoSachMuon + giaTri;
+                    }
+                });
+
+                var tongSoSach = document.getElementById("TongSoSachMuon");
+
+                // Kiểm tra xem thẻ có tồn tại không
+                if (tongSoSach) {
+                    // Thay đổi nội dung của thẻ <p>
+                    tongSoSach.innerHTML = "Tổng số sách mượn: " + tongSoSachMuon;
+                }
+
+            } else {
+                selectedValues = [];
+                // Cập nhật trạng thái không được chọn của tất cả các checkbox khác
+                $('input[type="checkbox"]').not(this).prop('checked', isChecked);
+                // Thay đổi nội dung thẻ <p> chứa thông tin tổng số sách được chọn
+                var tongSoSachMuon = document.getElementById("TongSoSachMuon");
+                if (tongSoSachMuon) {
+                    tongSoSachMuon.innerHTML = " Tổng số sách mượn: ";
+                }
+            }
+        });
+
+
+
+        // Xử lý sự kiện khi một checkbox được thay đổi trạng thái
+        $('.checkbox_Sach').change(function () {
+            var tongSoSachMuon = 0;
+            console.log('Sự kiện kiểm tra checkbox_Sach được gọi');
+            $('#SelectAll input[type="checkbox"]').not(this).prop('checked', false);
+
+            // Kiểm tra xem checkbox có được chọn hay không
+            if ($(this).is(':checked')) {
+
+                // Nếu được chọn, thêm giá trị của checkbox vào mảng
+                selectedValues.push($(this).val());
+                // Kiểm tra danh sách checkbox được chọn
+                console.log(selectedValues);
+
+                // Lặp qua danh sách các ID và lấy giá trị của mỗi input
+                selectedValues.forEach(function (id) {
+                    // Lấy tham chiếu đến phần tử input theo ID
+                    var inputElement = document.getElementById('soLuongSachMuon_' + id);
+
+                    // Kiểm tra xem input có tồn tại không
+                    if (inputElement) {
+                        // Lấy giá trị của thuộc tính value
+                        var giaTri = parseInt(inputElement.value);
+                        tongSoSachMuon = tongSoSachMuon + giaTri;
+                    }
+                });
+
+                var tongSoSach = document.getElementById("TongSoSachMuon");
+
+                // Kiểm tra xem thẻ có tồn tại không
+                if (tongSoSach) {
+                    // Thay đổi nội dung của thẻ <p>
+                    tongSoSach.innerHTML = "Tổng số sách mượn: " + tongSoSachMuon;
+                }
+
+            } else {
+                // Nếu checkbox bị bỏ chọn, loại bỏ giá trị của checkbox khỏi mảng
+                var index = selectedValues.indexOf($(this).val());
+
+                if (index !== -1) {
+                    selectedValues.splice(index, 1);
+                }
+
+                // Lặp qua danh sách các ID và lấy giá trị của mỗi input
+                selectedValues.forEach(function (id) {
+                    // Lấy tham chiếu đến phần tử input theo ID
+                    var inputElement = document.getElementById('soLuongSachMuon_' + id);
+
+                    // Kiểm tra xem input có tồn tại không
+                    if (inputElement) {
+                        // Lấy giá trị của thuộc tính value
+                        var giaTri = parseInt(inputElement.value);
+                        tongSoSachMuon = tongSoSachMuon + giaTri;
+                    }
+                });
+
+                var tongSoSach = document.getElementById("TongSoSachMuon");
+
+                // Kiểm tra xem thẻ có tồn tại không
+                if (tongSoSach) {
+                    // Thay đổi nội dung của thẻ <p>
+                    tongSoSach.innerHTML = "Tổng số sách mượn: " + tongSoSachMuon;
+                }
+
+                // Kiểm tra danh sách checkbox được chọn
+                console.log(selectedValues);
+            }
+        });
+
+
+        $('.sach-input').change(function () {
+            var tongSoSachMuon = 0;
+            console.log(selectedValues);
+
+            // Lặp qua danh sách các ID và lấy giá trị của mỗi input
+            selectedValues.forEach(function (id) {
+                // Lấy tham chiếu đến phần tử input theo ID
+                var inputElement = document.getElementById('soLuongSachMuon_' + id);
+                var SoLuongHienTai = document.getElementById('soLuongHienTai_' + id);
+
+                // Kiểm tra xem input có tồn tại không
+                if (inputElement) {
+                    console.log("Số lượng hiện tại: " + parseInt(SoLuongHienTai.value));
+                    console.log("Số lượng chọn: " + parseInt(inputElement.value));
+
+                    // Kiểm tra xem giá trị có âm không và đặt lại thành 0 nếu cần
+                    if (parseInt(inputElement.value) > 1 && parseInt(inputElement.value) <= parseInt(SoLuongHienTai.value)) {
+                        // Lấy giá trị của thuộc tính value
+                        var giaTri = parseInt(inputElement.value);
+                        tongSoSachMuon = tongSoSachMuon + giaTri;
+                    } else {
+                        inputElement.value = 0;
+                        document.getElementById("contentModalError").innerHTML = "Vui lòng chọn giá trị hợp lệ";
+                        $("#ModalError").modal("show");
+                    }
+
+                }
+            });
+
+            var tongSoSach = document.getElementById("TongSoSachMuon");
+
+            // Kiểm tra xem thẻ có tồn tại không
+            if (tongSoSach) {
+                // Thay đổi nội dung của thẻ <p>
+                tongSoSach.innerHTML = "Tổng số sách mượn: " + tongSoSachMuon;
+            }
+        });
+
+    });
+
+
+    ///////////////////////// Button đăng ký mượn sách /////////////////////////
+    function DangKyMuon() {
+        var isChecked = $('.checkbox_Sach').is(':checked');
+        var tongSoSach = document.getElementById("TongSoSachMuon");
+        console.log("Có sách nào được chọn hay không: " + isChecked);
+
+        if (isChecked) {
+
+            console.log(parseInt(tongSoSach));
+            console.log(tongSoSach);
+
+            // Hien thi hop thoai xac nhan
+            var xacNhan = confirm("Bạn có chắc chắn muốn đăng ký mượn sách không?");
+
+            // Nếu người dùng đồng ý
+            if (xacNhan) {
+
+                // mảng chứa số lượng sách của mỗi loại sách
+                var giaTri = [];
+
+                // Biến chứa tổng số lượng sách
+                var tongSoLuongSach = 0;
+
+                // Kiểm tra danh sách checkbox được chọn
+                console.log(selectedValues);
+
+                // Lặp qua danh sách các ID và lấy giá trị của mỗi input
+                selectedValues.forEach(function (id) {
+                    // Lấy tham chiếu đến phần tử input theo ID
+                    var inputElement = document.getElementById('soLuongSachMuon_' + id);
+
+                    // Kiểm tra xem input có tồn tại không
+                    if (inputElement) {
+                        // Lấy giá trị của thuộc tính value
+                        giaTri.push(parseInt(inputElement.value));
+                        console.log("Mã sách mượn: " + id);
+                        console.log("Số lượng sách mượn: " + inputElement.value);
+
+                        tongSoLuongSach = tongSoLuongSach + parseInt(inputElement.value);
+                        console.log("Tổng số sách mượn: ", tongSoLuongSach);
+                    }
+
+                });
+
+                console.log("Mảng số lượng sách mượn: " + giaTri);
+
+                // Kiểm tra số lượng sách mượn
+                if (tongSoLuongSach < 5) {
+
+
+                    // Gọi controller xử lý mượn sách
+                    $.ajax({
+                        url: "@Url.Action("ConfirmBorrow", "BorrowBook")",
+                        type: "POST",
+                        data: {
+                            maSach: selectedValues,
+                            soLuongSach: giaTri,
+                        },
+                        success: function (result) {
+
+                            if (result.success) {
+                                // Lặp qua danh sách các ID và lấy giá trị của mỗi input để xoá khỏi view
+                                selectedValues.forEach(function (id) {
+                                    // Xoá phần tử HTML tương ứng
+                                    $("#sachMuon_" + id).remove();
+
+                                    // Xoá số sách mượn hiển thị
+                                    var tongSoSach = document.getElementById("TongSoSachMuon");
+                                    tongSoSach.innerHTML = "Tổng số sách mượn: ";
+                                    $('input[type="checkbox"]').prop('checked', false);
+                                });
+
+                                // Gọi modal thông báo thành công
+                                document.getElementById("contentModalSuccess").innerHTML = "Đăng ký mượn thành công";
+                                $("#ModalSuccess").modal("show");
+                            }
+                        },
+                        error: function () {
+                            console.log("Đã xảy ra lỗi khi gửi ajax thuê sách.");
+                        }
+                    });
+                }
+                else {
+                    document.getElementById("contentModalError").innerHTML = "Số lượng sách mượn đã vượt quá 5 quyển";
+                    $("#ModalError").modal("show");
+                }
+            }
+
+        }
+        else {
+            document.getElementById("contentModalError").innerHTML = "Quý khách vui lòng chọn sách để mượn";
+            $("#ModalError").modal("show");
+        }
+
+    }
+
+
+    //////////////// Button Xoá sách /////////////////////////////////////
+    var maSachToDelete; // Biến toàn cục để lưu trữ mã sách cần xoá
+
+    function XoaSach(maSach) {
+        var xacNhan = confirm("Bạn có chắc chắn muốn xoá khỏi danh sách không?");
+
+        if (xacNhan) {
+            maSachToDelete = maSach; // Lưu mã sách vào biến toàn cục
+
+            console.log("1. Mã sách xoá:", maSachToDelete);    // Kiểm tra dữ liệu
+
+            $.ajax({
+                url: "@Url.Action("XoaSachMuon", "BorrowBook")",
+                type: "POST",
+                data: {
+                    maSach: maSachToDelete,
+                },
+                success: function (result) {
+                    console.log("1. Mã sách xoá:", maSachToDelete);    // Kiểm tra dữ liệu
+                    if (result.success) {
+                        // Xoá phần tử HTML tương ứng
+                        $("#sachMuon_" + maSachToDelete).remove();
+
+                        //Tính lại tổng số lượng sách
+                        // Lặp qua danh sách các ID và lấy giá trị của mỗi input
+                        selectedValues.forEach(function (id) {
+                            // Lấy tham chiếu đến phần tử input theo ID
+                            var inputElement = document.getElementById('soLuongSachMuon_' + id);
+
+                            // Kiểm tra xem input có tồn tại không
+                            if (inputElement) {
+                                // Lấy giá trị của thuộc tính value
+                                var giaTri = parseInt(inputElement.value);
+                                tongSoSachMuon = tongSoSachMuon + giaTri;
+                            }
+                        });
+
+                        var tongSoSach = document.getElementById("TongSoSachMuon");
+
+                        // Kiểm tra xem thẻ có tồn tại không
+                        if (tongSoSach) {
+                            // Thay đổi nội dung của thẻ <p>
+                            tongSoSach.innerHTML = "Tổng số sách mượn: " + tongSoSachMuon;
+                        }
+                    } else {
+                        document.getElementById("contentModalError").innerHTML = result.message;
+                        $("#ModalError").modal("show");
+                    }
+                },
+                error: function () {
+                    document.getElementById("contentModalError").innerHTML = "Đã xảy ra lỗi khi xoá sách";
+                    $("#ModalError").modal("show");
+                }
+            });
+        }
+
+    }
+
+</script>

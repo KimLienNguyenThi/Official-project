@@ -1,0 +1,191 @@
+﻿<div class="sidebar" id="sidebar" style="font-size:20px; line-height:1.7">
+    <!-- Sidebar Menu -->
+    <nav class="mt-2">
+        <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+
+            <!-- Trang chủ -->
+            <li class="nav-item">
+                <a href="/admin/homeadmin" class="nav-link">
+                    @* active *@
+                    <i class="nav-icon fas fa-tachometer-alt"></i>
+                    <p>
+                        Trang Chủ
+                    </p>
+                 </a>
+               
+            </li>
+
+            <!-- Phiếu mượn -->
+            <li class="nav-item">
+                <a href="~/admin/phieumuon" class="nav-link">
+                    <i class="nav-icon fas fa-chart-pie"></i>
+                    <p>
+                        Phiếu Mượn
+                    </p>
+                </a>
+            </li>
+
+            <!-- quản lý Phiếu mượn -->
+            <li class="nav-item">
+                <a href="/admin/quanlyphieumuon" class="nav-link">
+                    <i class="nav-icon fas fa-tree"></i>
+                    <p>
+                        Q/Lý Phiếu Mượn
+                    </p>
+                </a>
+            </li>
+
+            <!-- public/admin/phieutra.html -->
+            <li class="nav-item">
+                <a href="/admin/phieutra" class="nav-link">
+                    <i class="nav-icon fas fa-copy"></i>
+                    <p>
+                        Phiếu Trả
+                    </p>
+                </a>
+            </li>
+
+
+            
+
+            <!-- quản lý Phiếu trả -->
+            <li class="nav-item">
+                <a href="/admin/quanlyphieutra" class="nav-link">
+                    <i class="nav-icon fas fa-copy"></i>
+                    <p>
+                        Q/Lý Phiếu Trả
+                    </p>
+                </a>
+            </li>
+
+            
+           
+
+            <!-- Kho sách -->
+            <li class="nav-item">
+                <a href="/admin/khosach" class="nav-link">
+                    <i class="nav-icon fas fa-tree"></i>
+                    <p>
+                        Kho Sách
+                    </p>
+                </a>
+            </li>
+
+            <!-- Nhập sách -->
+            <li class="nav-item">
+                <a href="/admin/nhapsach" class="nav-link">
+                    <i class="nav-icon fas fa-chart-pie"></i>
+                    <p>
+                        Nhập Sách
+                    </p>
+                </a>
+            </li>
+
+            <!-- Thanh lý sách -->
+            <li class="nav-item">
+                <a href="/admin/thanhlysach" class="nav-link">
+                    <i class="nav-icon fas fa-copy"></i>
+                    <p>
+                        Thanh Lý Sách
+                    </p>
+                </a>
+            </li>
+
+            <!-- Thẻ độc giả -->
+            <li class="nav-item">
+                <a href="~/admin/thedocgia" class="nav-link">
+                    <i class="nav-icon fas fa-tree"></i>
+                    <p>
+                        Thẻ Độc Giả
+                    </p>
+                </a>
+            </li>
+
+            <!-- Thông tin độc giả -->
+            <li class="nav-item">
+                <a href="~/admin/thongtindocgia" class="nav-link">
+                    <i class="nav-icon fas fa-copy"></i>
+                    <p>
+                        T/Tin Độc Giả
+                    </p>
+                </a>
+            </li>
+
+            <!-- Thống kê-->
+            <li class="nav-item">
+                <a href="~/admin/thongke" class="nav-link">
+                    <i class="nav-icon fas fa-copy"></i>
+                    <p>
+                        Thống Kê
+                    </p>
+                </a>
+            </li>
+
+            <!-- Phân quyền -->
+            <li class="nav-item">
+                <a href="~/admin/phanquyen" class="nav-link">
+                    <i class="nav-icon fas fa-tree"></i>
+                    <p>
+                        Phân quyền
+                    </p>
+                </a>
+            </li>
+
+            <li class="nav-header">Xử lý yêu cầu từ khách hàng</li>
+            <!--Đăng ký mượn sách-->
+            <li class="nav-item">
+                <a href="~/admin/dangkymuonsach" class="nav-link">
+                    <i class="nav-icon far fa-calendar-alt"></i>
+                    <p>
+                        Đ/Ký Mượn Sách
+                        <span class="badge badge-info right">2</span>
+                    </p>
+                </a>
+            </li>
+
+        </ul>
+    </nav>
+    <!-- /.sidebar-menu -->
+</div>
+
+<script>
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const sidebar = document.getElementById('sidebar');
+        const links = sidebar.querySelectorAll('.nav-link');
+
+        const activeItem = localStorage.getItem('activeMenuItem');
+
+        if (activeItem) {
+            const activeLink = sidebar.querySelector(`.nav-link[href="${activeItem}"]`);
+            if (activeLink) {
+                activeLink.classList.add('active');
+            }
+        }
+
+        function handleSidebarClick(event) {
+            links.forEach(link => link.classList.remove('active'));
+
+            const clickedLink = event.target.closest('.nav-link');
+            if (clickedLink) {
+                clickedLink.classList.add('active');
+                localStorage.setItem('activeMenuItem', clickedLink.getAttribute('href'));
+
+                const parentItem = clickedLink.closest('.nav-item');
+                const parentLink = parentItem && parentItem.querySelector('.nav-link');
+                if (parentLink) {
+                    parentLink.classList.add('active');
+                }
+
+                const href = clickedLink.getAttribute('href');
+                if (href && href !== '#') {
+                    window.location.href = href;
+                }
+            }
+        }
+
+        sidebar.addEventListener('click', handleSidebarClick);
+    });
+</script>
+
+

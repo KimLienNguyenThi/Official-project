@@ -1,0 +1,591 @@
+﻿@{
+    ViewBag.Title = "Quản lý phiếu mượn";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+}
+<style>
+   
+    /* Khi một hàng có lớp row-clicked */
+    #tblDanhSachDG_PhieuMuon tr.row-clicked {
+        background-color: #e0e0e0; /* Màu nền xám */
+    }
+
+        /* Viền đậm màu cho ô */
+        #tblDanhSachDG_PhieuMuon tr.row-clicked td {
+            border: 1px solid #999999;
+        }
+
+    .tablechild {
+        background-color: #E0F7FA; /* Màu nền xanh dương pastel rất nhạt */
+        border: 1px solid #00008B; /* Viền xanh đậm */
+    }
+
+        .tablechild th, .tablechild td {
+            border: 1px solid #00008B; /* Viền xanh đậm */
+            background-color: #E0F7FA; /* Màu nền xanh dương pastel rất nhạt */
+
+        }
+
+        .tablechild th {
+            background-color: #e0e94; /* Màu nền xám cho tiêu đề */
+        }
+
+        /*///////////////////////////////*/*/
+    .btn {
+        padding: 5px 10px;
+        border: none;
+        border-radius: 3px;
+        cursor: pointer;
+        font-size: 14px;
+        
+    }
+
+    .btn-success {
+        background-color: #28a745; /* Màu xanh lá cây */
+        color: white;
+        width: 100px;
+    }
+
+    .btn-danger {
+        background-color: #dc3545; /* Màu đỏ */
+        color: white;
+        width: 100px;
+    }
+
+    .btn-secondary {
+        background-color: #6c757d; /* Màu xám */
+        color: white;
+        width: 100px;
+    }
+
+    .btn-icon {
+        background: none;
+        border: none;
+    }
+
+    .btn-hover:hover {
+        opacity: 0.8;
+    }
+
+    .btn-sm {
+        padding: 2px 5px;
+        font-size: 12px;
+    }
+
+</style>
+<!-- Hiển thị danh phiếu mượn -->
+<section class="content">
+    <div class="container-fluid pt-4">
+        <div class="row">
+            <!-- Sách và Thông tin độc giả -->
+            <div class="col-12" style="height: 80vh;">
+                <div class="card" style="height: 100%;">
+                    <div class="card-header">
+                        <div class="form-row">
+
+                            <div class="col-6">
+                                <h3 class="text-center text-blue text-bold">Quản Lý Phiếu Mượn </h3>
+                            </div>
+
+                            <div class="card-tools col-3">
+                                <div class="input-group input-group-sm pt-1">
+                                   
+                                </div>
+                            </div>
+
+                            <div class="col-3">
+                                <button type="button" class="btn btn-warning lamMoiSach" id="lamMoiButton" onclick="lamMoi()">Làm mới</button>
+                            </div>
+
+                        </div>
+                    </div>
+                    <div class="card-body table-responsive p-0">
+                        <form>
+                            <!--Danh sách phieu mượn-->
+                            <div class="text-center">
+                                <table id="tblDanhSachDG_PhieuMuon" class="table table-hover table-head-fixed table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th style="text-align: center;">Xem Chi tiết</th>
+                                            <th style ="text-align: center;">Mã Thẻ</th>
+                                            <th style ="text-align: center;">Độc giả</th>
+                                            <th style ="text-align: center;">Số điện thoại</th>
+                                         
+                                        </tr>
+                                    </thead>
+                                   
+                                </table>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- Modal TAT CA PHIEU MUON-->
+<div class="modal fade bd-example-modal-lg" id="ModaldanhSachSachMuonbyMaThe" tabindex="-1" role="dialog" aria-labelledby="exampleModalScrollableTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+
+            <!-- Header -->
+            <div class="modal-header text-center">
+                <h4 class="modal-title w-100 text-blue" style="font-weight: bold;" id="">Chi tiết phiếu mượn</h4>
+            </div>
+
+            <!-- Body -->
+            <form class="modal-body p-4">
+                <div class="form-row">
+                    @* <!--Mã phiếu mượn-->
+                    <div class="form-group col">
+                        <label>Mã phiếu mượn:</label>
+                    <input class="form-control" id="maPhieuMuonModal" readonly></div>  *@
+                 
+
+                    <!--Mã thẻ-->
+                    <div class="form-group col">
+                        <label>Mã thẻ độc giả:</label>
+                        <input class="form-control" id="maTheModal" readonly>
+                    </div>
+                </div>
+                
+                <!--Danh sách sách mượn-->
+                <div class="text-center">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Mã PM</th> 
+                                <th>Mã sách</th>
+                                <th>Tên sách</th>
+                                <th>S/Lượng</th>
+                            </tr>
+                        </thead>
+                        <tbody id="danhSachSachMuonbyMaDG">
+                            
+                        </tbody>
+                    </table>
+                </div>
+            </form>
+
+            <!-- Footer -->
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal"> Đóng </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+<!-- Modal BY PHIEU MUON-->
+<div class="modal fade bd-example-modal-lg" id="ModaldanhSachSachMuonbyMaPM" tabindex="-1" role="dialog" aria-labelledby="exampleModalScrollableTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+
+            <!-- Header -->
+            <div class="modal-header text-center">
+                <h4 class="modal-title w-100 text-blue" style="font-weight: bold;" id="">Chi tiết phiếu mượn</h4>
+            </div>
+
+            <!-- Body -->
+            <form class="modal-body p-4">
+                <div class="form-row">
+                     <!--Mã phiếu mượn-->
+                    <div class="form-group col">
+                    <label>Mã phiếu mượn:</label>
+                    <input class="form-control" id="maPhieuMuonModal" readonly></div>  
+
+
+                    <!--Mã thẻ-->
+                    <div class="form-group col">
+                        <label>Mã thẻ độc giả:</label>
+                        <input class="form-control" id="maTheModal1" readonly>
+                    </div>
+                </div>
+
+                <!--Danh sách sách mượn-->
+                <div class="text-center">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                               
+                                <th>Mã sách</th>
+                                <th>Tên sách</th>
+                                <th>S/Lượng</th>
+                            </tr>
+                        </thead>
+                        <tbody id="danhSachSachMuonbyMaPM">
+                        </tbody>
+                    </table>
+                </div>
+            </form>
+
+            <!-- Footer -->
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal"> Đóng </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+@section scripts
+{
+    <script>
+
+        function lamMoi() {
+            // Làm mới trang
+            location.reload();
+        }
+
+        // Format date
+        function formatDate(dateString) {
+            var options = { year: 'numeric', month: 'numeric', day: 'numeric' };
+            var formattedDate = new Date(dateString).toLocaleDateString(undefined, options);
+            return formattedDate;
+        }
+
+        
+        function handleKeyPress(event) {
+            // Kiểm tra xem người dùng đã nhấn phím "Enter" chưa (mã ASCII: 13)
+            if (event.keyCode === 13) {
+                // Ngăn chặn hành động mặc định của phím "Enter" trên form
+                event.preventDefault();
+                //search();
+            }
+        }
+
+        //Gọi hàm init để khởi tạo DataTable khi trang được tải
+        $(document).ready(function () {
+            init();
+        });
+
+
+        
+
+        function init() {
+            $('#tblDanhSachDG_PhieuMuon').DataTable({
+                processing: true, //Hiển thị thông báo khi dữ liệu đang được xử lý.
+                serverSide: true,//Bật chế độ xử lý phía máy chủ.
+                paging: true,//paging, search, searching: Cho phép phân trang và tìm kiếm.
+                search: true,
+                searching: true,
+                searchDelay: 700, // sau khi thay đổi input search delay 1 tý, tránh thay đổi text liên tục thì gọi liên tục
+                scrollY: false,//Cho phép cuộn (scroll) theo chiều dọc.
+                iDisplayLength: 5, // chỉnh nếu muốn hiện số row mỗi trang
+                bLengthChange: false,//Không hiển thị lựa chọn thay đổi số lượng hàng hiển thị trên trang.
+                language: {
+                    info: "Hiện thị _START_ đến _END_ của _TOTAL_ mục",
+                    lengthMenu: "Hiện thị _MENU_ mục",
+                    search: "Search",
+                    processing: "Đang tải dữ liệu...",
+                    paginate: {
+                        previous: "Đầu",
+                        next: "Tiếp theo",
+                        last: "Cuối"
+                    }
+                },
+                ajax: {
+                    url: "/admin/quanlyphieumuon/GetListDG_PhieuMuonPaging_APP",
+                    type: "POST",
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "JSON",
+                    beforeSend: function () {
+                        // alone.startLoading();
+                    },
+                    data: function (data) { //Chuẩn bị dữ liệu trước khi gửi yêu cầu.
+                        var tblDanhSachDG_PhieuMuonA = $("#tblDanhSachDG_PhieuMuon").DataTable();
+                        var settings = tblDanhSachDG_PhieuMuonA.settings();
+
+                        var currentPageIndex = Math.ceil(settings[0]._iDisplayStart / settings[0]._iDisplayLength) + 1;
+                        var request =
+                        {
+                            // CategoryId: parseInt($('#ddlCategory').val(), 10),
+                            PageSize: 5,
+                            Page: currentPageIndex,
+                            Keyword: $('.dt-search input[type="search"]').val()
+                                
+                        };
+                        return JSON.stringify(request);
+                    },
+                    dataSrc: function (res) {//Trích xuất dữ liệu từ phản hồi.
+                        console.log("res.Result: ", res.docGiaList);
+                        console.log("res.Result.Results: ", res.docGiaList.results);
+
+                        if (res.docGiaList != null && res.docGiaList.results != null) {
+                            return res.docGiaList.results;
+                            //alone.stopLoading();
+                        }
+                        else {
+                            //alone.notify('Cannot load data of Product', 'danger');
+                            //alone.stopLoading();
+                            return [];
+                        }
+
+
+                    },
+                    dataFilter: function (data) {
+                        var page = $.parseJSON(data);
+                        if (!page.success || page.docGiaList == null) {
+                            page.recordsTotal = 0;
+                            page.recordsFiltered = 0;
+                            return JSON.stringify(page);
+                        }
+                        page.recordsTotal = page.docGiaList.rowCount || 0;
+                        page.recordsFiltered = page.docGiaList.rowCount || 0;
+                        return JSON.stringify(page);
+                    },
+
+                    error: function (status) {//Xử lý lỗi khi yêu cầu không thành công.
+                        //alone.notify('Cannot load data of Product', 'danger');
+                        //alone.stopLoading();
+                    }
+                },
+                columns: [
+                    {
+                        className: 'dt-control',
+                        orderable: false,
+                        data: null,
+                        defaultContent: ''
+                    },
+                    {
+                        name: 'first',
+                        "data": "docGia_GroupKey.maThe", "width": "20%"
+                    },
+
+                   
+                    {
+                        "data": "docGia_GroupKey.hoTenDG", "width": "30%"
+                    },
+                    {
+                        "data": "docGia_GroupKey.sdt", "width": "30%"
+                    },
+
+                ],
+                rowGroup: {
+                    endRender: function (rows, group) {
+                        return group + ' (' + rows.count() + ' rows)';
+                    }
+                },
+                columnDefs: [{//Nếu giá trị của một ô là null hoặc undefined, sẽ hiển thị giá trị mặc định là "-".
+                    "defaultContent": "-",
+                    "targets": "_all"
+                }],
+                initComplete: function () {
+                   
+                }
+            });
+
+        }
+
+        function sendSearchRequest(Keyword) {
+            $('#tblDanhSachPhieuTra').DataTable().ajax.reload(null, false);
+        }
+
+        let currentOpenRowIndex = null;
+
+        // Sự kiện khi nhấp vào cột có class 'dt-control'
+        $('#tblDanhSachDG_PhieuMuon').on('click', 'td.dt-control', function (e) {
+            let tr = $(this).closest('tr');
+            let row = $('#tblDanhSachDG_PhieuMuon').DataTable().row(tr);
+
+            // Nếu hàng đang mở và khác hàng hiện tại, đóng hàng đó
+            if (currentOpenRowIndex !== null && currentOpenRowIndex !== row.index()) {
+                let oldRow = $('#tblDanhSachDG_PhieuMuon').DataTable().row(currentOpenRowIndex);
+                oldRow.child.hide();
+                tr.prev().removeClass('row-clicked');
+            }
+
+            // Nếu hàng đã mở và là hàng hiện tại, đóng hàng đó
+            if (currentOpenRowIndex === row.index()) {
+                row.child.hide();
+                tr.removeClass('row-clicked');
+                currentOpenRowIndex = null;
+            }
+            // Nếu không, mở hàng mới và đặt hàng mới làm hàng hiện tại
+            else {
+                row.child(format(row.data())).show();
+                tr.addClass('row-clicked');
+                currentOpenRowIndex = row.index();
+            }
+            // Loại bỏ lớp CSS cho hàng cũ nếu có
+            $('#tblDanhSachDG_PhieuMuon tbody tr').not(tr).removeClass('row-clicked');
+        });
+
+        // Hàm format cho child row
+        function format(d) {
+            let render = "";
+            $.each(d.dataPhieuMuons, function (i, item) {
+                let currentDate = moment();
+                let hantraDate = moment(item.hanTra);
+
+                // Xác định lớp và văn bản của nút dựa trên các điều kiện
+                let tinhTrangClass = "btn";
+                let tinhTrangText = "";
+                
+
+                // Log giá trị của tinhTrang và hanTra để kiểm tra
+                console.log("tinhTrang:", item.tinhtrang);
+                console.log("hanTra:", item.hanTra);
+
+                if (item.tinhtrang == false) {
+                    if (hantraDate > currentDate) {
+                        tinhTrangClass += " btn-secondary"; // Nút màu xám 
+                        tinhTrangText = "Chưa trả";
+                    }
+                    else {
+                        tinhTrangClass += " btn-danger"; // Nút màu đỏ 
+                        tinhTrangText = "Hết hạn";
+                    }
+                } else {
+                    tinhTrangClass += " btn-success"; // Nút màu xanh lá
+                    tinhTrangText = "Đã trả";
+
+                }
+
+                render += '<tr>';
+                render += '<td> <button class="btn btn-icon btn-hover btn-sm btn-see-all" id="' + item.maThe + '"> Xem Tất Cả</button></td>';
+                render += '<td class="maPM-cell" id="' + item.maPM + '_' + item.maThe + '">' + item.maPM + " - Chi tiết" + '</td>';
+                render += '<td>' + moment(item.ngayMuon).format("YYYY-MM-DD") + '</td>';
+                render += '<td>' + moment(item.hanTra).format("YYYY-MM-DD") + '</td>';
+                render += '<td>' + item.maNV + '</td>';
+                render += '<td class="column-color"> <button class="' + tinhTrangClass + '" id="' + item.tinhTrang + '">' + tinhTrangText + '</button></td>';
+                render += '</tr>';
+            });
+
+            let tableHTML =
+                '<table style="border-bottom: inset" class="tablechild table table-hover table-head-fixed table-bordered">' +
+                '<thead>' +
+                '<tr>' +
+                '<th style="text-align: center;">Thông tin phiếu trả</th>' +
+                '<th style="text-align: center;">Mã PM</th>' +
+                '<th style="text-align: center;">Ngày mượn</th>' +
+                '<th style="text-align: center;">Hạn trả</th>' +
+                '<th style="text-align: center;">Mã nhân viên</th>' +
+                '<th style="text-align: center;">Tình trạng</th>' +
+
+                // '<th style="text-align: center;">Tình trạng</th>' +
+                '</tr>' +
+                '</thead>' +
+                '<tbody>' +
+                render +
+                '</tbody>' +
+                '</table>';
+            return tableHTML;
+        }
+
+        $(document).on('click', '.btn-see-all', function (e) {
+            e.preventDefault();
+            var arr = $(this)[0].id.split("_");
+            // var maPM = arr[0];
+            var maThe = arr[0];
+
+            // Gọi hàm xử lý chi tiết sách trả
+            handleSeeAllClick( maThe, e);
+        });
+
+        $(document).on('click', '.maPM-cell', function (e) {
+            e.preventDefault();
+            var arr = $(this)[0].id.split("_");
+            var maPM = arr[0];
+            var maThe = arr[1];
+
+            // Gọi hàm xử lý chi tiết sách trả
+            getCTPM(maPM, maThe, e);
+        });
+        // Hàm xử lý sự kiện "See All" với mã PM
+        function handleSeeAllClick(maThe, event) {
+            console.log("Sending request with maThe:", maThe);
+            $.ajax({
+                url: "/admin/quanlyphieumuon/Get_ChiTietPM_ByMaDG_APP/" + maThe,
+                dataType: 'json',
+                type: 'POST',
+                success: function (data) {
+                    console.log("Response from server:", data);
+                    if (data && data.length > 0) { // Kiểm tra xem data có tồn tại và không rỗng
+                        var ctptData = data;
+                        var danhSachSachMuonbyMaDG = $("#danhSachSachMuonbyMaDG");
+                        danhSachSachMuonbyMaDG.empty();
+
+                        $.each(ctptData, function (index, item) {
+                            var newRow = $(
+                                `<tr class="sachtra-row" data-ma-sach="${item.maSach}">
+                                                    <td>${item.maPM}</td>
+                                                    <td>${item.maSach}</td>
+                                                    <td>${item.tenSach}</td>
+                                                    <td>${item.soLuongMuon}</td>
+
+                                                </tr>`
+                            );
+                            danhSachSachMuonbyMaDG.append(newRow);
+                        });
+
+                        // Mở modal
+                        $("#ModaldanhSachSachMuonbyMaThe").modal("show");
+
+                        // Điền dữ liệu vào các trường trong modal
+                        // $("#maPhieuMuonModal").val(maPM);
+                        $("#maTheModal").val(maThe);
+                    } else {
+                        console.error("Không thành công trong việc nhận dữ liệu từ server hoặc dữ liệu rỗng.");
+                        alert("Không thành công trong việc nhận dữ liệu từ server hoặc dữ liệu rỗng.");
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error("AJAX error:", status, error);
+                    alert("AJAX error: " + status + " " + error);
+                }
+            });
+        }
+
+
+        // Hàm xử lý sự kiện "See All" với mã PM
+        function getCTPM(maPM,maThe, event) {
+            console.log("Sending request with maThe:", maThe);
+            $.ajax({
+                url: "/admin/quanlyphieumuon/Get_ChiTietPM_ByMaPM_APP/" + maPM,
+                dataType: 'json',
+                type: 'POST',
+                success: function (data) {
+                    console.log("Response from server:", data);
+                    if (data && data.length > 0) { // Kiểm tra xem data có tồn tại và không rỗng
+                        var ctptData = data;
+                        var danhSachSachMuonbyMaPM = $("#danhSachSachMuonbyMaPM");
+                        danhSachSachMuonbyMaPM.empty();
+
+                        $.each(ctptData, function (index, item) {
+                            var newRow = $(
+                                `<tr class="sachtra-row" data-ma-sach="${item.maSach}">
+                                                    
+                                                    <td>${item.maSach}</td>
+                                                    <td>${item.tenSach}</td>
+                                                    <td>${item.soLuongMuon}</td>
+
+                                                </tr>`
+                            );
+                            danhSachSachMuonbyMaPM.append(newRow);
+                        });
+
+                        // Mở modal
+                        $("#ModaldanhSachSachMuonbyMaPM").modal("show");
+
+                        // Điền dữ liệu vào các trường trong modal
+                         $("#maPhieuMuonModal").val(maPM);
+                        $("#maTheModal1").val(maThe);
+                    } else {
+                        console.error("Không thành công trong việc nhận dữ liệu từ server hoặc dữ liệu rỗng.");
+                        alert("Không thành công trong việc nhận dữ liệu từ server hoặc dữ liệu rỗng.");
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error("AJAX error:", status, error);
+                    alert("AJAX error: " + status + " " + error);
+                }
+            });
+        }
+    </script>
+}
+
+
+
+

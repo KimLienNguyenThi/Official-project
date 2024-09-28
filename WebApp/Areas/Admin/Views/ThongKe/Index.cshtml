@@ -1,0 +1,1021 @@
+﻿@{
+    ViewBag.Title = "Thống Kê - Báo Cáo";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+}
+<style>
+    .table-responsive {
+        overflow-x: hidden;
+    }
+    #tablesachnhap {
+        display: block;
+        overflow-x: auto;
+        max-height: 300px;
+    }
+
+    #tablesachmuon {
+        display: block;
+        overflow-x: auto;
+        max-height: 300px;
+    }
+
+     #tablephieumuon, #tablephieutra {
+        display: block;
+        overflow-x: auto;
+        max-height: 350px;
+    }
+
+    #tabledocgiamuon, #tabledocgiadki {
+        display: block;
+        overflow-x: auto;
+        max-height: 420px;
+    }
+
+   
+</style>
+<script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
+<section class="content">
+    <div class="container-fluid pt-4">
+        <div class="row">
+            <div class="col-md-12" style="height: 80vh;">
+                <div class="card" style="height: 100%;">
+                    <div class="card-header">
+                        <div class="form-row">
+                            <div class="col">
+                                <h3 class="text-center text-blue text-bold">Thống Kê Thư Viện ABC</h3>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-body text-center">
+
+                        <div class="form-inline">
+                            <div class="form-group mx-sm-3 mb-2">
+                                <label for="tuNgay" class="mr-2">Từ Ngày:</label>
+                                <input type="date" class="form-control" id="tuNgay" name="tuNgay">
+                            </div>
+                            <div class="form-group mx-sm-3 mb-2">
+                                <label for="denNgay" class="mr-2">Đến Ngày:</label>
+                                <input type="date" class="form-control" id="denNgay" name="denNgay">
+                            </div>
+
+                            <div class="form-group mx-sm-3 mb-2">
+                                <button id="btnSach" class="btn btn-primary nav-button" style="background-color: aquamarine; border-color: aquamarine; width: 150px; height: 50px;" onclick="changeTableShow(sachShow, muontraShow, docgiaShow, doanhthuShow)">Sách</button>
+                            </div>
+
+                            <div class="form-group mx-sm-3 mb-2">
+                                <button id="btnMuonTra" class="btn btn-primary nav-button" style="background-color: lightcoral; border-color: lightcoral; width: 150px; height: 50px;" onclick="changeTableShow(muontraShow, sachShow, docgiaShow, doanhthuShow)">Mượn - Trả</button>
+                            </div>
+
+                            <div class="form-group mx-sm-3 mb-2">
+                                <button id="btnDocGia" class="btn btn-primary nav-button" style="background-color: lightblue; border-color: lightblue; width: 150px; height: 50px;" onclick="changeTableShow(docgiaShow, sachShow, muontraShow, doanhthuShow)">Độc giả</button>
+                            </div>
+
+                            <div class="form-group mx-sm-3 mb-2">
+                                <button id="btnDoanhSo" class="btn btn-primary nav-button" style="background-color: lightgreen; border-color: lightgreen; width: 150px; height: 50px;" onclick="changeTableShow(doanhthuShow, sachShow, muontraShow, docgiaShow)">Doanh số</button>
+                            </div>
+                        </div>
+
+                        <div id="sachShow" class="table-responsive" style="margin-top: 20px;">
+                           <div class="row">
+                               
+                                <div class="col-md-4">
+                                    <table  class="table table-head-fixed table-hover table-bordered">
+                                        <thead>
+                                            <tr>
+                                                <th style="height:50px">Tổng sách nhập</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tabletongSachNhap">
+                                        </tbody>
+                                    </table>
+
+                                </div>
+                                <div class="col-md-4">
+                                    <table class="table table-head-fixed table-hover table-bordered">
+                                        <thead>
+                                            <tr>
+                                                <th style="height:50px">Tổng sách hiện tại có trong kho</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tabletongSachHT">
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="col-md-4">
+                                    <table class="table table-head-fixed table-hover table-bordered">
+                                        <thead>
+                                            <tr>
+                                                <th style="height:50px">Tổng sách đã mượn</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tabletongSachMuon">
+                                        </tbody>
+                                    </table>
+                                </div>
+                                       
+                           </div>
+
+                           
+
+                            <div class="row">
+                                <div class="col-md-6 ">
+                                    <p>Danh sách sách nhập</p>
+                                    <table id="tablesachnhap" class="table table-head-fixed table-hover table-bordered">
+                                        <thead>
+                                            <tr>
+                                                <th style="width:120px">Mã Sách</th>
+                                                <th style="width:400px"> Tên Sách</th>
+                                                <th style="width:150px">Số lượng</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tableSachNhap">
+                                            <!-- Content for first table -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="col-md-6 ">
+                                    <p>Danh sách sách cho mượn</p>
+                                    <table id="tablesachmuon" class="table table-head-fixed table-hover table-bordered">
+                                        <thead>
+                                            <tr>
+                                                <th style="width:120px">Mã Sách</th>
+                                                <th style="width:400px"> Tên Sách</th>
+                                                <th style="width:150px">Số lượng</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tableSachHot">
+                                            <!-- Content for second table -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <!-- Body table mượn trả-->
+
+                        <div id="muontraShow" class="table-responsive" style="margin-top: 20px; ">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <table   class="table table-head-fixed table-hover table-bordered">
+                                        <thead>
+                                            <tr>
+                                                <th>Tổng Phiếu Mượn</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tablePM">
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="col-md-6">
+                                    <table  class="table table-head-fixed table-hover table-bordered">
+                                        <thead>
+                                            <tr>
+                                                <th>Tổng Phiếu Trả</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tablePT">
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <table id="tablephieumuon"  class="table table-head-fixed table-hover table-bordered">
+                                        <thead>
+                                            <tr>
+                                                <th style="width:170px"> Mã PM</th>
+                                                <th style="width:200px">Mã Thẻ</th>
+                                                <th style="width:220px">Ngày Mượn</th>
+                                                <th style="width:150px">Tình trạng</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tablePhieuMuon">
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="col-md-6">
+                                    <table id="tablephieutra"  class="table table-head-fixed table-hover table-bordered">
+                                        <thead>
+                                            <tr>
+                                                <th style="width:180px">Mã PT</th>
+                                                <th style="width:190px">Mã Thẻ</th>
+                                                <th style="width:300px">Ngày Trả</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tablePhieuTra">
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Body table Độc giả-->
+                        <div id="docgiaShow" class="table-responsive" style="margin-top: 20px;">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p>Danh sách đôc giả mượn sách</p>
+                                    <table id="tabledocgiamuon" class="table table-head-fixed table-hover table-bordered">
+                                        <thead>
+                                            <tr>
+                                                <th style="width:150px">Mã ĐG</th>
+                                                <th style="width:280px">Tên ĐG</th>
+                                                <th style="width:220px">Số lượng</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tableDGMuon">
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="col-md-6">
+                                    <p>Danh sách đôc giả đăng ký thẻ</p>
+                                    <table id="tabledocgiadki" class="table table-head-fixed table-hover table-bordered">
+                                        <thead>
+                                            <tr>
+                                                <th style="width:150px">Mã ĐG</th>
+                                                <th style="width:280px">Tên ĐG</th>
+                                                <th style="width:250px">Ngày Đk</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tableDGDK">
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Body doanh thu-->
+                        <div id="doanhthuShow" class="table-responsive" style="margin-top: 20px; ">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div id="chartContainer" style="height: 300px; width: 100%;"></div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div id="chartContainer2" style="height: 300px; width: 100%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+@section scripts
+{
+    <script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
+
+    <script>
+        function changeTableShow(tableToShow, tableToHide1, tableToHide2, tableToHide3) {
+            tableToShow.style.display = "block";
+            tableToHide1.style.display = "none";
+            tableToHide2.style.display = "none";
+            tableToHide3.style.display = "none";
+
+            if (sachShow.style.display == "block" && muontraShow.style.display == "none" && docgiaShow.style.display == 'none' && doanhthuShow.style.display == 'none') {
+                loadSachNhaps();
+                loadSachMuons();
+                loadTongsachNhap();
+                loadTongsachkhoHT();
+                loadTongsachMuon();
+                
+            }
+            if (muontraShow.style.display == "block" && sachShow.style.display == "none" && docgiaShow.style.display == 'none' && doanhthuShow.style.display == 'none') {
+                loadPhieuMuons();
+                loadPhieuTras();
+                loadListPMs();
+                loadListPTs();
+            }
+
+            if (docgiaShow.style.display == "block" && sachShow.style.display == "none"
+                && muontraShow.style.display == 'none' && doanhthuShow.style.display == 'none') {
+                loadDGmuons();
+                loadDGDKs();
+            }
+            if (doanhthuShow.style.display == "block" && sachShow.style.display == "none"
+                && muontraShow.style.display == 'none' && docgiaShow.style.display == 'none') {
+                tienthu();
+                doanhthu();
+            }
+        }
+
+        $(document).ready(function () {
+            init();
+        });
+
+        function init() {
+            var currentDate = new Date();
+            // Format the current date to YYYY-MM-DD string
+            var formatCurrentDate = currentDate.toISOString().slice(0, 10);
+
+            // Set the default value for the "from date" field to the current date
+            document.getElementById("denNgay").value = formatCurrentDate;
+
+            // Calculate the date of one month ago
+            var previousMonthDate = new Date();
+            previousMonthDate.setMonth(currentDate.getMonth() - 1);
+            if (currentDate.getMonth() == 0) {
+                previousMonthDate.setFullYear(currentDate.getFullYear() - 1);
+                previousMonthDate.setMonth(11);
+            }
+            var formatPreviousMonthDate = previousMonthDate.toISOString().slice(0, 10);
+
+            // Set the default value for the "to date" field to the date of one month ago
+            document.getElementById("tuNgay").value = formatPreviousMonthDate;
+            changeTableShow(doanhthuShow, sachShow, muontraShow, docgiaShow)
+        }
+
+        function loadTongsachNhap() {
+
+            $.ajax({
+                type: "POST",
+                url: "/admin/thongke/Get_TongSachNhap_APP",
+                dataType: 'json', // Ensure the returned data is JSON
+                success: function (res) {
+                    console.log("ket qua nhập sách: ", res);
+
+                    // Check if res contains sachList and it has the expected properties
+                    if (res && res.phieuList && res.phieuList.soLuong !== undefined) {
+                        var render = "";
+                        render += '<tr class="ncc-row" aria-expanded="false" data-widget="expandable-table" data-ma-sach="' + res.phieuList.soLuong + '">';
+                        render += '<td>' + res.phieuList.soLuong + '</td>';
+                        render += '</tr>';
+
+                        let danhSachsachnhap = document.getElementById("tabletongSachNhap");
+                        danhSachsachnhap.innerHTML = render;
+                    } else {
+                        console.error("Response does not contain expected properties:", res);
+                        alert("Không tìm thấy dữ liệu phù hợp.");
+                    }
+                },
+                error: function (status) {
+                    alert("Không tìm thấy dữ liệu");
+                    console.error("Error status:", status);
+                }
+            });
+        }
+
+        function loadTongsachkhoHT() {
+
+            $.ajax({
+                type: "POST",
+                url: "/admin/thongke/Get_TongSach_HienTai_APP",
+                dataType: 'json', // Ensure the returned data is JSON
+                success: function (res) {
+                    console.log("ket qua kho hiên tại: ", res);
+
+                    // Check if res contains sachList and it has the expected properties
+                    if (res && res.phieuList && res.phieuList.soLuong !== undefined) {
+                        var render = "";
+                        render += '<tr class="ncc-row" aria-expanded="false" data-widget="expandable-table" data-ma-sach="' + res.phieuList.soLuong + '">';
+                        render += '<td>' + res.phieuList.soLuong + '</td>';
+                        render += '</tr>';
+
+                        let danhSachsachnhap = document.getElementById("tabletongSachHT");
+                        danhSachsachnhap.innerHTML = render;
+                    } else {
+                        console.error("Response does not contain expected properties:", res);
+                        alert("Không tìm thấy dữ liệu phù hợp.");
+                    }
+                },
+                error: function (status) {
+                    alert("Không tìm thấy dữ liệu");
+                    console.error("Error status:", status);
+                }
+            });
+        }
+
+
+        function loadTongsachMuon() {
+
+            $.ajax({
+                type: "POST",
+                url: "/admin/thongke/Get_TongSachMuon_APP",
+                dataType: 'json', // Ensure the returned data is JSON
+                success: function (res) {
+                    console.log("ket qua muon: ", res);
+
+                    // Check if res contains sachList and it has the expected properties
+                    if (res && res.phieuList && res.phieuList.soLuong !== undefined) {
+                        var render = "";
+                        render += '<tr class="ncc-row" aria-expanded="false" data-widget="expandable-table" data-ma-sach="' + res.phieuList.soLuong + '">';
+                        render += '<td>' + res.phieuList.soLuong + '</td>';
+                        render += '</tr>';
+
+                        let danhSachsachnhap = document.getElementById("tabletongSachMuon");
+                        danhSachsachnhap.innerHTML = render;
+                    } else {
+                        console.error("Response does not contain expected properties:", res);
+                        alert("Không tìm thấy dữ liệu phù hợp.");
+                    }
+                },
+                error: function (status) {
+                    alert("Không tìm thấy dữ liệu");
+                    console.error("Error status:", status);
+                }
+            });
+        }
+
+
+        function loadSachNhaps() {
+            var tungayString = document.getElementById("tuNgay").value;
+            var denngayString = document.getElementById("denNgay").value;
+
+            var tungay = new Date(tungayString);
+            var denngay = new Date(denngayString);
+            var today = new Date();
+
+            // Validate dates
+            if (tungayString === "" || denngayString === "") {
+                alert("Vui lòng nhập cả hai ngày.");
+                init();
+                return;
+            }
+
+            if (tungay > denngay) {
+                alert("Từ ngày phải nhỏ hơn hoặc bằng đến ngày.");
+                init();
+                return;
+            }
+
+            if (denngay > today) {
+                alert("Đến ngày không hợp lệ");
+                init();
+                return;
+            }
+
+            $.ajax({
+                type: "POST",
+                url: `/admin/thongke/Get_SachNhap_APP/${tungayString}/${denngayString}`,
+                dataType: 'json', // Đảm bảo dữ liệu trả về là JSON
+                success: function (res) {
+                    console.log("ketqua sach nhap ", res.sachList);
+                    var render = "";
+                    // Check if sachList exists and has items
+                    if (res.sachList && res.sachList.length > 0) {
+                        $.each(res.sachList, function (i, item) {
+
+                            render += '<tr class="ncc-row" aria-expanded="false" data-widget="expandable-table" data-ma-sach=' + item.MaSach + '>';
+                            render += '<td>' + item.maSach + '</td>';
+                            render += '<td>' + item.tenSach + '</td>';
+                            render += '<td>' + item.soLuong + '</td>';
+
+                            render += '</tr>';
+                        });
+                    } else {
+                        // Display message if no items found
+                        render += '<tr><td colspan="3">Không có nhập sách trong khoảng thời gian này</td></tr>';
+                    }
+
+
+
+                    let danhSachsachnhap = document.getElementById("tableSachNhap");
+                    danhSachsachnhap.innerHTML = render;
+                },
+                error: function (status) {
+                    alert("Không tìm thấy dữ liệu");
+                }
+            });
+        }
+
+        function loadSachMuons() {
+            var tungayString = document.getElementById("tuNgay").value;
+            var denngayString = document.getElementById("denNgay").value;
+            var tungay = new Date(tungayString);
+            var denngay = new Date(denngayString);
+            var today = new Date();
+
+            // Validate dates
+            if (tungayString === "" || denngayString === "") {
+                alert("Vui lòng nhập cả hai ngày.");
+                init();
+                return;
+            }
+
+            if (tungay > denngay) {
+                alert("Từ ngày phải nhỏ hơn hoặc bằng đến ngày.");
+                init();
+                return;
+            }
+
+            if (denngay > today) {
+                alert("Đến ngày không hợp lệ");
+                init();
+                return;
+            }
+            $.ajax({
+                type: "POST",
+                url: `/admin/thongke/Get_SachMuon_APP/${tungayString}/${denngayString}`,
+                dataType: 'json', // Đảm bảo dữ liệu trả về là JSON
+                success: function (res) {
+                    console.log("ketqua sach nhap ", res.sachList);
+                    var render = "";
+                    // Check if sachList exists and has items
+                    if (res.sachList && res.sachList.length > 0) {
+                        $.each(res.sachList, function (i, item) {
+
+                            render += '<tr class="ncc-row" aria-expanded="false" data-widget="expandable-table" data-ma-sach=' + item.MaSach + '>';
+                            render += '<td>' + item.maSach + '</td>';
+                            render += '<td>' + item.tenSach + '</td>';
+                            render += '<td>' + item.soLuong + '</td>';
+
+                            render += '</tr>';
+                        });
+                    } else {
+                        // Display message if no items found
+                        render += '<tr><td colspan="3">Không có sách được mượn trong khoảng thời gian này</td></tr>';
+                    }
+
+
+                    let danhSachsachnhap = document.getElementById("tableSachHot");
+                    danhSachsachnhap.innerHTML = render;
+                },
+                error: function (status) {
+                    alert("Không tìm thấy dữ liệu");
+                }
+            });
+        }
+
+        function loadPhieuMuons() {
+            var tungayString = document.getElementById("tuNgay").value;
+            var denngayString = document.getElementById("denNgay").value;
+            var tungay = new Date(tungayString);
+            var denngay = new Date(denngayString);
+            var today = new Date();
+
+            // Validate dates
+            if (tungayString === "" || denngayString === "") {
+                alert("Vui lòng nhập cả hai ngày.");
+                init();
+                return;
+            }
+
+            if (tungay > denngay) {
+                alert("Từ ngày phải nhỏ hơn hoặc bằng đến ngày.");
+                init();
+                return;
+            }
+
+            if (denngay > today) {
+                alert("Đến ngày không hợp lệ");
+                init();
+                return;
+            }
+            $.ajax({
+                type: "POST",
+                url: `/admin/thongke/Get_PhieuMuon_APP/${tungayString}/${denngayString}`,
+                dataType: 'json', // Ensure the returned data is JSON
+                success: function (res) {
+                    console.log("ket qua muon: ", res);
+
+                    // Check if res contains sachList and it has the expected properties
+                    if (res && res.phieuList && res.phieuList.soLuong !== undefined) {
+                        var render = "";
+                        render += '<tr class="ncc-row" aria-expanded="false" data-widget="expandable-table" data-ma-sach="' + res.phieuList.soLuong + '">';
+                        render += '<td>' + res.phieuList.soLuong + '</td>';
+                        render += '</tr>';
+
+                        let danhSachsachnhap = document.getElementById("tablePM");
+                        danhSachsachnhap.innerHTML = render;
+                    } else {
+                        console.error("Response does not contain expected properties:", res);
+                        alert("Không tìm thấy dữ liệu phù hợp.");
+                    }
+                },
+                error: function (status) {
+                    alert("Không tìm thấy dữ liệu");
+                    console.error("Error status:", status);
+                }
+            });
+        }
+
+        function loadListPMs() {
+            var tungayString = document.getElementById("tuNgay").value;
+            var denngayString = document.getElementById("denNgay").value;
+            var tungay = new Date(tungayString);
+            var denngay = new Date(denngayString);
+            var today = new Date();
+
+            // Validate dates
+            if (tungayString === "" || denngayString === "") {
+                alert("Vui lòng nhập cả hai ngày.");
+                init();
+                return;
+            }
+
+            if (tungay > denngay) {
+                alert("Từ ngày phải nhỏ hơn hoặc bằng đến ngày.");
+                init();
+                return;
+            }
+
+            if (denngay > today) {
+                alert("Đến ngày không hợp lệ");
+                init();
+                return;
+            }
+            $.ajax({
+                type: "POST",
+                url: `/admin/thongke/Get_ListPM_APP/${tungayString}/${denngayString}`,
+                dataType: 'json', // Đảm bảo dữ liệu trả về là JSON
+                success: function (res) {
+                    console.log("ketqua phieu muon list ", res.phieuList);
+                    var render = "";
+
+                    // Check if sachList exists and has items
+                    if (res.phieuList && res.phieuList.length > 0) {
+                        $.each(res.phieuList, function (i, item) {
+                            let tinhTrangText = "";
+
+                            // Log giá trị của tinhTrang và hanTra để kiểm tra
+                            console.log("tinhTrang:", item.tinhtrang);
+                            if (item.tinhtrang == false) {
+
+                                tinhTrangText = "Chưa trả";
+                            }
+
+                            else {
+                                tinhTrangText = "Đã trả";
+
+                            }
+                            render += '<tr class="ncc-row" aria-expanded="false" data-widget="expandable-table" data-ma-sach=' + item.maPM + '>';
+                            render += '<td>' + item.maPM + '</td>';
+                            render += '<td>' + item.maThe + '</td>';
+                            render += '<td>' + item.ngayMuon + '</td>';
+                            render += '<td>' + tinhTrangText + '</td>';
+                            render += '</tr>';
+                        });
+                    } else {
+                        // Display message if no items found
+                        render += '<tr><td colspan="3">Không có phiếu mượn trong khoảng thời gian này</td></tr>';
+                    }
+
+
+
+                    let danhSachsachnhap = document.getElementById("tablePhieuMuon");
+                    danhSachsachnhap.innerHTML = render;
+                },
+                error: function (status) {
+                    alert("Không tìm thấy dữ liệu");
+                }
+            });
+        }
+
+        function loadPhieuTras() {
+            var tungayString = document.getElementById("tuNgay").value;
+            var denngayString = document.getElementById("denNgay").value;
+            var tungay = new Date(tungayString);
+            var denngay = new Date(denngayString);
+            var today = new Date();
+
+            // Validate dates
+            if (tungayString === "" || denngayString === "") {
+                alert("Vui lòng nhập cả hai ngày.");
+                init();
+                return;
+            }
+
+            if (tungay > denngay) {
+                alert("Từ ngày phải nhỏ hơn hoặc bằng đến ngày.");
+                init();
+                return;
+            }
+
+            if (denngay > today) {
+                alert("Đến ngày không hợp lệ");
+                init();
+                return;
+            }
+            $.ajax({
+                type: "POST",
+                url: `/admin/thongke/Get_PhieuTra_APP/${tungayString}/${denngayString}`,
+                dataType: 'json', // Ensure the returned data is JSON
+                success: function (res) {
+                    console.log("kt qua tra:", res);
+
+                    // Check if res contains sachList and it has the expected properties
+                    if (res && res.phieuList && res.phieuList.soLuong !== undefined) {
+                        var render = "";
+                        render += '<tr class="ncc-row" aria-expanded="false" data-widget="expandable-table" data-ma-sach="' + res.phieuList.soLuong + '">';
+                        render += '<td>' + res.phieuList.soLuong + '</td>';
+                        render += '</tr>';
+
+                        let danhSachsachnhap = document.getElementById("tablePT");
+                        danhSachsachnhap.innerHTML = render;
+                    } else {
+                        console.error("Response does not contain expected properties:", res);
+                        alert("Không tìm thấy dữ liệu phù hợp.");
+                    }
+                },
+                error: function (status) {
+                    alert("Không tìm thấy dữ liệu");
+                    console.error("Error status:", status);
+                }
+            });
+        }
+
+        function loadListPTs() {
+            var tungay = new Date(tungayString);
+            var denngay = new Date(denngayString);
+            var today = new Date();
+
+            // Validate dates
+            if (tungayString === "" || denngayString === "") {
+                alert("Vui lòng nhập cả hai ngày.");
+                init();
+                return;
+            }
+
+            if (tungay > denngay) {
+                alert("Từ ngày phải nhỏ hơn hoặc bằng đến ngày.");
+                init();
+                return;
+            }
+
+            if (denngay > today) {
+                alert("Đến ngày không hợp lệ");
+                init();
+                return;
+            }
+            var tungayString = document.getElementById("tuNgay").value;
+            var denngayString = document.getElementById("denNgay").value;
+
+            $.ajax({
+                type: "POST",
+                url: `/admin/thongke/Get_ListPT_APP/${tungayString}/${denngayString}`,
+                dataType: 'json', // Đảm bảo dữ liệu trả về là JSON
+                success: function (res) {
+                    console.log("ketqua phieu tra list ", res.phieuList);
+                    var render = "";
+                    // Check if sachList exists and has items
+                    if (res.phieuList && res.phieuList.length > 0) {
+                        $.each(res.phieuList, function (i, item) {
+
+                            render += '<tr class="ncc-row" aria-expanded="false" data-widget="expandable-table" data-ma-sach=' + item.maPM + '>';
+                            render += '<td>' + item.maPT + '</td>';
+                            render += '<td>' + item.maThe + '</td>';
+                            render += '<td>' + item.ngayTra + '</td>';
+                            
+                            render += '</tr>';
+                        });
+                    } else {
+                        // Display message if no items found
+                        render += '<tr><td colspan="3">Không có phiếu mượn trong khoảng thời gian này</td></tr>';
+                    }
+
+
+
+                    let danhSachsachnhap = document.getElementById("tablePhieuTra");
+                    danhSachsachnhap.innerHTML = render;
+                },
+                error: function (status) {
+                    alert("Không tìm thấy dữ liệu");
+                }
+            });
+        }
+
+        function loadDGmuons() {
+            var tungay = new Date(tungayString);
+            var denngay = new Date(denngayString);
+            var today = new Date();
+
+            // Validate dates
+            if (tungayString === "" || denngayString === "") {
+                alert("Vui lòng nhập cả hai ngày.");
+                init();
+                return;
+            }
+
+            if (tungay > denngay) {
+                alert("Từ ngày phải nhỏ hơn hoặc bằng đến ngày.");
+                init();
+                return;
+            }
+
+            if (denngay > today) {
+                alert("Đến ngày không hợp lệ");
+                init();
+                return;
+            }
+            var tungayString = document.getElementById("tuNgay").value;
+            var denngayString = document.getElementById("denNgay").value;
+
+            $.ajax({
+                type: "POST",
+                url: `/admin/thongke/Get_DocGiaMuon_APP/${tungayString}/${denngayString}`,
+                dataType: 'json', // Đảm bảo dữ liệu trả về là JSON
+                success: function (res) {
+                    console.log("ketqua doc gia muon ", res.dgList);
+                    var render = "";
+                    // Check if sachList exists and has items
+                    if (res.dgList && res.dgList.length > 0) {
+                        $.each(res.dgList, function (i, item) {
+
+                            render += '<tr class="ncc-row" aria-expanded="false" data-widget="expandable-table" data-ma-sach=' + item.maDG + '>';
+                            render += '<td>' + item.maThe + '</td>';
+                            render += '<td>' + item.hoTenDg + '</td>';
+                            render += '<td>' + item.soLuong + '</td>';
+
+                            render += '</tr>';
+                        });
+                    } else {
+                        // Display message if no items found
+                        render += '<tr><td colspan="3">Không có độc giả mượn sách trong khoảng thời gian này</td></tr>';
+                    }
+
+
+                    let danhSachsachnhap = document.getElementById("tableDGMuon");
+                    danhSachsachnhap.innerHTML = render;
+                },
+                error: function (status) {
+                    alert("Không tìm thấy dữ liệu");
+                }
+            });
+        }
+
+        function loadDGDKs() {
+            var tungay = new Date(tungayString);
+            var denngay = new Date(denngayString);
+            var today = new Date();
+
+            // Validate dates
+            if (tungayString === "" || denngayString === "") {
+                alert("Vui lòng nhập cả hai ngày.");
+                init();
+                return;
+            }
+
+            if (tungay > denngay) {
+                alert("Từ ngày phải nhỏ hơn hoặc bằng đến ngày.");
+                init();
+                return;
+            }
+
+            if (denngay > today) {
+                alert("Đến ngày không hợp lệ");
+                init();
+                return;
+            }
+            var tungayString = document.getElementById("tuNgay").value;
+            var denngayString = document.getElementById("denNgay").value;
+
+            $.ajax({
+                type: "POST",
+                url: `/admin/thongke/Get_DocGiaDki_APP/${tungayString}/${denngayString}`,
+                dataType: 'json', // Đảm bảo dữ liệu trả về là JSON
+                success: function (res) {
+                    console.log("Đoc gia dang ky: ", res);
+
+                    var render = "";
+
+                    // Check if sachList exists and has items
+                    if (res.dgList && res.dgList.length > 0) {
+                        $.each(res.dgList, function (i, item) {
+                            render += '<tr class="ncc-row" aria-expanded="false" data-widget="expandable-table" data-ma-sach="' + item.maDG + '">';
+                            render += '<td>' + item.maThe + '</td>';
+                            render += '<td>' + item.hoTenDg + '</td>';
+                            render += '<td>' + item.ngayDki + '</td>';
+                            render += '</tr>';
+                        });
+                    } else {
+                        // Display message if no items found
+                        render += '<tr><td colspan="3">Không có độc giả đăng ký trong khoảng thời gian này</td></tr>';
+                    }
+
+                    let danhSachsachnhap = document.getElementById("tableDGDK");
+                    danhSachsachnhap.innerHTML = render;
+                },
+                error: function (status) {
+                    alert("Không tìm thấy dữ liệu");
+                    console.error("Error status:", status);
+                }
+            });
+        }
+
+        function tienthu() {
+            var tungayString = document.getElementById("tuNgay").value;
+            var denngayString = document.getElementById("denNgay").value;
+            var tungay = new Date(tungayString);
+            var denngay = new Date(denngayString);
+            var today = new Date();
+
+            // Validate dates
+            if (tungayString === "" || denngayString === "") {
+                alert("Vui lòng nhập cả hai ngày.");
+                init();
+                return;
+            }
+
+            if (tungay > denngay) {
+                alert("Từ ngày phải nhỏ hơn hoặc bằng đến ngày.");
+                init();
+                return;
+            }
+
+            if (denngay > today) {
+                alert("Đến ngày không hợp lệ");
+                init();
+                return;
+            }
+            // Gọi hàm AJAX khi trang được tải
+            $.ajax({
+                type: "POST",
+                url: `/admin/thongke/Get_Money_APP/${tungayString}/${denngayString}`,
+                dataType: 'json', // Đảm bảo dữ liệu trả về là JSON
+                success: function (res) {
+                    console.log("ketqua sach nhap ", res.doanhthuList);
+                    // Gọi hàm renderChart với dữ liệu nhận được từ controller
+                    renderChart(res.doanhthuList.totalTheDocGia, res.doanhthuList.totalThanhLy, res.doanhthuList.totalTraSach);
+                },
+                error: function (err) {
+                    console.log(err);
+                }
+            });
+        }
+
+        function renderChart(tienViPham, tienThanhLy, tienDangKyThe) {
+            var chart = new CanvasJS.Chart("chartContainer", {
+                animationEnabled: true,
+                title: {
+                    text: "Thống kê Tiền Thu"
+                },
+                data: [{
+                    type: "pie",
+                    startAngle: 240,
+                    yValueFormatString: "##0.00\"đ\"",
+                    indexLabel: "{label} {y}",
+                    dataPoints: [
+                        { y: tienViPham, label: "Tiền Vi Phạm" },
+                        { y: tienThanhLy, label: "Tiền Thanh Lý" },
+                        { y: tienDangKyThe, label: "Tiền Đăng Ký Thẻ" }
+                    ]
+                }]
+            });
+            chart.render();
+        }
+
+        function doanhthu() {
+            var tungayString = document.getElementById("tuNgay").value;
+            var denngayString = document.getElementById("denNgay").value;
+            var tientongthu = 0;
+            var tungay = new Date(tungayString);
+            var denngay = new Date(denngayString);
+            var today = new Date();
+
+            // Validate dates
+            if (tungayString === "" || denngayString === "") {
+                alert("Vui lòng nhập cả hai ngày.");
+                init();
+                return;
+            }
+
+            if (tungay > denngay) {
+                alert("Từ ngày phải nhỏ hơn hoặc bằng đến ngày.");
+                init();
+                return;
+            }
+
+            if (denngay > today) {
+                alert("Đến ngày không hợp lệ");
+                init();
+                return;
+            }
+            // Gọi hàm AJAX khi trang được tải
+            $.ajax({
+                type: "POST",
+                url: `/admin/thongke/Get_Money_APP/${tungayString}/${denngayString}`,
+                dataType: 'json', // Đảm bảo dữ liệu trả về là JSON
+                success: function (res) {
+                    console.log("ketqua sach nhap ", res.doanhthuList);
+                    // Gọi hàm renderChart với dữ liệu nhận được từ controller
+                    tientongthu = res.doanhthuList.totalTheDocGia + res.doanhthuList.totalThanhLy + res.doanhthuList.totalTraSach;
+                    renderChart2(tientongthu, res.doanhthuList.totalNhapSach);
+                },
+                error: function (err) {
+                    console.log(err);
+                }
+            });
+        }
+
+        function renderChart2(tienthu, tienchi) {
+            var chart = new CanvasJS.Chart("chartContainer2", {
+                animationEnabled: true,
+                title: {
+                    text: "Thống kê Thu-Chi"
+                },
+                data: [{
+                    type: "pie",
+                    startAngle: 240,
+                    yValueFormatString: "##0.00\"đ\"",
+                    indexLabel: "{label} {y}",
+                    dataPoints: [
+                        { y: tienthu, label: "Tiền Thu" },
+                        { y: tienchi, label: "Tiền Chi" },
+                    ]
+                }]
+            });
+            chart.render();
+        }
+
+    </script>
+}

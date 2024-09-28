@@ -1,0 +1,456 @@
+﻿@using WebAPI.DTOs
+@model IEnumerable<WebAPI.DTOs.SachDTO>
+
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.active = 3;
+
+}
+
+@{
+    int currentPage = ViewBag.CurrentPage ?? 1;
+    int totalPages = ViewBag.TotalPages ?? 1;
+}
+
+<!-- Search Start -->
+<div class="container-fluid bg-primary mb-5 wow fadeIn" data-wow-delay="0.1s" style="padding: 35px;">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="row g-2">
+
+                <!-- Search Input and Button -->
+                <div class="row g-2 justify-content-end">
+                    <div class="col-md-auto mb-3" style="width: 40%;">
+                        <div class="input-group">
+                            <input id="searchInput" type="text" class="form-control border-0 py-3" placeholder="Search Keyword">
+                            <button class="btn btn-dark border-0 py-3" onclick="TimKiem()">Tìm kiếm</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-2 justify-content-between">
+                    <div class="col-md-3">
+                        <label for="TheLoai" style="font-weight: bold">Thể loại</label>
+                        <select id="theLoaiSelect" class="form-select border-0 py-3">
+                            <option value="All">Tất cả</option>
+                            <option value="Truyện thiếu nhi">Truyện thiếu nhi</option>
+                            <option value="Tiểu thuyết">Tiểu thuyết</option>
+                            <option value="Kỹ năng sống">Kỹ năng sống</option>
+                            <option value="Ngôn tình">Ngôn tình</option>
+                            <option value="Sách giáo khoa">Sách giáo khoa</option>
+                            <option value="Sách ngoại ngữ">Sách ngoại ngữ</option>
+                            <option value="Truyện ngắn">Truyện ngắn</option>
+                            <option value="Văn học">Sách ngoại ngữ</option>
+                            <option value="Sách tham khảo">Sách tham khảo</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label for="NgonNgu" style="font-weight: bold">Ngôn ngữ</label>
+                        <select id="ngonNguSelect" class="form-select border-0 py-3">
+                            <option value="All">Tất cả</option>
+                            <option value="Tiếng việt">Tiếng Việt</option>
+                            <option value="Tiếng anh">Tiếng Anh</option>
+                            <option value="Tiếng trung">Tiếng Trung</option>
+                            <option value="Tiếng pháp">Tiếng Pháp</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label for="NamXB" style="font-weight: bold">Năm xuất bản</label>
+                        <select id="namXBSelect" class="form-select border-0 py-3">
+                            <option value="All">Tất cả</option>
+                            <!-- Script to generate years dynamically -->
+                            <script>
+                                var currentYear = new Date().getFullYear();
+                                for (var i = currentYear; i >= 1940; i--) {
+                                    document.write('<option value="' + i + '">' + i + '</option>');
+                                }
+                            </script>
+                        </select>
+                    </div>
+                    <!-- Filter Button -->
+                    <div class="col-md-3 align-self-end">
+                        <button class="btn btn-dark border-0 w-100 py-3" onclick="LocSach()">Lọc</button>
+                    </div>
+                </div>
+
+
+            </div>
+
+
+
+        </div>
+    </div>
+</div>
+<!-- Search End -->
+<!-- Property List Start -->
+<div class="container-xxl py-5 mx-auto">
+    <div class="container">
+        <div class="row g-4 justify-content-center">
+            <div class="col-lg-12">
+                <!-- You can add a heading here if needed -->
+            </div>
+        </div>
+
+
+        <div class="tab-content">
+
+            @*             <div id="tab-1" class="tab-pane fade show p-0 active">*@
+            <div id="resultContainer" class="row g-4 ">
+
+                @* Lấy ra thông tin sách *@
+                @foreach (SachDTO item in Model)
+                {
+
+                    // Chuyển đổi đường dẫn ảnh
+                    string urlImage = item.UrlImage.Replace("~\\", "/").Replace("\\", "/");
+
+                    <!-- Display each book -->
+                    <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="0.1s">
+                        <div style="width: 300px; height: 400px; overflow: hidden; position: relative;">
+                            <!-- Khung chứa ảnh -->
+                            @*                             <div class="property-item rounded overflow-hidden">*@
+
+                            <div class="position-relative overflow-hidden" style="width: 100%; height: 100%;">
+                                <a href=""><img class="img-fluid" src="@urlImage" style="width: 100%; height: 100%; object-fit: cover;" alt=""></a>
+                            </div>
+
+
+                            <!-- Hiển thị số lượng sách -->
+                            <div id="soLuongSachNo_@item.MaSach" class="bg-primary rounded text-white position-absolute start-0 top-0 m-2 mt-0 py-0 px-1" style="z-index: 0;">Số lượng: @item.SoLuongHientai</div>
+                            <small id="soLuongSach_@item.MaSach" hidden>@item.SoLuongHientai</small>
+
+                            <!-- Hiển thị thông tin về thể loại với nền đỏ và cách lề trên là 4 -->
+                            <div id="theLoai_@item.MaSach" class="bg-danger rounded text-white position-absolute start-0 top-0 m-2 mt-4 py-0 px-1" style="z-index: 1;">@item.TheLoai</div>
+
+                            <!-- Phần thông tin về sách -->
+                            <div class="bg-white rounded-bottom text-primary" style="position: absolute; bottom: 0; left: 0; width: 100%; background-color: rgba(255, 255, 255, 0.7); padding: 10px;">
+                                <a class="d-block h5 mb-2" href="">@item.TenSach</a>
+                                <h6 class="text-primary mb-3">--@item.TacGia--</h6>
+
+                                @if (item.SoLuongHientai > 5)
+                                {
+                                    <button id="ThueSach" class="btn btn-outline-primary active" data-bs-toggle="pill" onclick="ThueSach('@item.MaSach', '@item.TenSach')">Thuê sách</button>
+                                }
+                                else
+                                {
+                                    <button class="btn btn-outline-primary " data-bs-toggle="pill">Tạm ngừng mượn</button>
+                                }
+
+                            </div>
+
+                        </div>
+                    </div>
+                }
+
+
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Property List End -->
+@*Đoạn code hiển thị bảng phân trang*@
+<ul class="pagination justify-content-center" style="margin-top: 50px;">
+
+    <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+        <a class="page-link" href="@Url.Action("Index", new { page = currentPage - 1 })">
+            &laquo; Trang trước
+        </a>
+    </li>
+
+    @for (int i = 1; i <= totalPages; i++)
+    {
+        <li class="page-item @(currentPage == i ? "active" : "")">
+            <a class="page-link" href="@Url.Action("Index", new { page = i })">@i</a>
+        </li>
+    }
+
+    <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+        <a class="page-link" href="@Url.Action("Index", new { page = currentPage + 1 })">
+            Trang tiếp theo &raquo;
+        </a>
+    </li>
+</ul>
+
+<!-- Thêm dropdown và modal để chọn số lượng sách đăng ký mượn -->
+<div id="dangKyDialog" class="modal fade" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 id="maSachDisplay" class="modal-title"></h5>
+            </div>
+            <div class="modal-body">
+                <label for="soLuong">Quý khách vui lòng chọn tối đa 2 quyển sách cùng loại</label>
+                <label for="soLuong">Chọn số lượng sách:</label>
+                <input type="number" id="soLuong" min="1" max="2" class="form-control" onkeydown="validateInput(event, 2)" />
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="DangKyMuon()">Đăng ký</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal error-->
+<div class="modal fade" id="ModalError" tabindex="-1" role="dialog" aria-labelledby="ModalError" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-body text-center bg-danger" style="color: black;">
+                <span class="" id="contentModalError"></span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal success-->
+<div class="modal fade" id="ModalSuccess" tabindex="-1" role="dialog" aria-labelledby="ModalSuccess" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-body text-center" style="background-color: green; color: black;">
+                <span class="" id="contentModalSuccess"></span>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+
+    <script>
+    function validateInput(event, maxQuantity) {
+        // Ngăn chặn nhập ký tự không phải số
+        if (!isNumericInput(event)) {
+            event.preventDefault();
+        }
+        // Ngăn chặn nhập 'e' hoặc 'E'
+        if (event.key === 'e' || event.key === 'E') {
+            event.preventDefault();
+        }
+        // Kiểm tra giá trị sau khi nhập để đảm bảo nó nằm trong phạm vi cho phép
+        let inputValue = event.target.value + event.key;
+        if (inputValue < 0 || inputValue > maxQuantity) {
+            event.preventDefault();
+        }
+    }
+
+    function isNumericInput(event) {
+        const key = event.key;
+        // Chỉ cho phép các phím số từ '0' đến '2', phím Backspace, Delete và các phím mũi tên
+        return (key >= '0' && key <= '2') || key === 'Backspace' || key === 'Delete' || key === 'ArrowLeft' || key === 'ArrowRight';
+    }
+        /////////////////////// Đăng ký mượn sách /////////////////////////////
+        function ThueSach(maSach, tenSach) {
+            // Lưu mã sách vào biến toàn cục để sử dụng sau này
+            selectedMaSach = maSach;
+
+            // Hiển thị giá trị của maSach trong modal
+            $('#maSachDisplay').text('Đăng ký mượn sách: ' + tenSach);
+
+            // Hiển thị modal
+            $('#dangKyDialog').modal('show');
+        }
+
+        function DangKyMuon() {
+
+            // Lấy giá trị từ dropdown
+            var soLuongMuon = parseInt($('#soLuong').val());
+            var soLuongSachHienTai = parseInt($('#soLuongSach_' + selectedMaSach).text());
+
+            console.log("So luong muon:", soLuongMuon);    // Kiểm tra dữ liệu
+            console.log("maSach:", selectedMaSach);    // Kiểm tra dữ liệu
+            console.log("So luong sach hien tai :", soLuongSachHienTai);    // Kiểm tra dữ liệu
+
+            // Kiểm tra xem số sách muốn mượn có nằm trong khoảng từ 1 đến số sách hiện tại hay không (ví dụ)
+
+            if (!isNaN(soLuongMuon) && !isNaN(soLuongSachHienTai) && (soLuongMuon <= (soLuongSachHienTai - 5))) {
+                if (soLuongMuon < 1) {
+                    document.getElementById("contentModalError").innerHTML = "Số lượng không phù hợp! Vui lòng kiểm tra lại";
+                    $("#ModalError").modal("show");
+                } else {
+                    console.log("Số lượng sách mượn hợp lệ");
+
+                    $.ajax({
+                        url: "/BorrowBook/Borrow",
+                        type: "POST",
+                        data: {
+                            maSach: selectedMaSach,
+                            soLuongMuon: soLuongMuon,
+                            soLuongSachHienTai: soLuongSachHienTai
+                        },
+                        success: function (data) {
+
+                            if (data.success) {
+                                // Xử lý khi đăng ký thành công
+                                document.getElementById("contentModalSuccess").innerHTML = "Bạn đã đăng ký thành công!";
+                                $("#ModalSuccess").modal("show");
+
+                                // Đóng modal sau khi đăng ký
+                                $('#dangKyDialog').modal('hide');
+
+
+        @*                         // lấy ra số lượng sách trước khi mượn
+                                    var soLuongSachTruocMuon = $('#soLuongSach_' + selectedMaSach).text();
+                                    // lấy ra số lượng sách sau khi mượn
+                                    var soLuongSachSauMuon = soLuongSachTruocMuon - soLuongMuon;
+
+                                    // kiểm tra dữ liệu
+                                    console.log("Số lượng sách trước mượn: ", soLuongSachTruocMuon);
+                                    console.log("Số lượng sách mượn: ", soLuongMuon);
+                                    console.log("Số lượng sách sau mượn: ", soLuongSachSauMuon);
+
+
+                                    // Kiểm tra nếu soLuongSachSauMuon không phải là số hoặc bé hơn hoặc bằng 0
+                                    if (isNaN(soLuongSachSauMuon) || soLuongSachSauMuon <= 0) {
+                                    console.log("Hết số lượng hoặc có lỗi, số lượng sách sau mượn: ", soLuongSachSauMuon);
+                                    // Xoá phần tử HTML tương ứng
+                                    $("#sachMuon_" + selectedMaSach).remove();
+                                    } else {
+                                    console.log("Còn số lượng: ", soLuongSachSauMuon);
+                                    // Nếu không, cập nhật số lượng sách mượn
+                                    $("#soLuongSachNo_" + selectedMaSach).html("Số lượng: " + soLuongSachSauMuon.toString());
+
+                                    } *@
+                                        } else {
+                                document.getElementById("contentModalError").innerHTML = data.message;
+                                $("#ModalError").modal("show");
+                            }
+
+
+                        },
+                        error: function (result) {
+                            // Xử lý khi có lỗi
+                            document.getElementById("contentModalError").innerHTML = "Đã xảy ra lỗi! " + result.error;
+                            $("#ModalError").modal("show");
+                        }
+                    });
+                }
+            } else {
+                document.getElementById("contentModalError").innerHTML = "Xin lỗi quý khách! Số lượng sách còn lại tại Thư viện đã đạt giới hạn tối thiểu";
+                $("#ModalError").modal("show");
+            }
+        }
+
+
+
+
+        ///////////////////////////// Tìm kiếm dựa trên search ////////////////////////////////////
+        function TimKiem() {
+            console.log("Function TimKiem called");
+            // Lấy giá trị từ ô input
+            var search = $("#searchInput").val();
+            console.log("dữ liệu nhận vào: ", search);
+
+            // Gửi yêu cầu AJAX đến action "SearchBook" trên controller "Book"
+            $.ajax({
+                url: "/Book/SearchBook",
+                type: "POST",
+                data: { tenSach: search },
+                success: function (result) {
+                    // Xử lý dữ liệu JSON và cập nhật nội dung trangs
+                    console.log("Phản hồi từ server:", result);
+                    console.log("Danh sách sách nhận được từ server:", result.sachList);
+
+                    if (result.success) {
+                        UpdateView(result.sachList);
+                    } else {
+                        document.getElementById("contentModalError").innerHTML = result.message;
+                        $("#ModalError").modal("show");
+                    }
+                },
+                error: function (result) {
+                    console.log("Lỗi khi gửi yêu cầu AJAX:", result);
+                }
+            });
+        }
+
+        ///////////////////////////// Tìm kiếm dựa trên lọc yêu cầu ////////////////////////////////////
+
+        function LocSach() {
+            console.log("Function LocSach called");
+            // Lấy giá trị từ ô lọc
+            var theLoai = document.getElementById("theLoaiSelect");
+            var ngonNgu = document.getElementById("ngonNguSelect");
+            var namXB = document.getElementById("namXBSelect");
+            console.log("Thể loại chọn:", theLoai.value);
+            console.log("Ngôn ngữ chọn:", ngonNgu.value);
+            console.log("Năm xuất bản chọn:", namXB.value);
+
+            // Gửi yêu cầu AJAX đến action "LocYeuCau" trên controller "ThueSach"
+            $.ajax({
+                url: "/Book/GetBookByCategory",
+                type: "POST",
+                data:
+                {
+                    ngonNgu: ngonNgu.value,
+                    theLoai: theLoai.value,
+                    namXB: namXB.value,
+                },
+                success: function (result) {
+                    // Xử lý dữ liệu JSON và cập nhật nội dung trang
+                    console.log("Phản hồi từ server:", result);
+                    console.log("sachList:", result.sachList);
+
+                    if (result.success) {
+                        UpdateView(result.sachList);
+                    } else {
+                        document.getElementById("contentModalError").innerHTML = result.message;
+                        $("#ModalError").modal("show");
+                    }
+                },
+                error: function (result) {
+                    console.log("Lỗi khi gửi yêu cầu AJAX:", result);
+                }
+            });
+        }
+
+        function UpdateView(result) {
+            $("#resultContainer").empty();
+            console.log("Hàm updateView đang thực hiện");
+            console.log("Đầu vào của hàm updateView:", result);
+
+            $.each(result, function (index, item) {
+                console.log("Item: ", item);
+
+                // Chuyển đổi đường dẫn từ dạng ~\img_web\Tho_bay_mau.jpg sang /img_web/Tho_bay_mau.jpg
+                var urlImage = item.urlImage.replace('~', '');
+
+                console.log("urlImage: ", urlImage);
+
+                // Chuyển đổi chuỗi HTML thành mã Razor
+                var newHtml = $(`
+                                                                                  <!-- Display each book -->
+                                                            <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="0.1s">
+                                                                <div style="width: 300px; height: 400px; overflow: hidden; position: relative;">
+                                                                    <!-- Khung chứa ảnh -->
+        @*                             <div class="property-item rounded overflow-hidden">*@
+
+                                                                    <div class="position-relative overflow-hidden" style="width: 100%; height: 100%;">
+                                                                            <a href=""><img class="img-fluid" src="${urlImage}" style="width: 100%; height: 100%; object-fit: cover;" alt=""></a>
+                                                                    </div>
+
+
+                                                                    <!-- Hiển thị số lượng sách -->
+                                                                            <div id="soLuongSachNo_${item.maSach}" class="bg-primary rounded text-white position-absolute start-0 top-0 m-2 mt-0 py-0 px-1" style="z-index: 0;">Số lượng: ${item.soLuongHientai}</div>
+                                                                            <small id="soLuongSach_${item.maSach}" hidden>${item.soLuongHientai}</small>
+
+                                                                    <!-- Hiển thị thông tin về thể loại với nền đỏ và cách lề trên là 4 -->
+                                                                            <div id="theLoai_${item.maSach}" class="bg-danger rounded text-white position-absolute start-0 top-0 m-2 mt-4 py-0 px-1" style="z-index: 1;">${item.theLoai}</div>
+
+                                                                    <!-- Phần thông tin về sách -->
+                                                                    <div class="bg-white rounded-bottom text-primary" style="position: absolute; bottom: 0; left: 0; width: 100%; background-color: rgba(255, 255, 255, 0.7); padding: 10px;">
+                                                                            <a class="d-block h5 mb-2" href="">${item.tenSach}</a>
+                                                                            <h6 class="text-primary mb-3">--${item.tacGia}--</h6>
+                                                                                <button id="ThueSach" class="btn btn-outline-primary active" data-bs-toggle="pill" onclick="ThueSach('${item.maSach}', '${item.tenSach}')">Thuê sách</button>
+                                                                    </div>
+
+                                                                </div>
+                                                            </div>
+                                                                    `);
+
+                $("#resultContainer").append(newHtml);
+            });
+        }
+
+    </script>

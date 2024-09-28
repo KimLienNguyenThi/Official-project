@@ -1,0 +1,126 @@
+﻿@model WebApp.DTOs.LoginDgDTO
+
+@{
+    ViewData["Title"] = "Register";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h1>Đăng ký tài khoản</h1>
+
+<hr />
+<div class="row justify-content-center" >
+    <div class="col-md-4">
+        <form style="max-width: 400px; margin: 5px auto; border: 1px solid #009999; background-color: #CCFFFF; padding: 20px; border-radius: 5px;">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="@Model.Sdt" class="control-label"></label>
+                <input id="phoneNumber" asp-for="@Model.Sdt" class="form-control" />
+                <span asp-validation-for="@Model.Sdt" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="PasswordDg" class="control-label"></label>
+                <input id="password" asp-for="PasswordDg" class="form-control" />
+                <span asp-validation-for="PasswordDg" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="HoTen" class="control-label"></label>
+                <input id="username" asp-for="HoTen" class="form-control" />
+                <span asp-validation-for="HoTen" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Email" class="control-label"></label>
+                <input id="email" asp-for="Email" class="form-control" />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+            <div>
+                <button onclick="Register()" type="button" class="btn btn-primary">Đăng ký</button>
+            </div>
+            <div>
+                <a asp-action="Index">Quay về</a>
+            </div>
+        </form>
+    </div>
+
+   
+
+</div>
+
+
+
+
+<!-- Modal -->
+<div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="successModalLabel">Thành công!</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Đăng ký thành công.
+            </div>
+            <div class="modal-footer">
+                <button id="buttonCloseModal" type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="failModal" tabindex="-1" aria-labelledby="failModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="failModalLabel">Đăng ký thất bại</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Tài khoản đã tồn tại!
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+    <script>
+
+        document.getElementById("buttonCloseModal").addEventListener("click", function () {
+            window.location.href = '/Home/Index';
+        });
+
+        function Register() {
+            console.log("Function Login called");
+            // Lấy giá trị từ ô input
+            var phoneNumber = $("#phoneNumber").val();
+            console.log("dữ liệu nhận vào: ", phoneNumber);
+            var password = $("#password").val();
+            console.log("dữ liệu nhận vào: ", password);
+            var username = $("#username").val();
+            console.log("dữ liệu nhận vào: ", username);
+            var email = $("#email").val();
+            console.log("dữ liệu nhận vào: ", email);
+
+            $.ajax({
+                url: "/User/Register",
+                type: "POST",
+                data:
+                {
+                    phoneNumber: phoneNumber,
+                    password: password,
+                    username: username,
+                    email: email
+                },
+                success: function (result) {
+
+                    if (result.success) {
+                        $('#successModal').modal('show');
+                    }
+                },
+                error: function (result) {
+                    $('#failModal').modal('show');
+                }
+            });
+        }
+    </script>

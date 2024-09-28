@@ -1,0 +1,1115 @@
+﻿@{
+    ViewBag.Title = "Nhập sách";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+}
+
+
+<!-- Hiển thị danh sách NhanViens -->
+<section class="content">
+    <div class="container-fluid pt-4">
+        <div class="row">
+
+            <!-- Tạo phiếu nhập sách -->
+            <div class="col-8" style="height: 80vh;">
+                <div class="card" style="height: 100%;">
+                    <div class="card-header">
+                        <div class="form-row">
+                            <div class="col-6">
+                                <h3 class="text-center text-blue text-bold"> Nhập Sách </h3>
+                            </div>
+                            <div class="">
+                                <button type="submit" class="btn btn-primary taoPhieuNhap" id="taoPhieuNhap" onclick="taoPhieuNhap()">Tạo phiếu nhập</button>
+                            </div>
+                            <div class="pl-2 pr-2">
+                                <button type="button" class="btn btn-warning lamMoiSach" id="lamMoiButton" onclick="lamMoi()">Làm mới</button>
+                            </div>
+                            <div class="">
+                                <button type="button" class="btn btn-primary themSachMoiButton" id="themSachMoiButton" onclick="showInputThemSachMoi()">Thêm sách mới</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body" style="overflow-y: auto;">
+                        <form>
+
+                            <div class="form-row">
+                                <!--Mã nhà cung cấp-->
+                                <div class="form-group col">
+                                    <label for="name">Mã NCC:</label>
+                                    <input type="text" class="form-control" id="MaNCC" name="MaNCC" readonly>
+                                </div>
+
+                                <!--Mã nhân viên-->
+                                <div class="form-group col">
+                                    <label for="MaNhanVien">Mã NV:</label>
+                                    <input type="text" class="form-control" id="MaNhanVien" name="MaNhanVien" value="@User.FindFirst("MaNV")?.Value" readonly>
+                                </div>
+
+                                <!--Ngày nhập sách-->
+                                <div class="form-group col">
+                                    <label for="NgayNhap">Ngày nhập:</label>
+                                    <input type="date" class="form-control" id="NgayNhap" name="NgayNhap" readonly>
+                                </div>
+
+                                <!--SDT nhà cc-->
+                                <div class="form-group col">
+                                    <label for="SDT">Số điện thoại:</label>
+                                    <input type="text" class="form-control" id="SDT" name="SDT" readonly>
+                                </div>
+                            </div>
+
+                            <!--Tên nhà cung cấp-->
+                            <div class="form-row">
+                                <div class="form-group col">
+                                    <label for="TenNCC">Tên nhà cung cấp:</label>
+                                    <input type="text" class="form-control" id="TenNCC" name="TenNCC" readonly>
+                                </div>
+
+                            </div>
+
+                            <!-- Địa chỉ-->
+                            <div class="form-row">
+                                <div class="form-group col-8">
+                                    <label for="DiaChi">Địa chỉ:</label>
+                                    <input type="text" class="form-control" id="DiaChi" name="DiaChi" readonly>
+                                </div>
+
+                                <div class="form-group col-4">
+                                    <label for="tongTienPhuThu">Tổng tiền:</label>
+                                    <input type="text" class="form-control" id="tongTienPhuThu" name="tongTienPhuThu" readonly>
+
+                                </div>
+
+                            </div>
+
+                            <!--Danh sách sách nhập-->
+                            <div class="text-center">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Mã</th>
+                                            <th>Tên</th>
+                                            <th>T/loại</th>
+                                            <th>T/giả</th>
+                                            <th>N/ngữ</th>
+                                            <th>NhàXB</th>
+                                            <th>NămXB</th>
+                                            <th>S/Lượng</th>
+                                            <th>Giá/1</th>
+                                            <th>Thao tác</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="danhSachSachNhap">
+                                       
+                                    </tbody>
+                                </table>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sách và Thông tin nhà cung cấp -->
+            <div class="col-4">
+                <div class="card">
+                    <div class="card-header">
+                        <!--btn thông tin nhà cung cấp-->
+                        <button id="thongTinNCCButton" class="btn btn-primary" onclick="changeTableShow(thongTinNCCTable, thongTinSachTable)">
+                            Thông Tin NCC
+                        </button>
+
+                        <!--btn thông tin sách-->
+                        <button id="thongTinSachButton" class="btn btn-primary" onclick="changeTableShow(thongTinSachTable, thongTinNCCTable)">
+                            Sách có sẵn
+                        </button>
+
+                        <!--btn thêm nhà cung cấp-->
+                        <button id="themNCCButton" class="btn btn-secondary" onclick="btnShowModalThemNCC()">
+                            Thêm NCC
+                        </button>
+
+
+                    </div>
+
+                    <!--Form search-->
+                    <div class="card-tools">
+                        @* <div class="input-group input-group-sm pt-2" style="width: 100%">
+                        <input type="text"
+                        name="table_search"
+                        class="form-control float-right"
+                        placeholder="Search" id="inputSearch" onkeypress="handleKeyPress(event)" />
+
+                        <div class="input-group-append">
+                        <button type="submit" onclick="search()" class="btn btn-default">
+                        <i class="fas fa-search"></i>
+                        </button>
+                        </div> *@
+                    </div>
+                    <!--<!--Body table sách-->
+                    <div class="card-body table-responsive p-0"
+                         style="height: 72vh" id="thongTinSachTable">
+                        <table id="danhSachSach"  class="table table-head-fixed table-hover table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Mã</th>
+                                    <th>Tên sách</th>
+                                    <th>Nhập</th>
+                                </tr>
+                            </thead>
+                            
+                        </table>
+                    </div>
+                    <!--Body table ncc-->
+                    <div class="card-body table-responsive p-0"
+                         style="height: 72vh" id="thongTinNCCTable">
+                        <table id="danhSachNCC" class="table table-head-fixed table-hover table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Mã</th>
+                                    <th>Tên NCC</th>
+                                    <th>SDT</th>
+                                    <th>Địa chỉ</th>
+                                </tr>
+                            </thead>
+                            
+                        </table>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Modal hiển thị chi tiết sách -->
+<div class="modal fade bd-example-modal-lg" id="showChiTietSachModal" tabindex="-1" role="dialog" aria-labelledby="showChiTietSachModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+
+            <!-- Header -->
+            <div class="modal-header text-center">
+                <h4 class="modal-title w-100 text-blue" style="font-weight: bold;" id="">Chi Tiết Sách</h4>
+            </div>
+
+            <!-- Body -->
+            <form class="modal-body p-4">
+                <div class="form-row">
+                    <!--Mã sách-->
+                    <div class="form-group col">
+                        <label>Mã sách:</label>
+                        <input class="form-control" id="maSachModal" readonly>
+                    </div>
+
+                    <!--Số lượng hiện tại-->
+                    <div class="form-group col">
+                        <label>S/Lượng hiện tại:</label>
+                        <input class="form-control" id="soLuongHienTaiModal" readonly>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <!--Tên sách-->
+                    <div class="form-group col">
+                        <label>Tên sách:</label>
+                        <input class="form-control" id="tenSachModal" readonly>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <!--Thể loại-->
+                    <div class="form-group col">
+                        <label>Thể loại:</label>
+                        <input class="form-control" id="theLoaiModal" readonly>
+                    </div>
+
+                    <!--ngôn ngữ-->
+                    <div class="form-group col">
+                        <label>Ngôn ngữ:</label>
+                        <input class="form-control" id="ngonNguModal" readonly>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <!--Tác giả-->
+                    <div class="form-group col">
+                        <label>Tác giả:</label>
+                        <input class="form-control" id="tacGiaModal" readonly>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <!--Nhà xuất bản-->
+                    <div class="form-group col">
+                        <label>Nhà xuất bản:</label>
+                        <input class="form-control" id="nhaXuatBanModal" readonly>
+                    </div>
+
+                    <!--Năm xuất bản-->
+                    <div class="form-group col">
+                        <label>Năm xuất bản:</label>
+                        <input class="form-control" id="namXuatBanModal" readonly>
+                    </div>
+                </div>
+
+            </form>
+
+            <!-- Footer -->
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal"> Đóng </button>
+                <button type="button" class="btn btn-primary" onclick="nhapThemSoLuongVaGiaSach()"> Thêm sách </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Modal nhập thông tin sách mới-->
+<div class="modal fade bd-example-modal-lg" id="inputSachModal" tabindex="-1" role="dialog" aria-labelledby="inputSachModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+
+            <!-- Header -->
+            <div class="modal-header text-center">
+                <h4 class="modal-title w-100 text-blue" style="font-weight: bold;" id="">Nhập thông tin Sách</h4>
+            </div>
+
+            <!-- Body -->
+            <form class="modal-body p-4">
+
+                <div class="form-row">
+                    <!--Tên sách-->
+                    <div class="form-group col">
+                        <label>Tên sách:</label>
+                        <input class="form-control" id="inputTenSachModal">
+                    </div>
+
+                    <!--Tác giả-->
+                    <div class="form-group col">
+                        <label>Tác giả:</label>
+                        <input class="form-control" id="inputTacGiaModal">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <!--Thể loại-->
+                    <div class="form-group col">
+                        <label>Thể loại:</label>
+                        <select class="form-control" id="inputTheLoaiModal">
+                            <option>Chọn thể loại</option>
+                            <option value="Truyện ngắn">Truyện ngắn</option>
+                            <option value="Truyện thiếu nhi">Truyện thiếu nhi</option>
+                            <option value="Tiểu thuyết">Tiểu thuyết</option>
+                            <option value="Ngôn tình">Ngôn tình</option>
+                            <option value="Sách giáo khoa">Sách giáo khoa</option>
+                            <option value="Sách tham khảo">Sách tham khảo</option>
+                            <option value="Văn học">Văn học</option>
+                            <option value="Sách ngoại ngữ">Sách ngoại ngữ</option>
+                            <option value="Kỹ năng sống">Kỹ năng sống</option>
+                        </select>
+                    </div>
+
+                    <!--ngôn ngữ-->
+                    <div class="form-group col">
+                        <label>Ngôn ngữ:</label>
+                        <select class="form-control" id="inputNgonNguModal">
+                            <option>Chọn ngôn ngữ</option>
+                            <option value="Tiếng việt">Tiếng việt</option>
+                            <option value="Tiếng anh">Tiếng anh</option>
+                            <option value="Tiếng hàn">Tiếng hàn</option>
+                            <option value="Tiếng trung">Tiếng trung</option>
+                            <option value="Tiếng pháp">Tiếng pháp</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <!--Nhà xuất bản-->
+                    <div class="form-group col">
+                        <label>Nhà xuất bản:</label>
+                        <input class="form-control" id="inputNhaXuatBanModal">
+                    </div>
+
+                    <!--Năm xuất bản-->
+                    <div class="form-group col">
+                        <label for="inputNamXuatBanModal">Năm xuất bản:</label>
+                        <select class="form-control" id="inputNamXuatBanModal">
+                            <option value="">Chọn năm xuất bản</option>
+                            <script>
+                                var currentYear = new Date().getFullYear();
+                                var startYear = 1500;
+                                for (var year = currentYear; year >= startYear; year--) {
+                                    document.write('<option value="' + year + '">' + year + '</option>');
+                                }
+                            </script>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <!--Số lượng-->
+                    <div class="form-group col">
+                        <label>Số lượng:</label>
+                        <input type="number" class="form-control" id="inputSoLuongModal" onkeydown="validateInput(event, inputSoLuongModal)">
+                    </div>
+
+                    <!--Giá sách-->
+                    <div class="form-group col">
+                        <label>Giá / 1 sách:</label>
+                        <input type="number" class="form-control" id="inputGiaSachModal" onkeydown="validateInput(event, inputGiaSachModal)">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <!-- Hiển thị hình ảnh -->
+                    <div class="form-group">
+                        <label>Hình ảnh:</label>
+                        <input type="file" class="form-control-file" id="inputHinhAnhModal" accept="image/*" onchange="hienThiAnh()">
+                        <img id="hinhAnhPreview" class="img-fluid mt-2" style="max-height: 200px;" alt="Hình ảnh preview">
+                    </div>
+
+
+                    <!-- Mô tả -->
+                    <div class="form-group col">
+                        <label>Mô tả:</label>
+                        <textarea class="form-control" id="inputMoTaModal" rows="3"></textarea>
+                    </div>
+                </div>
+
+            </form>
+
+            <!-- Footer -->
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal"> Đóng </button>
+                <button type="button" class="btn btn-primary" onclick="themSachMoi()"> Thêm sách </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Modal nhập số lượng và giá để thêm sách có sẵn-->
+<div class="modal fade" id="ThemSachCoSanModal" tabindex="-1" role="dialog" aria-labelledby="ThemSachCoSanModal" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title text-primary col-8" style="font-weight:bold;">Nhập thông tin</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="form-group">
+                        <label class="col-form-label">Số lượng sách muốn nhập thêm:</label>
+                        <input type="number" class="form-control" id="SoLuongSachThemModal" name="SoLuongSachThemModal" placeholder="Nhập số lượng" onkeydown="validateInput(event, SoLuongSachThemModal)">
+                    </div>
+                    <div class="form-group">
+                        <label class="col-form-label">Giá sách của 1 cuốn:</label>
+                        <input type="number" class="form-control" id="GiaSachThemModal" name="GiaSachThemModal" placeholder="Nhập giá 1 cuốn" onkeydown="validateInput(event, GiaSachThemModal)">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary" onclick="themSachCoSan()">Thêm</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Thêm nhà cung cấp-->
+<div class="modal fade" id="ThemNccModal" tabindex="-1" role="dialog" aria-labelledby="ThemNccModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title text-primary col-8" style="font-weight:bold;">Thêm Nhà Cung Cấp</h4>
+                <div class="col-3">
+                    <button type="button" class="btn btn-warning lamMoiSach" id="lamMoiButtonModal" onclick="LamMoiNCC()">Làm mới</button>
+                </div>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="form-group">
+                        <label class="col-form-label">Tên nhà cung cấp:</label>
+                        <input type="text" class="form-control" id="TenNccModal">
+                    </div>
+                    <div class="form-group">
+                        <label class="col-form-label">Số điện thoại:</label>
+                        <input type="text" class="form-control" id="SdtNccModal" onkeydown="validateInput(event, SdtNccModal)">
+                    </div>
+                    <div class="form-group">
+                        <label class="col-form-label">Địa chỉ:</label>
+                        <input type="text" class="form-control" id="DiaChiNccModal">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary" onclick="btnThemNCC()">Thêm</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal error-->
+<div class="modal fade" id="ModalError" tabindex="-1" role="dialog" aria-labelledby="ModalError" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-body text-center bg-danger">
+                <span class="" id="contentModalError"></span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal success-->
+<div class="modal fade" id="ModalSuccess" tabindex="-1" role="dialog" aria-labelledby="ModalSuccess" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-body text-center bg-green">
+                <span class="" id="contentModalSuccess"></span>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section scripts
+{
+    <script>
+      
+        var listSachNhap = [];
+        //khong cho nhap chu
+        function validateInput(event, maxQuantity) {
+            // Prevent input of non-numeric characters
+            if (!isNumericInput(event)) {
+                event.preventDefault();
+            }
+            // Prevent input of 'e' or 'E'
+            if (event.key === 'e' || event.key === 'E') {
+                event.preventDefault();
+            }
+            // Ensure the input is within the allowed range (0 to maxQuantity)
+            let inputValue = event.target.value;
+            if (inputValue < 0 || inputValue > maxQuantity) {
+                event.preventDefault();
+            }
+        }
+        function isNumericInput(event) {
+            const key = event.key;
+            return (key >= '0' && key <= '9') || key === 'Backspace' || key === 'Delete' || key === 'ArrowLeft' || key === 'ArrowRight';
+        }
+        
+        function init() {
+            // Lấy ngày hiện tại
+            var currentDate = new Date();
+
+            // Định dạng ngày hiện tại thành chuỗi YYYY-MM-DD
+            var formatCurrentDate = currentDate.toISOString().slice(0, 10);
+
+            // Set ngày mượn là ngày hiện tại
+            document.getElementById("NgayNhap").value = formatCurrentDate;
+            document.getElementById("tongTienPhuThu").value = "0";
+
+            // Mặc định chọn nút "Thông tin đơn vị"
+            changeTableShow(thongTinNCCTable, thongTinSachTable);    
+        }
+        $(document).ready(function () {
+            init();
+        });
+        function lamMoi() {
+            document.getElementById("MaNCC").value = "";
+            document.getElementById("TenNCC").value = "";
+            document.getElementById("SDT").value = "";
+            document.getElementById("DiaChi").value = "";
+            document.getElementById("tongTienPhuThu").value = "0";
+            listSachNhap = [];
+            let danhSachSachNhap = document.getElementById("danhSachSachNhap");
+            danhSachSachNhap.innerHTML = "";
+            changeTableShow(thongTinNCCTable, thongTinSachTable);
+        }
+
+        function LamMoiNCC() {
+            document.getElementById("TenNccModal").value = "";
+            document.getElementById("SdtNccModal").value = "";
+            document.getElementById("DiaChiNccModal").value = "";
+        }
+
+        function changeTableShow(tableToShow, tableToHide) {
+            tableToShow.style.display = "block";
+            tableToHide.style.display = "none";
+
+            if (thongTinNCCTable.style.display == "block" && thongTinSachTable.style.display == "none") {
+                loadNCCs();
+            }
+            if (thongTinSachTable.style.display == "block" && thongTinNCCTable.style.display == "none") {
+               // loadDVTLs();
+                loadsachs();
+            }
+
+        }
+
+        //===================== Hàm show don vi thanh ly =====================
+        function loadNCCs() {
+            if ($.fn.DataTable.isDataTable('#danhSachNCC')) {
+                $('#danhSachNCC').DataTable().clear().destroy();
+            }
+            $('#danhSachNCC').DataTable(
+                {
+                    processing: true,
+                    serverSide: true,
+                    paging: true,
+                    searching: true,
+                    searchDelay: 700,
+                    scrollY: false,
+                    iDisplayLength: 4,
+                    bLengthChange: false,
+                    language: {
+                        info: "Hiển thị _START_ đến _END_ của _TOTAL_ mục",
+                        lengthMenu: "Hiển thị _MENU_ mục",
+                        search: "Tìm kiếm",
+                        processing: "Đang tải dữ liệu...",
+                        paginate: {
+                            previous: "Trước",
+                            next: "Tiếp theo",
+                            last: "Cuối"
+                        }
+                    },
+
+                    ajax: {
+                        url: "/admin/nhapsach/GetListNCCPaging_APP",
+
+                        type: "POST",
+                        contentType: "application/json; charset=utf-8",
+                        dataType: "json",
+                        beforeSend: function () {
+                            // Optional: Show loading indicator
+                        },
+                        data: function (data) {
+                            var danhSachNCCA = $("#danhSachNCC").DataTable();
+                            var settings = danhSachNCCA.settings();
+                            var currentPageIndex = Math.ceil(settings[0]._iDisplayStart / settings[0]._iDisplayLength) + 1;
+                            var request = {
+                                PageSize: 4,
+                                Page: currentPageIndex,
+                                Keyword: $('.dt-search input[type="search"]').val()
+                            };
+                            return JSON.stringify(request);
+                        },
+                        dataSrc: function (res) {
+                            console.log("ket qua NCC: ", res.nccList);
+
+                            if (res.success && res.nccList != null) {
+                                return res.nccList.results;
+                            } else {
+                                return [];
+                            }
+                        },
+                        dataFilter: function (data) {
+                            var page = $.parseJSON(data);
+                            if (!page.success || page.nccList == null) {
+                                page.recordsTotal = 0;
+                                page.recordsFiltered = 0;
+                                return JSON.stringify(page);
+                            }
+                            page.recordsTotal = page.nccList.rowCount || 0;
+                            page.recordsFiltered = page.nccList.rowCount || 0;
+                            return JSON.stringify(page);
+                        },
+                        error: function (status) {
+                            // Handle error
+                        }
+                    },
+                    columns: [
+                        { data: "maNcc", width: "15%" },
+                        { data: "tenNcc", width: "25%" },
+                        { data: "sdtNcc", width: "25%" },
+                        { data: "diaChiNcc", width: "35% " },
+
+                    ],
+                    columnDefs: [{
+                        "defaultContent": "-",
+                        "targets": "_all"
+                    }]
+                });
+        }
+
+        $('body').on('click', '#danhSachNCC tbody tr', function () {
+            // Lấy DataTable
+            var table = $('#danhSachNCC').DataTable();
+
+            // Lấy dữ liệu của hàng được click
+            var rowData = table.row(this).data();
+            document.getElementById("MaNCC").value = rowData.maNcc;
+            document.getElementById("TenNCC").value = rowData.tenNcc;
+            document.getElementById("SDT").value = rowData.sdtNcc;
+            document.getElementById("DiaChi").value = rowData.diaChiNcc;
+
+        });
+        
+        function loadsachs() {
+            if ($.fn.DataTable.isDataTable('#danhSachSach')) {
+                $('#danhSachSach').DataTable().clear().destroy();
+            }
+            $('#danhSachSach').DataTable(
+                {
+                    processing: true,
+                    serverSide: true,
+                    paging: true,
+                    searching: true,
+                    searchDelay: 700,
+                    scrollY: false,
+                    iDisplayLength: 6,
+                    bLengthChange: false,
+                    language: {
+                        info: "Hiển thị _START_ đến _END_ của _TOTAL_ mục",
+                        lengthMenu: "Hiển thị _MENU_ mục",
+                        search: "Tìm kiếm",
+                        processing: "Đang tải dữ liệu...",
+                        paginate: {
+                            previous: "Trước",
+                            next: "Tiếp theo",
+                            last: "Cuối"
+                        }
+                    },
+
+                    ajax: {
+                        url: "/admin/nhapsach/GetListSachPaging_APP",
+
+                        type: "POST",
+                        contentType: "application/json; charset=utf-8",
+                        dataType: "json",
+                        beforeSend: function () {
+                            // Optional: Show loading indicator
+                        },
+                        data: function (data) {
+                            var danhSachSachA = $("#danhSachSach").DataTable();
+                            var settings = danhSachSachA.settings();
+                            var currentPageIndex = Math.ceil(settings[0]._iDisplayStart / settings[0]._iDisplayLength) + 1;
+                            var request = {
+                                PageSize: 6,
+                                Page: currentPageIndex,
+                                Keyword: $('.dt-search input[type="search"]').val()
+                            };
+                            return JSON.stringify(request);
+                        },
+                        dataSrc: function (res) {
+                            thongTinSachTableDatas = res.sachList.results;
+
+                            console.log("ket qua sach: ", res.sachList);
+
+                            if (res.success && res.sachList != null) {
+
+                                return res.sachList.results;
+                            } else {
+                                return [];
+                            }
+                        },
+                        dataFilter: function (data) {
+                            var page = $.parseJSON(data);
+                            if (!page.success || page.sachList == null) {
+                                page.recordsTotal = 0;
+                                page.recordsFiltered = 0;
+                                return JSON.stringify(page);
+                            }
+                            page.recordsTotal = page.sachList.rowCount || 0;
+                            page.recordsFiltered = page.sachList.rowCount || 0;
+                            return JSON.stringify(page);
+                        },
+                        error: function (status) {
+                            // Handle error
+                        }
+
+                    },
+                    columns: [
+                        { name: 'first', data: "maSach", width: "25%" },
+                        { data: "tenSach", width: "55%" },
+                        {
+                            className: 'dt-control',
+                            orderable: false,
+                            data: null,
+                            defaultContent: ''
+                        }
+                       
+                    ],
+                    rowGroup: {
+                        endRender: function (rows, group) {
+                            return group + ' (' + rows.count() + ' rows)';
+                        }
+                    },
+                    columnDefs: [{
+
+                        "defaultContent": "-",
+                        "targets": "_all"
+                    }]
+                });
+            $('#danhSachSach').on('click', 'td.dt-control', function () {
+                $("#showChiTietSachModal").modal("show");
+
+                var rowData = $('#danhSachSach').DataTable().row($(this).closest('tr')).data();
+
+                $("#maSachModal").val(rowData.maSach);
+                $("#tenSachModal").val(rowData.tenSach);
+                $("#theLoaiModal").val(rowData.theLoai);
+                $("#tacGiaModal").val(rowData.tacGia);
+                $("#nhaXuatBanModal").val(rowData.nxb);
+                $("#namXuatBanModal").val(rowData.namXb);
+                $("#ngonNguModal").val(rowData.ngonNgu);
+                $("#soLuongHienTaiModal").val(rowData.soLuongHientai);
+              
+            });
+        }
+        
+        //===================== show Thêm Sách có sẵn  =====================
+        function nhapThemSoLuongVaGiaSach() {
+            document.getElementById("SoLuongSachThemModal").value = "";
+            document.getElementById("GiaSachThemModal").value = "";
+            $("#ThemSachCoSanModal").modal("show");
+        }
+        //=====================  btn Thêm Sách sẵn  =====================
+        function themSachCoSan() {
+            ThemSachV2(
+                "maSachModal", "tenSachModal", "theLoaiModal",
+                "ngonNguModal", "tacGiaModal", "nhaXuatBanModal",
+                "namXuatBanModal", "SoLuongSachThemModal", "GiaSachThemModal"
+            );
+           
+        }
+
+        //===================== show view Thêm sách mới =====================
+        function showInputThemSachMoi() {
+            document.getElementById("inputTenSachModal").value = "";
+            document.getElementById("inputTheLoaiModal").value = "Chọn thể loại";
+            document.getElementById("inputNgonNguModal").value = "Chọn ngôn ngữ";
+            document.getElementById("inputTacGiaModal").value = "";
+            document.getElementById("inputNhaXuatBanModal").value = "";
+            document.getElementById("inputNamXuatBanModal").value = "Chọn năm xuất bản";
+
+            document.getElementById("inputSoLuongModal").value = "";
+            document.getElementById("inputGiaSachModal").value = "";
+            $("#inputSachModal").modal("show");
+        }
+        //=====================  btn Thêm Sách mới  =====================
+        function themSachMoi() {
+            ThemSachV2(
+                "", "inputTenSachModal", "inputTheLoaiModal",
+                "inputNgonNguModal", "inputTacGiaModal", "inputNhaXuatBanModal",
+                "inputNamXuatBanModal", "inputSoLuongModal", "inputGiaSachModal"
+            );
+            
+        }
+
+        function hienThiAnh() {
+            var input = document.getElementById('inputHinhAnhModal');
+            var imgPreview = document.getElementById('hinhAnhPreview');
+
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+
+                reader.onload = function (e) {
+                    imgPreview.src = e.target.result;
+                };
+
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+
+        var maSachMoi = -1;
+
+        function ThemSachV2(idMaSach, idTenSach, idTheLoai, idNgonNgu, idTacGia, idNhaXB, idNamXB, idSoLuong, idGiaSach) {
+            var maSach
+            idMaSach == "maSachModal" ? maSach = document.getElementById(idMaSach).value : maSach = maSachMoi--;
+            var tenSach = document.getElementById(idTenSach).value;
+            var theLoai = document.getElementById(idTheLoai).value;
+            var ngonNgu = document.getElementById(idNgonNgu).value;
+            var tacGia = document.getElementById(idTacGia).value;
+            var nhaXB = document.getElementById(idNhaXB).value;
+            var namXB = document.getElementById(idNamXB).value;
+
+            var soLuong = document.getElementById(idSoLuong).value;
+            var giaSach = document.getElementById(idGiaSach).value;
+
+            if (!tenSach.trim() || !theLoai.trim() || !ngonNgu.trim() || !tacGia.trim() || !nhaXB.trim() || !namXB.trim()) {
+                document.getElementById("contentModalError").innerHTML = "Hãy nhập đủ thông tin sách!";
+                $("#ModalError").modal("show");
+            } else if (!Number.isInteger(Number(soLuong)) || soLuong <= 0) {
+                document.getElementById("contentModalError").innerHTML = "Hãy nhập đúng số lượng sách nhập!";
+                $("#ModalError").modal("show");
+            } else if (isNaN(giaSach) || giaSach <= 0) {
+                document.getElementById("contentModalError").innerHTML = "Hãy nhập đúng giá sách!";
+                $("#ModalError").modal("show");
+            } else {
+                if (maSach < 0) { //sach mới
+                    var input = document.getElementById('inputHinhAnhModal');
+                    var moTa = document.getElementById("inputMoTaModal").value;
+
+                    if (!input.files || !input.files[0]) {
+                        document.getElementById("contentModalError").innerHTML = "Hãy chọn ảnh sách!";
+                        $("#ModalError").modal("show");
+                    } else if (!moTa.trim()) {
+                        document.getElementById("contentModalError").innerHTML = "Hãy nhập mô tả sách!";
+                        $("#ModalError").modal("show");
+                    } else {
+                        var file = input.files[0];
+                      
+
+                        var index = listSachNhap.findIndex((element) => element.maSach == maSach);
+                        if (index == -1) { // không tìm thấy
+                           
+                            var newSach = {
+                                maSach: maSach,
+                                tenSach: tenSach,
+                                theLoai: theLoai,
+                                tacGia: tacGia,
+                                nhaXB: nhaXB,
+                                namXB: namXB,
+                                soLuong: soLuong,
+                                giaSach: giaSach,
+                                ngonNgu: ngonNgu,
+                                fileImage: file,
+                                moTa: moTa,
+                               ThanhTien: giaSach * soLuong // Tính tổng giá tiền
+                            };
+                            listSachNhap.push(newSach);
+                            console.log("sach nhap nhap moi 1 : ", listSachNhap);
+                        } else {
+
+                            listSachNhap[index].giaSach = giaSach;
+                            listSachNhap[index].soLuong = soLuong;
+                            listSachNhap[index].ThanhTien += giaSach * soLuong; // Cập nhật tổng giá tiền
+                            console.log("sach nhap moi 2 : ", listSachNhap);
+                        }
+                    }
+                } else { // sach có sẵn
+                    var index = listSachNhap.findIndex((element) => element.maSach == maSach);
+                    if (index == -1) { // không tìm thấy
+                       
+                        var newSach = {
+                            maSach: maSach,
+                            tenSach: tenSach,
+                            theLoai: theLoai,
+                            tacGia: tacGia,
+                            nhaXB: nhaXB,
+                            namXB: namXB,
+                            soLuong: soLuong,
+                            giaSach: giaSach,
+                            ngonNgu: ngonNgu,
+                            ThanhTien: giaSach * soLuong // Tính tổng giá tiền
+                        };
+                        listSachNhap.push(newSach);
+                        console.log("sach nhap co san 1 : ", listSachNhap);
+                    } else {
+
+                        listSachNhap[index].giaSach = giaSach;
+                        listSachNhap[index].soLuong = soLuong;
+                       listSachNhap[index].ThanhTien += giaSach * soLuong; // Cập nhật tổng giá tiền
+                        console.log("sach nhap co san 2 : ",listSachNhap);
+                    }
+                }
+                $("#inputSachModal").modal("hide");
+                $("#ThemSachCoSanModal").modal("hide");
+                $("#showChiTietSachModal").modal("hide");
+                    renderListSachNhap();
+                updateTongTien();
+            }
+        }
+
+        function renderListSachNhap() {
+            var danhSachSachNhap = $("#danhSachSachNhap");
+            // Xóa nội dung bảng
+            danhSachSachNhap.empty();
+            $.each(listSachNhap, function (index, item) {
+                //var masachCell = item.maSach < 0 ? 'New' : item.maSach;
+                var newRow = $(`
+                                  <tr class="sachNhap-row" data-ma-sach="${item.maSach}">
+                                    <td>${item.maSach < 0 ? 'New' : item.maSach}</td>
+                                    <td>${item.tenSach}</td>
+                                    <td>${item.theLoai}</td>
+                                    <td>${item.tacGia}</td>
+                                    <td>${item.ngonNgu}</td>
+                                    <td>${item.nhaXB}</td>
+                                    <td>${item.namXB}</td>
+                                    <td>${item.soLuong}</td>
+                                    <td>${item.giaSach}</td>
+                                    <td>
+                                      <button type="button" class="btn btn-danger xoaSachNhap" id="xoaSachNhap" onclick="xoaSachNhapV2('${item.maSach}')">Xóa</button>
+                                    </td>
+                                  </tr>
+                                `);
+
+
+                danhSachSachNhap.append(newRow);
+            });
+        }
+        function xoaSachNhapV2(maSach) {
+            var index = listSachNhap.findIndex((element) => element.maSach == maSach);
+            if (index != -1) {
+                var isDeleting = confirm("Bạn có chắc chắn muốn xóa sách ra khỏi danh sách nhập!");
+                if (isDeleting) {
+                    listSachNhap.splice(index, 1);
+                    renderListSachNhap();
+                    console.log("sach nhap sau khi xoa:   " ,listSachNhap);
+                }
+                updateTongTien();
+            }
+        }
+       
+        //===================== Hàm show modal nha cung cap  =====================
+        function btnShowModalThemNCC() {
+            $("#ThemNccModal").modal("show");
+        }
+
+        function btnThemNCC() {
+            var tenNcc = document.getElementById("TenNccModal").value;
+            var sdtNcc = document.getElementById("SdtNccModal").value;
+            var diaChiNcc = document.getElementById("DiaChiNccModal").value;
+
+            var nccValues = {
+                TenNcc: tenNcc,
+                SdtNcc: sdtNcc,
+                DiaChiNcc: diaChiNcc
+            };
+
+            if (!tenNcc || !sdtNcc || !diaChiNcc) {
+                document.getElementById("contentModalError").innerHTML = "Thông tin nhà cung cấp  không được để trống!";
+                $("#ModalError").modal("show");
+            } else {
+                var phoneRegex = /^\d{10,11}$/;
+                if (!phoneRegex.test(sdtNcc)) {
+                    document.getElementById("contentModalError").innerHTML = "Hãy nhập đúng định dạng số điện thoại!";
+                    $("#ModalError").modal("show");
+                } else {
+                    var confirmed = confirm("Bạn có chắc muốn thêm nhà cung cấp không?");
+                    if (confirmed) {
+                        $.ajax({
+                            url: "/admin/nhapsach/ThemNCC_APP",
+                            type: 'POST',
+                            contentType: "application/json",
+                            dataType: "json",
+                            data: JSON.stringify(nccValues),
+                            success: function (response) {
+                                if (response.success) {
+                                    document.getElementById("TenNccModal").value = "";
+                                    document.getElementById("SdtNccModal").value = "";
+                                    document.getElementById("DiaChiNccModal").value = "";
+
+                                    document.getElementById("contentModalSuccess").innerHTML = "Thêm đơn vị thành công";
+                                    $("#ModalSuccess").modal("show");
+                                    $("#ThemNccModal").modal("hide");
+                                    loadNCCs();
+                                    console.log("ncc: ", response);
+                                } else {
+
+                                    document.getElementById("contentModalError").innerHTML = response.message;
+                                    $("#ModalError").modal("show");
+                                }
+                            },
+                            error: function () {
+                                alert("Lỗi khi gửi yêu cầu đến máy chủ.");
+                            }
+                        });
+                    }
+                }
+            }
+        }
+
+        //===================== Hàm tạo phiếu nhập =====================
+        function taoPhieuNhap() {
+            var maNCC = document.getElementById("MaNCC").value;
+            var maNhanVien = document.getElementById("MaNhanVien").value;
+            var ngayNhap = document.getElementById("NgayNhap").value;
+            if (maNCC == "" || maNCC == 'undefined') {
+                alert("Vui lòng chọn nhà cung cấp.");
+                return;
+            }
+            if (listSachNhap == null || listSachNhap.length == 0) {
+                alert("Vui lòng chọn sách nhập.");
+                return;
+            }
+
+            // var dataPost = {
+            //     MaNhanVien: maNhanVien,
+            //     NgayNhap: ngayNhap,
+            //     MaNhaCungCap: maNCC,
+            //     listSachNhap: listSachNhap,
+            // };
+
+            var formData = new FormData();
+            formData.append('MaNhaCungCap', maNCC);
+            formData.append('MaNhanVien', maNhanVien);
+            formData.append('NgayNhap', ngayNhap);
+
+            listSachNhap.forEach((item, index) => {
+
+                formData.append('listSachNhap[' + index + '].maSach', item.maSach);
+                formData.append('listSachNhap[' + index + '].tenSach', item.tenSach);
+                formData.append('listSachNhap[' + index + '].theLoai', item.theLoai);
+                formData.append('listSachNhap[' + index + '].ngonNgu', item.ngonNgu);
+                formData.append('listSachNhap[' + index + '].tacGia', item.tacGia);
+                formData.append('listSachNhap[' + index + '].nhaXB', item.nhaXB);
+                formData.append('listSachNhap[' + index + '].soLuong', item.soLuong);
+                formData.append('listSachNhap[' + index + '].namXB', item.namXB);
+                formData.append('listSachNhap[' + index + '].giaSach', item.giaSach);
+                formData.append('listSachNhap[' + index + '].fileImage', item.fileImage);
+                formData.append('listSachNhap[' + index + '].moTa', item.moTa);
+                console.log(index + JSON.stringify(item));
+
+            });
+
+
+            var confirmed = confirm("Bạn có chắc muốn tạo phiếu nhập không?");
+            if (confirmed) {
+                $.ajax({
+                    type: "POST",
+                    url: "/admin/nhapsach/PhieuNhap_APP",
+                   // data: JSON.stringify(dataPost),
+                    contentType: 'multipart/form-data',
+                    processData: false,
+                    contentType: false,
+                    data: formData,
+                    //contentType: "application/json; charset=utf-8",
+                    //dataType: "json",
+                    success: function (response) {
+                        if (response.success) {
+                            document.getElementById("contentModalSuccess").innerHTML = "Thêm phiếu nhập thành công!";
+                            $('#danhSachNCC').DataTable().ajax.reload();
+                            $("#ModalSuccess").modal("show");
+                            listSachNhap = [];
+                            lamMoi();
+
+                            console.log('Tạo phiếu nhập: ', response);
+                        } else {
+                            document.getElementById("contentModalError").innerHTML = "Vui lòng nhập đầy đủ thông tin!";
+                            $("#ModalError").modal("show");
+                            console.log('Tạo phiếu nhập: ', response);
+                        }
+                    },
+                    error: function () {
+                        alert("Lỗi khi gửi yêu cầu đến máy chủ.");
+                    }
+                });
+            }
+        }
+        function updateTongTien() {
+            var tongTienPhuThu = 0;
+
+            // Lặp qua từng phần tử trong mảng sachValues và tính tổng tiền
+            listSachNhap.forEach(function (sach) {
+                if (!isNaN(sach.ThanhTien)) {
+                    tongTienPhuThu += sach.ThanhTien;
+                }
+            });
+
+            // Hiển thị tổng tiền trong trường "Tổng tiền"
+            document.getElementById("tongTienPhuThu").value = formatMoney(tongTienPhuThu);
+        }
+
+        // Hàm format tiền
+        function formatMoney(number) {
+            return number.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' });
+        }
+    </script>
+}

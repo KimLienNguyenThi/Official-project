@@ -1,0 +1,99 @@
+﻿@using WebAPI.DTOs
+@model IEnumerable<WebAPI.DTOs.SachDTO>
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.active = 1;
+}
+<!-- Header Start -->
+<div class="container-fluid header bg-white p-0">
+    <div class="row g-0 align-items-center flex-column-reverse flex-md-row">
+        <div class="col-md-6 p-5 mt-lg-5" style="margin-top:130px">
+            @* <h6 class="display-5 animated fadeIn mb-4">Việc đọc rất quan trọng. <span class="text-primary">Nếu bạn biết cách đọc,</span> cả thế giới sẽ mở ra cho bạn.</h6> *@
+            <h6 class="display-5 animated fadeIn mb-4">
+                <span style="font-size: smaller;">Việc đọc rất quan trọng. </span>
+                <span class="text-primary">Nếu bạn biết cách đọc,</span>
+                <span style="font-size: smaller;">cả thế giới sẽ mở ra cho bạn.</span>
+            </h6>
+
+            <p class="animated fadeIn mb-4 pb-2">
+                Những gì sách dạy chúng ta cũng giống như lửa. Chúng ta lấy nó từ nhà hàng xóm, thắp nó trong nhà ra, đem nó truyền cho người khác và nó trở thành tài sản của tất cả mọi người.
+            </p>
+            @* <a href="" class="btn btn-primary py-3 px-5 me-3 animated fadeIn">Get Started</a> *@
+        </div>
+        <div class="col-md-6 animated fadeIn">
+            <div class="owl-carousel header-carousel">
+                <div class="owl-carousel-item">
+                    <img class="img-fluid" src="~/img_web/sach.jpg" alt="" style="height: 450px; margin-top: 130px">
+                </div>
+                <div class="owl-carousel-item">
+                    <img class="img-fluid" src="~/img_web/sach1.jpg" alt="" style="height: 450px;margin-top: 130px">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Header End -->
+<!-- About Start -->
+<div class="container-xxl py-5">
+    <div class="container">
+        <div class="row g-5 align-items-center">
+            <div class="col-lg-6 wow fadeIn" data-wow-delay="0.1s">
+                <div class="about-img position-relative overflow-hidden p-5 pe-0">
+                    <img class="img-fluid w-100" src="~/img_web/DamNghiLai.jpg">
+                </div>
+            </div>
+            <div class="col-lg-6 wow fadeIn" data-wow-delay="0.5s">
+                <h1 class="mb-4">Sách hay mỗi ngày</h1>
+                <p class="mb-4">
+                    Mười hai trong số mười lăm thành viên đội cứu hỏa đã tử nạn trong đám cháy gần đỉnh Mann Gulch vào năm 1949.
+                    Hai trong số ba người sống sót là nhờ có thể lực tốt nên kịp chạy thoát khỏi đám cháy; người còn lại, Wagner Dodge, đã thoát khỏi lưỡi hái tử thần bằng tư duy linh hoạt của mình.
+                    Những đồng đội của Wagner Dodge mất mạng vì đã hành động theo những kỹ năng và hiểu biết đã ăn sâu trong tiềm thức của họ. Dodge thì khác, anh không tìm cách dập lửa theo kiến thức tích lũy được,
+                    mà nhanh chóng nhận định tình hình và tạo ra một lối thoát hiểm bằng cách đốt trụi đám cỏ trước mặt, chặn đứng nguồn bắt lửa của đám cháy phía sau.
+                    Tưởng rằng đó là hành động điên rồ, nhưng Dodge đã thoát chết nhờ kịp thời tái tư duy.
+                    Táitưduy, theo Adam Grant, là suy nghĩ lại, cân nhắc lại quan điểm, định kiến, thậm chí là kiến thức của bản thân, cũng có thể là suy nghĩ thoát khỏi lối mòn tư duy.
+                    Cũng theo ông, để chinh phục kỹ năng này, bạn cần quên đi những gì đã học, đồng thời thiết lập và duy trì vòng lặp tái tư duy.
+                </p>
+                @*  <p><i class="fa fa-check text-primary me-3"></i>Tempor erat elitr rebum at clita</p>
+                <p><i class="fa fa-check text-primary me-3"></i>Aliqu diam amet diam et eos</p>
+                <p><i class="fa fa-check text-primary me-3"></i>Clita duo justo magna dolore erat amet</p> *@
+                <a class="btn btn-primary py-3 px-5 mt-3" href="">Read More</a>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- About End -->
+<!-- Testimonial Start -->
+<div class="container-xxl py-5">
+    <div class="container">
+        <div class="text-center mx-auto mb-5 wow fadeInUp" data-wow-delay="0.1s" style="max-width: 600px;">
+            <h1 class="mb-3">Sách nổi bật</h1>
+        </div>
+        <div class="owl-carousel testimonial-carousel wow fadeInUp" data-wow-delay="0.5s">
+
+            @foreach (SachDTO item in Model)
+            {
+                string urlImage = item.UrlImage.Replace("~\\", "/").Replace("\\", "/");
+
+                <div class="testimonial-item bg-light rounded p-3">
+                    <div class="bg-white border rounded p-4">
+                        @*                         <p>@item.Mota</p>
+                    *@                        <div class="d-flex align-items-center">
+                            <img class="img-fluid flex-shrink-0 rounded" src="@urlImage" style="width: 150px; height: 200px;">
+                            <div class="ps-3">
+                                <h4 class="fw-bold mb-1">@item.TenSach </h4>
+                                <br />
+                                <h6>@item.TacGia</h6>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+
+
+
+        </div>
+    </div>
+</div>
+<!-- Testimonial End -->
+

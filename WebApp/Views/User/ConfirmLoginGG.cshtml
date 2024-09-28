@@ -1,0 +1,78 @@
+﻿
+@{
+    ViewData["Title"] = "ConfirmLoginGG";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Tài khoản của bạn chưa được kích hoạt</h2>
+<h3>Vui lòng nhập số điện thoại để tiếp tục đăng nhập vào hệ thống</h3>
+
+<input type="text" class="form-control" id="inputSdt">
+<button onclick="ConfirmSdt()" type="button" class="btn btn-primary">Submit</button>
+
+
+<!-- Modal -->
+<div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="successModalLabel">Thành công!</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Đăng ký thành công.
+            </div>
+            <div class="modal-footer">
+                <button id="buttonCloseModal" type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="failModal" tabindex="-1" aria-labelledby="failModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="failModalLabel">Đăng ký thất bại</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Số điện thoại đã được sử dụng để đăng ký một tài khoản khác!
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <script>
+        document.getElementById("buttonCloseModal").addEventListener("click", function () {
+            window.location.href = '/Home/Index';
+        });
+
+        function ConfirmSdt() {
+            var sdt = $("#inputSdt").val();
+
+            $.ajax({
+                url: "/User/ConfirmLoginGG",
+                type: "POST",
+                data:
+                {
+                    phoneNumber: sdt,
+                },
+                success: function (result) {
+
+                    if (result.success) {
+                        $('#successModal').modal('show');
+                    } else if(!result.success) {
+                        $('#failModal').modal('show');
+                    }
+                },
+                error: function (result) {
+                    alert("ERROR");
+                }
+            });
+        }
+
+    </script>

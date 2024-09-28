@@ -1,0 +1,259 @@
+﻿@{
+    ViewBag.Title = "Kho sách";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+}
+<style>
+  
+    #motaModal {
+        word-wrap: break-word;
+    }
+    </style>
+
+<!-- Hiển thị danh sách sach -->
+<section class="content">
+    <div class="container-fluid pt-4">
+        <div class="row">
+            <!-- kho Sách -->
+            <div class="col-12" style="height: 80vh;">
+                <div class="card" style="height: 100%;">
+                    <div class="card-header">
+                        <div class="form-row">
+
+                            <div class="col-6">
+                                <h3 class="text-center text-blue text-bold"> Kho Sách </h3>
+                            </div>
+
+                            <div class="card-tools col-3">
+                            </div>
+
+                            <div class="col-3">
+                                <button type="button" class="btn btn-warning lamMoiSach" id="lamMoiButton" onclick="lamMoi()">Làm mới</button>
+                            </div>
+
+                        </div>
+                    </div>
+                    <div class="card-body table-responsive p-0">
+                        <form>
+                            <!-- hiển thị Danh sách sách-->
+                            <div class="text-center">
+                                <table id="tbldanhSachsach"
+                                       class="table table-hover table-head-fixed table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th style="text-align: center;">Mã</th>
+                                            <th style="text-align: center;">Tên sách</th>
+                                            <th style="text-align: center;">Thể loại</th>
+                                            <th style="text-align: center;">Tác giả</th>
+                                            <th style="text-align: center;">N/Ngữ</th>
+                                            <th style="text-align: center;">NhàXB</th>
+                                            <th style="text-align: center;">NămXB</th>
+                                            <th style="text-align: center;">S/Lượng</th>
+                                            <th style="text-align: center;">Xem chi tiết</th>
+                                        </tr>
+                                    </thead>
+
+                                </table>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- Modal sach-->
+
+<div class="modal fade bd-example-modal-lg" id="ModaldanhSachsach" tabindex="-1" role="dialog" aria-labelledby="exampleModalScrollableTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+
+            <!-- Header -->
+            <div class="modal-header text-center">
+                <h4 class="modal-title w-100 text-blue" style="font-weight: bold;" id="">Chi tiết sách</h4>
+            </div>
+
+            <!-- Body -->
+            <form class="modal-body p-4">
+                <div class="form-row">
+
+                    <div class="form-group col">
+                        <label>Mã sách:</label>
+                        <input class="form-control" id="maSachModal" readonly>
+                    </div>
+                    <div class="form-group col">
+                        <label>Tên sách:</label>
+                        <input class="form-control" id="tenSachModal" readonly>
+                    </div>
+                </div>
+                <div class="form-row">
+
+                    <div class="form-group col">
+                        <label>Thể loại:</label>
+                        <input class="form-control" id="theLoaiModal" readonly>
+                    </div>
+                    <div class="form-group col">
+                        <label>Tác giả:</label>
+                        <input class="form-control" id="tacGiaModal" readonly>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group col">
+                        <label>Mô tả:</label>
+                        <textarea class="form-control" id="motaModal" readonly style="height: 250px; overflow-y: auto;"></textarea>
+                    </div>
+                </div>
+
+
+            </form>
+
+            <!-- Footer -->
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal"> Đóng </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section scripts
+{
+    <script>
+        function lamMoi() {
+            // Làm mới trang
+            location.reload();
+        }     
+
+        function init() {
+            $('#tbldanhSachsach').DataTable({
+                processing: true,
+                serverSide: true,
+                paging: true,
+                search: true,
+                searching: true,
+                searchDelay: 700,
+                scrollY: false,
+                iDisplayLength: 6,
+                bLengthChange: false,
+                language: {
+                    info: "Hiển thị _START_ đến _END_ của _TOTAL_ mục",
+                    lengthMenu: "Hiển thị _MENU_ mục",
+                    search: "Tìm kiếm",
+                    processing: "Đang tải dữ liệu...",
+                    paginate: {
+                        previous: "Trước",
+                        next: "Tiếp theo",
+                        last: "Cuối"
+                    }
+                },
+
+                ajax: {
+                    url: "/admin/khosach/GetListSachPaging_APP",
+                    // url: "/phieutra/GetListPhieuMuonPaging_APP",
+
+                    type: "POST",
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    beforeSend: function () {
+                        // Optional: Show loading indicator
+                    },
+                    data: function (data) {
+                        var tbldanhSachsachA = $("#tbldanhSachsach").DataTable();
+                        var settings = tbldanhSachsachA.settings();
+                        var currentPageIndex = Math.ceil(settings[0]._iDisplayStart / settings[0]._iDisplayLength) + 1;
+                        var request = {
+                            PageSize: 6,
+                            Page: currentPageIndex,
+                            Keyword: $('.dt-search input[type="search"]').val()
+                        };
+                        return JSON.stringify(request);
+                    },
+                    dataSrc: function (res) {
+                        console.log("ket qua: ", res.sach)
+                        console.log("ket qua: ", res.sach.results)
+                        if (res.success && res.sach != null) {
+                            return res.sach.results;
+                        } else {
+                            return [];
+                        }
+                    },
+                    dataFilter: function (data) {
+                        var page = $.parseJSON(data);
+                        if (!page.success || page.sach == null) {
+                            page.recordsTotal = 0;
+                            page.recordsFiltered = 0;
+                            return JSON.stringify(page);
+                        }
+                        page.recordsTotal = page.sach.rowCount || 0;
+                        page.recordsFiltered = page.sach.rowCount || 0;
+                        return JSON.stringify(page);
+                    },
+                    error: function (status) {
+                        // Handle error
+                    }
+                },
+                columns: [
+                    { name: 'first', data: "maSach", width: "5%" },
+                    { data: "tenSach", width: "20%" },
+                    { data: "theLoai", width: "10%" },
+                    { data: "tacGia", width: "15%" },
+                    { data: "ngonNgu", width: "10%" },
+                    { data: "nxb", width: "10%" },
+                    { data: "namXb", width: "10 % " },
+                    {data: "soLuongHientai", width: "8 % " },
+                    {
+                        className: 'dt-control',
+                        orderable: false,
+                        data: null,
+                        defaultContent: ''
+                    }
+                ],
+                rowGroup: {
+                    endRender: function (rows, group) {
+                        return group + ' (' + rows.count() + ' rows)';
+                    }
+                },
+                columnDefs: [{
+                    "defaultContent": "-",
+                    "targets": "_all"
+                }],
+                initComplete: function () {
+                    // $('.dt-search input[type="search"]').unbind();
+                    //$(this.api().table().container()).find('input[type="search"]').attr('autocomplete', 'off');
+                },
+            });
+            
+        }
+        $('#tbldanhSachsach').on('click', 'td.dt-control', function () {
+            $("#ModaldanhSachsach").modal("show");
+
+            var rowData = $('#tbldanhSachsach').DataTable().row($(this).closest('tr')).data();
+
+            $("#maSachModal").val(rowData.maSach);
+            $("#tenSachModal").val(rowData.tenSach);
+            $("#theLoaiModal").val(rowData.theLoai);
+            $("#tacGiaModal").val(rowData.tacGia);
+            $("#motaModal").val(rowData.mota);
+        });
+        $(document).ready(function () {
+            init();
+        });
+
+        function sendSearchRequest(Keyword) {
+            $('#tbldanhSachsach').DataTable().ajax.reload(null, false);
+        }
+
+
+
+
+
+
+    </script>
+}
+
+
+
+
+
+
