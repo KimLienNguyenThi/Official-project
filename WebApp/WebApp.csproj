@@ -7,6 +7,17 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Areas\Admin\Models\**" />
+    <Compile Remove="Models\**" />
+    <Content Remove="Areas\Admin\Models\**" />
+    <Content Remove="Models\**" />
+    <EmbeddedResource Remove="Areas\Admin\Models\**" />
+    <EmbeddedResource Remove="Models\**" />
+    <None Remove="Areas\Admin\Models\**" />
+    <None Remove="Models\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include="wwwroot\Content\Assets\css\bootstrap.min.css" />
     <None Include="wwwroot\Content\Assets\css\style.css" />
     <None Include="wwwroot\Content\Assets\img\about-1.jpg" />
@@ -2320,11 +2331,6 @@
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.2" />
     <PackageReference Include="X.PagedList" Version="9.1.2" />
     <PackageReference Include="X.PagedList.Mvc.Core" Version="9.1.2" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Areas\Admin\Models\" />
-    <Folder Include="Models\" />
   </ItemGroup>
 
 </Project>
