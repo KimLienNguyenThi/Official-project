@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using WebAPI.Models;
-using WebAPI.Service_Admin;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,18 +21,18 @@ builder.Services.AddAutoMapper(typeof(Program));
 // Đăng ký dịch vụ cho IMapper
 builder.Services.AddScoped<IMapper, Mapper>();
 
-builder.Services.AddTransient<ThongKeService, ThongKeService>();
-builder.Services.AddTransient<PhieuTraService, PhieuTraService>();
-builder.Services.AddTransient<QuanLyPhieuTraService, QuanLyPhieuTraService>();
-builder.Services.AddTransient<QuanLyPhieuMuonService, QuanLyPhieuMuonService>();
-builder.Services.AddTransient<PhieuMuonService, PhieuMuonService>();
-builder.Services.AddTransient<KhoSachService, KhoSachService>();
-builder.Services.AddTransient<NhapSachService, NhapSachService>();
-builder.Services.AddTransient<ThanhLySachService, ThanhLySachService>();
-builder.Services.AddTransient<TheDocGiaService, TheDocGiaService>();
-builder.Services.AddTransient<ThongTinDocGiaService, ThongTinDocGiaService>();
-builder.Services.AddTransient<AccountService, AccountService>();
-builder.Services.AddTransient<DangKyMuonSachService, DangKyMuonSachService>();
+//builder.Services.AddTransient<ThongKeService, ThongKeService>();
+//builder.Services.AddTransient<PhieuTraService, PhieuTraService>();
+//builder.Services.AddTransient<QuanLyPhieuTraService, QuanLyPhieuTraService>();
+//builder.Services.AddTransient<QuanLyPhieuMuonService, QuanLyPhieuMuonService>();
+//builder.Services.AddTransient<PhieuMuonService, PhieuMuonService>();
+//builder.Services.AddTransient<KhoSachService, KhoSachService>();
+//builder.Services.AddTransient<NhapSachService, NhapSachService>();
+//builder.Services.AddTransient<ThanhLySachService, ThanhLySachService>();
+//builder.Services.AddTransient<TheDocGiaService, TheDocGiaService>();
+//builder.Services.AddTransient<ThongTinDocGiaService, ThongTinDocGiaService>();
+//builder.Services.AddTransient<AccountService, AccountService>();
+//builder.Services.AddTransient<DangKyMuonSachService, DangKyMuonSachService>();
 
 
 var app = builder.Build();

@@ -2324,6 +2324,7 @@
 
   <ItemGroup>
     <Folder Include="Areas\Admin\Models\" />
+    <Folder Include="Models\" />
   </ItemGroup>
 
 </Project>
