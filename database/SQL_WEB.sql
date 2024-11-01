@@ -231,6 +231,13 @@ CREATE TABLE ChiTietDk (
 	CONSTRAINT CHITIETDK_MADK_MASACH PRIMARY KEY (MADK, MASACH)
 );
 
+CREATE TABLE QuyDinh (
+	NamXBMax INT PRIMARY KEY, 
+	SosachmuonMax INT,
+	SongayMax INT
+	
+);
+
 ----------------+**************************************************************+----------------
 --RANG BUOC NHAN VIEN 
 ALTER TABLE NHANVIEN ADD CONSTRAINT CHK_GIOITINH_NV CHECK (GIOITINH IN(N'Nam',N'Nữ'));
