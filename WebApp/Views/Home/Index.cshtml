@@ -1,5 +1,4 @@
-﻿@using WebAPI.DTOs
-@model IEnumerable<WebAPI.DTOs.SachDTO>
+﻿
 @{
     ViewData["Title"] = "Index";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -15,6 +14,7 @@
                 <span class="text-primary">Nếu bạn biết cách đọc,</span>
                 <span style="font-size: smaller;">cả thế giới sẽ mở ra cho bạn.</span>
             </h6>
+
 
             <p class="animated fadeIn mb-4 pb-2">
                 Những gì sách dạy chúng ta cũng giống như lửa. Chúng ta lấy nó từ nhà hàng xóm, thắp nó trong nhà ra, đem nó truyền cho người khác và nó trở thành tài sản của tất cả mọi người.
@@ -64,7 +64,7 @@
 </div>
 <!-- About End -->
 <!-- Testimonial Start -->
-<div class="container-xxl py-5">
+@* <div class="container-xxl py-5">
     <div class="container">
         <div class="text-center mx-auto mb-5 wow fadeInUp" data-wow-delay="0.1s" style="max-width: 600px;">
             <h1 class="mb-3">Sách nổi bật</h1>
@@ -77,8 +77,8 @@
 
                 <div class="testimonial-item bg-light rounded p-3">
                     <div class="bg-white border rounded p-4">
-                        @*                         <p>@item.Mota</p>
-                    *@                        <div class="d-flex align-items-center">
+                        @*                       <p>@item.Mota</p>
+                                            <div class="d-flex align-items-center">
                             <img class="img-fluid flex-shrink-0 rounded" src="@urlImage" style="width: 150px; height: 200px;">
                             <div class="ps-3">
                                 <h4 class="fw-bold mb-1">@item.TenSach </h4>
@@ -94,6 +94,6 @@
 
         </div>
     </div>
-</div>
+</div> *@
 <!-- Testimonial End -->
 

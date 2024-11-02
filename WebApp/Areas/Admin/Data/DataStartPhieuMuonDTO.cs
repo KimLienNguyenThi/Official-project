@@ -1,6 +1,5 @@
 ﻿using WebApp.DTOs;
 using WebApp.DTOs.Admin;
-using WebApp.Models;
 
 namespace WebApp.Areas.Admin.Data
 {
