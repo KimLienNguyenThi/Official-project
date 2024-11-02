@@ -152,7 +152,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach (var item in ViewBag.DocGia)
+                                @* @foreach (var item in ViewBag.DocGia)
                                 {
                                     <tr class="docgia-row">
                                         <td>@item.MaThe</td>
@@ -160,7 +160,7 @@
                                         <td>@item.SDT</td>
                                         <td>@item.DiaChi</td>
                                     </tr>
-                                }
+                                } *@
                             </tbody>
                         </table>
                     </div>
@@ -180,7 +180,7 @@
                                 </tr>
                             </thead>
                             <tbody id="DanhSachThongTinDangKy">
-                                @foreach (var item in ViewBag.DangKyMuonSach)
+                                @* @foreach (var item in ViewBag.DangKyMuonSach)
                                 {
                                     <tr class="dkOnl-row">
                                         <td>@item.MaDK</td>
@@ -190,7 +190,7 @@
                                         <td>@item.NgayDK</td>
                                         <td>@item.NgayHen</td>
                                     </tr>
-                                }
+                                } *@
                             </tbody>
                         </table>
                     </div>
@@ -209,7 +209,7 @@
 
                             </thead>
                             <tbody>
-                                @foreach (var item in ViewBag.Sach)
+                               @*  @foreach (var item in ViewBag.Sach)
                                 {
                                     <tr class="sach-row" aria-expanded="false" data-widget="expandable-table">
                                         <td>@item.MaSach</td>
@@ -232,7 +232,7 @@
                                             </div>
                                         </td>
                                     </tr>
-                                }
+                                } *@
                             </tbody>
                         </table>
                     </div>
@@ -848,6 +848,7 @@
 
                     if (res.success) {
                         var render = "";
+
 
                         $.each(res.result, function (i, item) {
 

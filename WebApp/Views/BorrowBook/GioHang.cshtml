@@ -1,5 +1,4 @@
-﻿@using WebApp.DTOs
-@model IEnumerable<WebAPI.DTOs.SachDTO>
+﻿
 
 @{
     ViewData["Title"] = "GioHang";
@@ -15,6 +14,7 @@
             <div class="col-1" style="margin-left: 46px;" id="SelectAll">
                 <input type="checkbox" class="form-check-input" style="transform:scale(1)">
             </div>
+
             <div class="col-2" style="margin-left:30px; font-weight:bold"> Sách </div>
             <div class="col-4 text-center" style="font-weight: bold"> Tên sách </div>
             <div class="col-2 text-center" style="font-weight: bold"> Số lượng </div>
@@ -22,8 +22,8 @@
         </div>
     </div>
 </nav>
-
-@*Danh sách sách mượn*@
+@* 
+@*Danh sách sách mượn
 @if (ListSachMuon.listSachMuon.Count == 0)
 {
     <p style="font-style:italic; padding-left:30px">Thư viện của bạn đang trống</p>
@@ -62,7 +62,7 @@ else
             </nav>
         }
     </div>
-}
+} *@
 
 <!-- Thông tin tổng cộng -->
 <nav class="sticky-top fixed-bottom " style="background-color:aliceblue; height:70px;" id="SelectAll">

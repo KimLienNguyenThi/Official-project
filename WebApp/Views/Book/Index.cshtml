@@ -1,7 +1,4 @@
-﻿@using WebAPI.DTOs
-
-@using X.PagedList.Mvc.Core;
-@model X.PagedList.IPagedList<WebAPI.DTOs.SachDTO>;
+﻿
 
 @{
     ViewData["Title"] = "Index";
@@ -17,6 +14,7 @@
 
 <!-- Search Start -->
 <div class="container-fluid bg-primary mb-5 wow fadeIn" data-wow-delay="0.1s" style="padding: 35px;">
+
     <div class="container">
         <div class="row align-items-center">
             <div class="row g-2">
@@ -90,7 +88,7 @@
 </div>
 <!-- Search End -->
 <!-- Property List Start -->
-<div class="container-xxl py-5 mx-auto">
+@* <div class="container-xxl py-5 mx-auto">
     <div class="container">
         <div class="row g-4 justify-content-center">
             <div class="col-lg-12">
@@ -99,10 +97,10 @@
         </div>
 
         <div class="tab-content">
-            @* <div id="tab-1" class="tab-pane fade show p-0 active"> *@
+            @* <div id="tab-1" class="tab-pane fade show p-0 active"> 
             <div id="resultContainer" class="row g-4 ">
 
-                @* Lấy ra thông tin sách *@
+                @* Lấy ra thông tin sách 
                 @foreach (SachDTO item in Model)
                 {
                     string urlImage = item.UrlImage.Replace("~\\", "/").Replace("\\", "/");
@@ -131,7 +129,7 @@
             </div>
         </div>
     </div>
-</div>
+</div> *@
 <!-- Property List End -->
 @*Đoạn code hiển thị bảng phân trang*@
 <ul class="pagination justify-content-center" style="margin-top: 50px;">

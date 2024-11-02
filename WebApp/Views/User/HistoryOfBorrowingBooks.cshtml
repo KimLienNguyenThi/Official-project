@@ -1,5 +1,4 @@
-﻿@model IEnumerable<WebApp.Models.DkiMuonSach>
-
+﻿
 @{
     ViewData["Title"] = "HistoryOfBorrowingBooks";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -22,6 +21,7 @@
                 </th>
                 <th>
                     <h6>Tình trạng</h6>
+
                 </th>
                 <th>
                     <h6>Thao tác</h6>
@@ -29,7 +29,7 @@
             </tr>
         </thead>
         <tbody>
-            @foreach (var item in Model)
+           @*  @foreach (var item in Model)
             {
                 <p style="font-style:italic; padding-left:30px">@ViewBag.MessageData</p>
 
@@ -77,7 +77,7 @@
                                     <button class="btn btn-danger btn-sm" onclick="showDetails(@item.MaDk)">Chi tiết</button>
                                 </td>
                 </tr>
-            }
+            } *@
         </tbody>
     </table>
 </div>
