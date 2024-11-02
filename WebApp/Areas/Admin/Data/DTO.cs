@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Policy;
 using System.Web;
-using WebApp.Models;
 
 namespace WebApp.Areas.Admin.Data
 {
@@ -37,19 +36,19 @@ namespace WebApp.Areas.Admin.Data
         public string Password { get; set; }
 
 
-        public static explicit operator DTO_NhanVien_LoginNV(NhanVien v)
-        {
-            return new DTO_NhanVien_LoginNV
-            {
-                MaNV = v.MaNv,
-                HoTenNV = v.HoTenNv,
-                SDT = v.Sdt,
-                DiaChi = v.DiaChi,
-                GioiTinh = v.GioiTinh,
-                NgaySinh = v.Ngaysinh,
-                ChucVu = v.ChucVu,
-            };
-        }
+        //public static explicit operator DTO_NhanVien_LoginNV(NhanVien v)
+        //{
+        //    return new DTO_NhanVien_LoginNV
+        //    {
+        //        MaNV = v.MaNv,
+        //        HoTenNV = v.HoTenNv,
+        //        SDT = v.Sdt,
+        //        DiaChi = v.DiaChi,
+        //        GioiTinh = v.GioiTinh,
+        //        NgaySinh = v.Ngaysinh,
+        //        ChucVu = v.ChucVu,
+        //    };
+        //}
     }
 
     public class DTO_Sach_Muon
