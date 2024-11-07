@@ -1,150 +1,155 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using System.Diagnostics;
 using System.Security.Claims;
 using WebApp.DTOs;
+using WebApp.Models.Responses;
 using X.PagedList;
 
 namespace WebApp.Controllers
 {
     public class BorrowBookController : Controller
     {
+
+        Uri baseAddress = new Uri("https://localhost:7028/api/Client");
+        private readonly HttpClient _client;
+
         public BorrowBookController()
         {
-            // Bạn có thể khởi tạo HttpClient tại đây nếu cần, nhưng không cần thiết nếu không có API
-        }
-        public IActionResult Index()
+            _client = new HttpClient();
+            _client.BaseAddress = baseAddress;
 
+        }
+
+        public async Task<IActionResult> Index(int? page)
         {
-            // Trả về view Index.cshtml
-            return View();
+            if (User.Identity.IsAuthenticated)
+            {
+                List<dynamic> bookList = new List<dynamic>();
+                HttpResponseMessage response = _client.GetAsync(_client.BaseAddress + "/Book/GetAllBooks").Result;
+
+                // Ghi lại thông tin về trạng thái phản hồi
+                Debug.WriteLine($"Response Status Code: {response.StatusCode}");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    string data = await response.Content.ReadAsStringAsync();
+                    Debug.WriteLine($"Response Data: {data}"); // Ghi lại nội dung trả về
+
+                    bookList = JsonConvert.DeserializeObject<List<dynamic>>(data);
+                    Debug.WriteLine($"Number of books retrieved: {bookList.Count}");
+                }
+                else
+                {
+                    Debug.WriteLine("Failed to retrieve books.");
+                }
+
+                // Cài đặt phân trang
+                int pageSize = 9;
+                int pageNumber = (page ?? 1);
+                var pagedBooks = bookList.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+
+                ViewBag.CurrentPage = pageNumber;
+                ViewBag.TotalPages = (int)Math.Ceiling((double)bookList.Count / pageSize);
+
+                return View(pagedBooks);
+            }
+            else
+            {
+                return RedirectToAction("Index", "User");
+            }
         }
-        //Uri baseAddress = new Uri("https://localhost:7028/api");
-        //private readonly HttpClient _client;
 
-        //public BorrowBookController()
-        //{
-        //    _client = new HttpClient();
-        //    _client.BaseAddress = baseAddress;
+        [HttpPost]
+        public async Task<IActionResult> GetBookByName(string tenSach)
+        {
+            List<GetBookByNameResDto> bookList = new List<GetBookByNameResDto>();
+            HttpResponseMessage response = _client.GetAsync(_client.BaseAddress + $"/Book/GetBookByName/{Uri.EscapeDataString(tenSach)}").Result;
 
-        //}
+            Debug.WriteLine($"Response Status Code: {response.StatusCode}");
 
-        //public IActionResult Index(int? page)
-        //{
-        //    if(User.Identity.IsAuthenticated)
-        //    {
-        //        // Lấy dữ liệu từ API 
-        //        List<SachDTO> bookList = new List<SachDTO>();
-        //        HttpResponseMessage response = _client.GetAsync(_client.BaseAddress + "/Book/GetAllBook").Result;
+            if (response.IsSuccessStatusCode)
+            {
+                string data = await response.Content.ReadAsStringAsync();
+                Debug.WriteLine($"Response Data: {data}"); // Ghi lại nội dung trả về
 
-        //        if (response.IsSuccessStatusCode)
-        //        {
-        //            string data = response.Content.ReadAsStringAsync().Result;
-        //            bookList = JsonConvert.DeserializeObject<List<SachDTO>>(data);
-        //        }
+                bookList = JsonConvert.DeserializeObject<List<GetBookByNameResDto>>(data) ?? bookList;
+                Debug.WriteLine($"Number of books retrieved: {bookList.Count}");
+            }
+            else
+            {
+                Debug.WriteLine("Failed to retrieve books.");
+            }
 
-        //        // Phân trang
-        //        // Số lượng sách trên 1 trang
-        //        int pageSize = 9;
+            Debug.WriteLine(JsonConvert.SerializeObject(bookList));
 
-        //        // Số trang
-        //        int pageNumber = (page ?? 1);
-
-        //        // Sử dụng PagedList để chia danh sách thành các trang
-        //        IPagedList<SachDTO> pagedListSach = bookList.ToPagedList(pageNumber, pageSize);
-
-        //        // Truyền thông tin phân trang vào ViewBag để sử dụng trong View
-        //        ViewBag.CurrentPage = pageNumber;
-        //        ViewBag.TotalPages = pagedListSach.PageCount;
-
-        //        return View(pagedListSach);
-        //    }
-        //    else
-        //    {
-        //        return RedirectToAction("Index", "User");
-        //    }
-        //}
-
-        //[HttpPost]
-        //public IActionResult SearchBook(string tenSach)
-        //{
-
-        //    List<SachDTO> bookList = new List<SachDTO>();
-        //    HttpResponseMessage response = _client.GetAsync(_client.BaseAddress + $"/Book/GetBookByName/{tenSach}").Result;
-
-        //    if (response.IsSuccessStatusCode)
-        //    {
-        //        string data = response.Content.ReadAsStringAsync().Result;
-        //        var responseObject = JsonConvert.DeserializeObject<dynamic>(data);
-        //        bookList = responseObject.sachList.ToObject<List<SachDTO>>();
-        //    }
-
-        //    return Ok(new { success = true, sachList = bookList });
-        //}
+            return Ok(new { success = true, sachList = bookList });
+        }
 
 
-        //[HttpPost]
-        //public IActionResult GetBookByCategory(string ngonNgu, string theLoai, string namXB)
-        //{
-        //    List<SachDTO> bookList = new List<SachDTO>();
+        [HttpPost]
+        public async Task<IActionResult> GetBookByCategory(string ngonNgu, string theLoai, string namXB)
+        {
 
-        //    try
-        //    {
-        //        HttpResponseMessage response = _client.GetAsync(_client.BaseAddress + $"/Book/GetBookByCategory/{ngonNgu}/{theLoai}/{namXB}").Result;
+            List<GetBookByNameResDto> bookList = new List<GetBookByNameResDto>();
+            HttpResponseMessage response = _client.GetAsync(_client.BaseAddress + $"/Book/GetBookByCategory/{ngonNgu}/{theLoai}/{namXB}").Result;
 
-        //        if (response.IsSuccessStatusCode)
-        //        {
-        //            string data = response.Content.ReadAsStringAsync().Result;
-        //            var responseObject = JsonConvert.DeserializeObject<dynamic>(data);
-        //            bookList = responseObject.sachList.ToObject<List<SachDTO>>();
-        //        }
-        //        else
-        //        {
-        //            return BadRequest(new { success = false, message = "Failed to retrieve data from API." });
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        // Handle exception
-        //        return StatusCode(500, new { success = false, message = ex.Message });
-        //    }
+            Debug.WriteLine($"Response Status Code: {response.StatusCode}");
 
-        //    return Ok(new { success = true, sachList = bookList });
-        //}
+            if (response.IsSuccessStatusCode)
+            {
+                string data = await response.Content.ReadAsStringAsync();
+                Debug.WriteLine($"Response Data: {data}"); // Ghi lại nội dung trả về
 
-        //[HttpPost]
-        //public IActionResult Borrow(int maSach, int soLuongMuon, int soLuongSachHienTai)
-        //{
-        //    try
-        //    {
-        //        if (ListSachMuon.listSachMuon.ContainsKey(maSach))
-        //        {
-        //            var value = ListSachMuon.listSachMuon[maSach];  
+                bookList = JsonConvert.DeserializeObject<List<GetBookByNameResDto>>(data) ?? bookList;
+                Debug.WriteLine($"Number of books retrieved: {bookList.Count}");
+            }
+            else
+            {
+                Debug.WriteLine("Failed to retrieve books.");
+            }
 
-        //            if ((value + soLuongMuon) > (soLuongSachHienTai - 5))
-        //            {
-        //                return Json(new { success = false, message = "Số lượng sách vượt quá số lượng sách hiện có!" });
-        //            }
-        //            if ((value + soLuongMuon) > 2)
-        //            {
-        //                return Json(new { success = false, message = "Số lượng sách mượn vượt quá 2 quyển cùng loại!" });
-        //            }
-        //            ListSachMuon.listSachMuon[maSach] = value + soLuongMuon;   
-        //        }
-        //        else
-        //        {
-        //            if (soLuongMuon > 2)
-        //            {
-        //                return Json(new { success = false, message = "Số lượng sách mượn vượt quá 2 quyển cùng loại!" });
-        //            }
-        //            ListSachMuon.listSachMuon.Add(maSach, soLuongMuon);
-        //        }
-        //        return Ok(new { success = true }); 
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return Json(new { success = false, message = ex.Message });
-        //    }
-        //}
+            Debug.WriteLine(JsonConvert.SerializeObject(bookList));
+
+            return Ok(new { success = true, sachList = bookList });
+
+
+        }
+
+        [HttpPost]
+        public IActionResult Borrow(int maSach, int soLuongMuon, int soLuongSachHienTai)
+        {
+            try
+            {
+                if (ListSachMuon.listSachMuon.ContainsKey(maSach))
+                {
+                    var value = ListSachMuon.listSachMuon[maSach];
+
+                    if ((value + soLuongMuon) > (soLuongSachHienTai - 5))
+                    {
+                        return Json(new { success = false, message = "Số lượng sách vượt quá số lượng sách hiện có!" });
+                    }
+                    if ((value + soLuongMuon) > 2)
+                    {
+                        return Json(new { success = false, message = "Số lượng sách mượn vượt quá 2 quyển cùng loại!" });
+                    }
+                    ListSachMuon.listSachMuon[maSach] = value + soLuongMuon;
+                }
+                else
+                {
+                    if (soLuongMuon > 2)
+                    {
+                        return Json(new { success = false, message = "Số lượng sách mượn vượt quá 2 quyển cùng loại!" });
+                    }
+                    ListSachMuon.listSachMuon.Add(maSach, soLuongMuon);
+                }
+                return Ok(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
         //public async Task<IActionResult> GioHang()
         //{
         //    List<SachDTO> bookList = new List<SachDTO>();
