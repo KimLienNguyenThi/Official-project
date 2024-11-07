@@ -1,6 +1,4 @@
-﻿
-
-@{
+﻿@{
     ViewData["Title"] = "Index";
     Layout = "~/Views/Shared/_Layout.cshtml";
     ViewBag.active = 2;
@@ -14,7 +12,6 @@
 
 <!-- Search Start -->
 <div class="container-fluid bg-primary mb-5 wow fadeIn" data-wow-delay="0.1s" style="padding: 35px;">
-
     <div class="container">
         <div class="row align-items-center">
             <div class="row g-2">
@@ -41,7 +38,7 @@
                             <option value="Sách giáo khoa">Sách giáo khoa</option>
                             <option value="Sách ngoại ngữ">Sách ngoại ngữ</option>
                             <option value="Truyện ngắn">Truyện ngắn</option>
-                            <option value="Văn học">Sách ngoại ngữ</option>
+                            <option value="Văn học">Văn học</option>
                             <option value="Sách tham khảo">Sách tham khảo</option>
                         </select>
                     </div>
@@ -64,31 +61,25 @@
                             <!-- Script to generate years dynamically -->
                             <script>
                                 var currentYear = new Date().getFullYear();
-                                for (var i = currentYear; i >= 1940; i--) {
+                                for (var i = currentYear; i >= 2015; i--) {
                                     document.write('<option value="' + i + '">' + i + '</option>');
                                 }
                             </script>
                         </select>
                     </div>
 
-
                     <!-- Filter Button -->
                     <div class="col-md-3 align-self-end">
                         <button class="btn btn-dark border-0 w-100 py-3" onclick="LocSach()">Lọc</button>
                     </div>
                 </div>
-
-
             </div>
-
-
-
         </div>
     </div>
 </div>
 <!-- Search End -->
-<!-- Property List Start -->
-@* <div class="container-xxl py-5 mx-auto">
+<!-- Result Container -->
+<div class="container-xxl py-5 mx-auto">
     <div class="container">
         <div class="row g-4 justify-content-center">
             <div class="col-lg-12">
@@ -97,180 +88,177 @@
         </div>
 
         <div class="tab-content">
-            @* <div id="tab-1" class="tab-pane fade show p-0 active"> 
+           
             <div id="resultContainer" class="row g-4 ">
 
-                @* Lấy ra thông tin sách 
-                @foreach (SachDTO item in Model)
+                @* Lấy ra thông tin sách *@
+                @foreach (var item in Model)
                 {
-                    string urlImage = item.UrlImage.Replace("~\\", "/").Replace("\\", "/");
-
+                    string urlImage = Url.Content(item?.urlImage?.ToString()?.Replace("~\\", "/").Replace("\\", "/") ?? "/images/default.png");
                     <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="0.1s">
                         <div style="width: 300px; height: 400px; overflow: hidden; position: relative;">
-
                             <div class="position-relative overflow-hidden" style="width: 100%; height: 100%;">
-                                <a href=""><img src="@urlImage" style="width: 100%; height: 100%; object-fit: cover;" alt=""></a>
+                                <a href="#"><img src="@urlImage" style="width: 100%; height: 100%; object-fit: cover;" alt=""></a>
                             </div>
-
-                            <div id="soLuongSachNo_@item.MaSach" class="bg-primary rounded text-white position-absolute start-0 top-0 m-2 mt-0 py-0 px-1" style="z-index: 0;">Số lượng: @item.SoLuongHientai</div>
-
-
-                            <div id="theLoai_@item.MaSach" class="bg-danger rounded text-white position-absolute start-0 top-0 m-2 mt-4 py-0 px-1" style="z-index: 1;">@item.TheLoai</div>
-
+                            <div class="bg-primary rounded text-white position-absolute start-0 top-0 m-2 mt-0 py-0 px-1" style="z-index: 0;">
+                                Số lượng: @(item.soluonghientai)
+                            </div>
+                            <div class="bg-danger rounded text-white position-absolute start-0 top-0 m-2 mt-4 py-0 px-1" style="z-index: 1;">
+                                @item.theloai
+                            </div>
                             <div class="bg-white rounded-bottom text-primary" style="position: absolute; bottom: 0; left: 0; width: 100%; background-color: rgba(255, 255, 255, 0.7); padding: 5px;">
-                                <a class="d-block h5 mb-2" href="">@item.TenSach</a>
-                                <h6 class="text-primary mb-3">--@item.TacGia--</h6>
-
+                                <a class="d-block h5 mb-2" href="#">@item.tensach</a>
+                                <h6 class="text-primary mb-3">--@item.tacgia--</h6>
                             </div>
                         </div>
                     </div>
-
                 }
             </div>
         </div>
     </div>
-</div> *@
-<!-- Property List End -->
-@*Đoạn code hiển thị bảng phân trang*@
+</div>
+<!-- Result Container End -->
+<!-- Pagination -->
 <ul class="pagination justify-content-center" style="margin-top: 50px;">
-
-    <li class="page-item @(currentPage == 1 ? "disabled" : "")">
-        <a class="page-link" href="@Url.Action("Index", new { page = currentPage - 1 })">
-            &laquo; Trang trước
-        </a>
+    <li class="page-item @(ViewBag.CurrentPage == 1 ? "disabled" : "")">
+        <a class="page-link" href="@Url.Action("Index", new { page = ViewBag.CurrentPage - 1 })">&laquo; Trang trước</a>
     </li>
-
-    @for (int i = 1; i <= totalPages; i++)
+    @for (int i = 1; i <= ViewBag.TotalPages; i++)
     {
-        <li class="page-item @(currentPage == i ? "active" : "")">
+        <li class="page-item @(ViewBag.CurrentPage == i ? "active" : "")">
             <a class="page-link" href="@Url.Action("Index", new { page = i })">@i</a>
         </li>
     }
-
-    <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
-        <a class="page-link" href="@Url.Action("Index", new { page = currentPage + 1 })">
-            Trang tiếp theo &raquo;
-        </a>
+    <li class="page-item @(ViewBag.CurrentPage == ViewBag.TotalPages ? "disabled" : "")">
+        <a class="page-link" href="@Url.Action("Index", new { page = ViewBag.CurrentPage + 1 })">Trang tiếp theo &raquo;</a>
     </li>
-
 </ul>
+<!-- Pagination End -->
 
 <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<script>
+    const initialContent = $("#resultContainer").html();
+    function TimKiem() {
+        console.log("Function TimKiem called");
 
-
-    <script>
-        ///////////////////////////// Tìm kiếm dựa trên search ////////////////////////////////////
-        function TimKiem() {
-            console.log("Function TimKiem called");
-            var search = $("#searchInput").val();
-            console.log("dữ liệu nhận vào: ", search);
-
-            // Gửi yêu cầu AJAX đến action "SearchBook" trên controller "Book"
-            $.ajax({
-                url: "/Book/SearchBook",
-                type: "POST",
-                data: { tenSach: search },
-                success: function (result) {
-                    // Xử lý dữ liệu JSON và cập nhật nội dung trangs
-                    console.log("Phản hồi từ server:", result);
-                    console.log("Danh sách sách nhận được từ server:", result.sachList);
-
-                    if (result.success) {
-                        UpdateView(result.sachList);
-                    } else {
-                        alert(result.message);
-                    }
-                },
-                error: function (result) {
-                    console.log("Lỗi khi gửi yêu cầu AJAX:", result);
-                }
-            });
+        var search = $("#searchInput").val().trim();
+        if (!search) {
+            alert("Vui lòng nhập tên sách để tìm kiếm.");
+            ResetView();
+            return;
         }
+        console.log("Dữ liệu nhận vào:", search);
 
-        ///////////////////////////// Tìm kiếm dựa trên lọc yêu cầu ////////////////////////////////////
-
-            function LocSach() {
-                console.log("Function LocSach called");
-                
-                var theLoai = document.getElementById("theLoaiSelect");
-                var ngonNgu = document.getElementById("ngonNguSelect");
-                var namXB = document.getElementById("namXBSelect");
-                console.log("Thể loại chọn:", theLoai.value);
-                console.log("Ngôn ngữ chọn:", ngonNgu.value);
-                console.log("Năm xuất bản chọn:", namXB.value);
-
-               
-                $.ajax({
-                    url: "/Book/GetBookByCategory",
-                    type: "POST",
-                    data:
-                    {
-                        ngonNgu: ngonNgu.value,
-                        theLoai: theLoai.value,
-                        namXB: namXB.value,
-                    },
-                    success: function (result) {
-                        // Xử lý dữ liệu JSON và cập nhật nội dung trang
-                        console.log("Phản hồi từ server:", result);
-                        console.log("sachList:", result.sachList);
-
-                        if (result.success) {
-                            UpdateView(result.sachList);
-                        } else {
-                            alert(result.message);
-                        }
-                    },
-                    error: function (result) {
-                        console.log("Lỗi khi gửi yêu cầu AJAX:", result);
-                    }
-                });
+        $.ajax({
+            url: '@Url.Action("GetBookByName", "Book")',
+            type: 'POST',
+            data: { tenSach: search },
+            success: function (result) {
+                console.log("Phản hồi từ server:", result);
+                if (result.success) {
+                    UpdateView(result.sachList);
+                } else {
+                    alert(result.message);
+                }
+            },
+            error: function (data) {
+                console.log("Lỗi khi gửi yêu cầu AJAX:", data);
             }
+        });
+    }
 
-        function UpdateView(result) {
-        $("#resultContainer").empty(); 
+    // Hàm ResetView để trả về giao diện ban đầu
+    function ResetView() {
+        // Đặt lại nội dung của #resultContainer về nội dung ban đầu
+        $("#resultContainer").html(initialContent);
+    }
+
+    function UpdateView(result) {
+        $("#resultContainer").empty(); // Xóa nội dung cũ
         console.log("Hàm updateView đang thực hiện");
         console.log("Đầu vào của hàm updateView:", result);
 
-        $.each(result, function (index, item) {
+        // Kiểm tra xem result có chứa dữ liệu sách không
+        if (Array.isArray(result) && result.length > 0) {
+            $.each(result, function (index, item) {
+                console.log("Item: ", item);
 
-            console.log("Item: ", item);
+                // Chuyển đổi đường dẫn hình ảnh
+                var urlImage = (typeof item.urlImage === "string" && item.urlImage.trim() !== "")
+                    ? item.urlImage.replace("~\\", "/").replace("\\", "/")
+                    : "/images/default.png"; // Đường dẫn đến ảnh mặc định nếu không có
 
-          
-            var urlImage = item.urlImage.replace('~', '');
+                console.log("urlImage: ", urlImage);
+               
 
-            console.log("urlImage: ", urlImage);
+                // Tạo HTML cho mỗi cuốn sách
+                 
+                var newHtml = $(`
+                   
+                    <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="0.1s">
+                        <div style="width: 300px; height: 400px; overflow: hidden; position: relative;">
+                            <div class="position-relative overflow-hidden" style="width: 100%; height: 100%;">
+                                <a href="#"><img src="${urlImage}" style="width: 100%; height: 100%; object-fit: cover;" alt=""></a>
+                            </div>
+                            <div class="bg-primary rounded text-white position-absolute start-0 top-0 m-2 mt-0 py-0 px-1" style="z-index: 0;">
+                                Số lượng: ${item.soluonghientai}
+                            </div>
+                            <div class="bg-danger rounded text-white position-absolute start-0 top-0 m-2 mt-4 py-0 px-1" style="z-index: 1;">
+                                ${item.theloai}
+                            </div>
+                            <div class="bg-white rounded-bottom text-primary" style="position: absolute; bottom: 0; left: 0; width: 100%; background-color: rgba(255, 255, 255, 0.7); padding: 5px;">
+                                <a class="d-block h5 mb-2" href="#">${item.tensach}</a>
+                                <h6 class="text-primary mb-3">--${item.tacgia}--</h6>
+                            </div>
+                        </div>
+                    </div>
+                `);
 
-            // Tạo HTML cho mỗi cuốn sách
-            var newHtml = $(`
-
-                                    <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="0.1s">
-                                <div style="width: 300px; height: 400px; overflow: hidden; position: relative;">
-                                    <!-- Khung chứa ảnh -->
-                                    <div class="position-relative overflow-hidden" style="width: 100%; height: 100%;">
-                                            <a href=""><img src="${urlImage}" style="width: 100%; height: 100%; object-fit: cover;" alt=""></a>
-                                    </div>
-
-                                    <!-- Hiển thị số lượng sách -->
-                                            <div id="soLuongSachNo_${item.maSach}" class="bg-primary rounded text-white position-absolute start-0 top-0 m-2 mt-0 py-0 px-1" style="z-index: 0;">Số lượng:${item.soLuongHientai}</div>
-
-
-                                    <!-- Hiển thị thông tin về thể loại với nền đỏ và cách lề trên là 4 -->
-                                            <div id="theLoai_${item.maSach}" class="bg-danger rounded text-white position-absolute start-0 top-0 m-2 mt-4 py-0 px-1" style="z-index: 1;">${item.theLoai}</div>
-
-                                    <div class="bg-white rounded-bottom text-primary" style="position: absolute; bottom: 0; left: 0; width: 100%; background-color: rgba(255, 255, 255, 0.7); padding: 5px;">
-                                            <a class="d-block h5 mb-2" href="">${item.tenSach}</a>
-                                           <h6 class="text-primary mb-3">--${item.tacGia}--</h6>
-
-
-                                    </div>
-
-
-                                </div>
-                            </div>`
-            );
-            // Thêm HTML mới vào container
-            $("#resultContainer").append(newHtml);
-        });
+                // Thêm HTML mới vào container
+                $("#resultContainer").append(newHtml);
+            });
+        } else {
+            // Nếu không có sách nào, có thể hiển thị thông báo
+            $("#resultContainer").append('<p>Không tìm thấy sách nào.</p>');
         }
+    }
+
+    function LocSach() {
+        console.log("Function LocSach called");
+
+        var theLoai = document.getElementById("theLoaiSelect");
+        var ngonNgu = document.getElementById("ngonNguSelect");
+        var namXB = document.getElementById("namXBSelect");
+        console.log("Thể loại chọn:", theLoai.value);
+        console.log("Ngôn ngữ chọn:", ngonNgu.value);
+        console.log("Năm xuất bản chọn:", namXB.value);
+
+
+        $.ajax({
+            url: "/Book/GetBookByCategory",
+            type: "POST",
+            data:
+            {
+                ngonNgu: ngonNgu.value,
+                theLoai: theLoai.value,
+                namXB: namXB.value,
+            },
+            success: function (result) {
+                // Xử lý dữ liệu JSON và cập nhật nội dung trang
+                console.log("Phản hồi từ server:", result);
+                console.log("sachList:", result.sachList);
+
+                if (result.success) {
+                    UpdateView(result.sachList);
+                } else {
+                    alert(result.message);
+                }
+            },
+            error: function (result) {
+                console.log("Lỗi khi gửi yêu cầu AJAX:", result);
+            }
+        });
+    }
+
 
     </script>

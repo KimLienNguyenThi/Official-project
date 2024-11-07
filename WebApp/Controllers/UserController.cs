@@ -9,140 +9,137 @@ using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pag
 using Newtonsoft.Json;
 using Microsoft.AspNetCore.Authorization;
 using System.Net.Http.Headers;
+using WebApp.Models.Responses;
 
 namespace WebApp.Controllers
 {
     public class UserController : Controller
     {
-    //    Uri baseAddress = new Uri("https://localhost:7028/api");
-    //    private readonly HttpClient _client;
+        Uri baseAddress = new Uri("https://localhost:7028/api/Client");
+        private readonly HttpClient _client;
 
-    //    public UserController()
-    //    {
-    //        _client = new HttpClient();
-    //        _client.BaseAddress = baseAddress;
+        public UserController()
+        {
+            _client = new HttpClient();
+            _client.BaseAddress = baseAddress;
 
-    //    }
+        }
 
-    //    public IActionResult Index()
-    //    {
-    //        return View();
-    //    }
-    public UserController()
-    {
-        // Bạn có thể khởi tạo HttpClient tại đây nếu cần, nhưng không cần thiết nếu không có API
-    }
-    public IActionResult Index()
-    {
-        // Trả về view Index.cshtml
-        return View();
-    }
+        public IActionResult Index()
+        {
+            return View();
+        }
 
 
+        [HttpGet]
+        public async Task<IActionResult> Login(string phoneNumber, string password)
+        {
+            try
+            {
 
-    //[HttpGet]
-    //public async Task<IActionResult> Login(string phoneNumber, string password)
-    //{
-    //    try
-    //    {
-
-    //        // Gửi yêu cầu GET và truyền dữ liệu
-    //        HttpResponseMessage response = _client.GetAsync(_client.BaseAddress + $"/UserAuth/CheckUserLogin/{phoneNumber}/{password}").Result;
-
-    //        if (response.IsSuccessStatusCode)
-    //        {
-    //            UserAuthentication user = new UserAuthentication();
-    //            string data = response.Content.ReadAsStringAsync().Result;
-    //            user = JsonConvert.DeserializeObject<UserAuthentication>(data);
-
-    //            var claims = new List<Claim>()
-    //            {
-    //                new Claim(ClaimTypes.Name, user.HoTen),
-    //                new Claim(ClaimTypes.Email, user.Email),
-    //                new Claim("PhoneNumber", phoneNumber)
-    //            };
+                // Gửi yêu cầu GET và truyền dữ liệu
+                HttpResponseMessage response = _client.GetAsync(_client.BaseAddress + $"/UserAuth/CheckUserLogin/{phoneNumber}/{password}").Result;
 
 
-    //            var claimIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-    //            var claimsPrincial = new ClaimsPrincipal(claimIdentity);
+                // Kiểm tra mã trạng thái trả về từ API
+                if (response.IsSuccessStatusCode)
+                {
+                    // Deserialize dữ liệu trả về từ API
+                    string data = await response.Content.ReadAsStringAsync();
+                    LoginDG user = JsonConvert.DeserializeObject<LoginDG>(data);
 
-    //            await HttpContext.SignInAsync(claimsPrincial);
+                    // Tạo danh sách các claims cho người dùng
+                    var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Name, user.Hoten),
+                new Claim(ClaimTypes.Email, user.Email),
+                new Claim("PhoneNumber", phoneNumber)
+            };
 
-    //            return Json(new { success = true });
-    //        }
-    //        else
-    //        {
-    //            return Json(new { success = false, message = "Failed to retrieve data from API." });
-    //        }
-    //    }
-    //    catch (Exception ex)
-    //    {
-    //        // Xử lý ngoại lệ
-    //        return StatusCode(500, new { success = false, message = ex.Message });
-    //    }
-    //}
+                    // Tạo ClaimsIdentity và ClaimsPrincipal
+                    var claimIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                    var claimsPrincipal = new ClaimsPrincipal(claimIdentity);
 
+                    // Đăng nhập người dùng và tạo phiên làm việc
+                    await HttpContext.SignInAsync(claimsPrincipal);
 
-    //public async Task LoginByGoogle()
-    //    {
-    //        await HttpContext.ChallengeAsync(GoogleDefaults.AuthenticationScheme, new AuthenticationProperties
-    //        {
-    //            RedirectUri = Url.Action("GoogleResponse")
-    //        });
-    //    }
-
-
-    //    public async Task<IActionResult> GoogleResponse()
-    //    {
-    //        var result = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-
-    //        var claims = result.Principal.Identities.FirstOrDefault().Claims.Select(claim => new
-    //        {
-    //            claim.Issuer,
-    //            claim.OriginalIssuer,
-    //            claim.Type,
-    //            claim.Value
-    //        });
-
-    //        return RedirectToAction("ConfirmLoginGG", "User");
-    //    }
+                    return Json(new { success = true });
+                }
+                else
+                {
+                    // Nếu API trả về lỗi, trả về thông báo chi tiết
+                    string errorMessage = await response.Content.ReadAsStringAsync();
+                    return Json(new { success = false, message = $"API Error: {errorMessage}" });
+                }
+            }
+            catch (Exception ex)
+            {
+                // Xử lý ngoại lệ nếu có
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
 
 
-    //    public IActionResult ConfirmLoginGG()
-    //    {
-    //        var user = HttpContext.User;
+        //public async Task LoginByGoogle()
+        //{
+        //    await HttpContext.ChallengeAsync(GoogleDefaults.AuthenticationScheme, new AuthenticationProperties
+        //    {
+        //        RedirectUri = Url.Action("GoogleResponse")
+        //    });
+        //}
 
-    //        // Lấy thông tin về người dùng từ claims
-    //        var userEmail = user.FindFirst(ClaimTypes.Email)?.Value;
 
-    //        HttpResponseMessage response = _client.GetAsync(_client.BaseAddress + $"/UserAuth/CheckUserLoginByGoogle/{userEmail}").Result;
+        //public async Task<IActionResult> GoogleResponse()
+        //{
+        //    var result = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
 
-    //        if (response.IsSuccessStatusCode)
-    //        {
-    //            // Add sđt vào Claim
-    //            HttpResponseMessage respon = _client.GetAsync(_client.BaseAddress + $"/UserAuth/GetSdtByEmail/{userEmail}").Result;
-    //            string data = respon.Content.ReadAsStringAsync().Result;
+        //    var claims = result.Principal.Identities.FirstOrDefault().Claims.Select(claim => new
+        //    {
+        //        claim.Issuer,
+        //        claim.OriginalIssuer,
+        //        claim.Type,
+        //        claim.Value
+        //    });
 
-    //            // Lấy danh sách Claims hiện tại của người dùng
-    //            var listClaimsUser = User.Claims.ToList();
+        //    return RedirectToAction("ConfirmLoginGG", "User");
+        //}
 
-    //            // Thêm Claim mới
-    //            listClaimsUser.Add(new Claim("PhoneNumber", data));
 
-    //            // Tạo danh sách Claims mới cho người dùng
-    //            var newIdentity = new ClaimsIdentity(listClaimsUser, CookieAuthenticationDefaults.AuthenticationScheme);
+        //public IActionResult ConfirmLoginGG()
+        //{
+        //    var user = HttpContext.User;
 
-    //            // Cập nhật danh sách Claims cho người dùng
-    //            HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(newIdentity));
+        //    // Lấy thông tin về người dùng từ claims
+        //    var userEmail = user.FindFirst(ClaimTypes.Email)?.Value;
 
-    //            return RedirectToAction("Index", "Home");
-    //        }
-    //        else
-    //        {
-    //            return View();
+        //    HttpResponseMessage response = _client.GetAsync(_client.BaseAddress + $"/UserAuth/CheckUserLoginByGoogle/{userEmail}").Result;
 
-    //        }
-    //    }
+        //    if (response.IsSuccessStatusCode)
+        //    {
+        //        // Add sđt vào Claim
+        //        HttpResponseMessage respon = _client.GetAsync(_client.BaseAddress + $"/UserAuth/GetSdtByEmail/{userEmail}").Result;
+        //        string data = respon.Content.ReadAsStringAsync().Result;
+
+        //        // Lấy danh sách Claims hiện tại của người dùng
+        //        var listClaimsUser = User.Claims.ToList();
+
+        //        // Thêm Claim mới
+        //        listClaimsUser.Add(new Claim("PhoneNumber", data));
+
+        //        // Tạo danh sách Claims mới cho người dùng
+        //        var newIdentity = new ClaimsIdentity(listClaimsUser, CookieAuthenticationDefaults.AuthenticationScheme);
+
+        //        // Cập nhật danh sách Claims cho người dùng
+        //        HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(newIdentity));
+
+        //        return RedirectToAction("Index", "Home");
+        //    }
+        //    else
+        //    {
+        //        return View();
+
+        //    }
+        //}
 
 
         //[HttpPost]
@@ -260,7 +257,7 @@ namespace WebApp.Controllers
         //            bookList = JsonConvert.DeserializeObject<List<DkiMuonSach>>(data);
         //        }
         //        // Kiểm tra nếu user có dữ liệu ở bảng DkiMuonSaches thì trả dữ liệu ra view
-        //        if (bookList.Count > 0)  
+        //        if (bookList.Count > 0)
         //        {
         //            return View(bookList);
         //        }
