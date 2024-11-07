@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using WebAPI.Models;
+using WebAPI.Services.Client;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,6 +21,10 @@ builder.Services.AddAutoMapper(typeof(Program));
 
 // Đăng ký dịch vụ cho IMapper
 builder.Services.AddScoped<IMapper, Mapper>();
+
+builder.Services.AddTransient<BookService, BookService>();
+builder.Services.AddTransient<BorrowBookService, BorrowBookService>();
+builder.Services.AddTransient<UserAuthService, UserAuthService>();
 
 //builder.Services.AddTransient<ThongKeService, ThongKeService>();
 //builder.Services.AddTransient<PhieuTraService, PhieuTraService>();
