@@ -91,51 +91,27 @@
                     </button>
                     <div class="collapse navbar-collapse" id="navbarCollapse">
                         <div class="navbar-nav ms-auto">
-                            @if (ViewBag.active == 1)
-                            {
-                                <a href="/Home/Index" class="nav-item nav-link active">Trang chủ</a>
-                            }else
-                            {
-                                <a href="/Home/Index" class="nav-item nav-link">Trang chủ</a>
+                            <!-- Trang chủ -->
+                            <a href="/Home/Index" class="nav-item nav-link @((ViewBag.active == 1) ? "active" : "")">Trang chủ</a>
 
-                            }
+                            <!-- Sách -->
+                            <a href="/Book/Index" class="nav-item nav-link @((ViewBag.active == 2) ? "active" : "")">Sách</a>
 
-                            @if (ViewBag.active == 2)
-                            {
-                                <a href="/Book/Index" class="nav-item nav-link active">Sách</a>
-                            }
-                            else
-                            {
-                                <a href="/Book/Index" class="nav-item nav-link">Sách</a>
+                            <!-- Thuê sách -->
+                            <a href="/BorrowBook/Index" class="nav-item nav-link @((ViewBag.active == 3) ? "active" : "")">Thuê sách</a>
 
-                            }
-
-                            @if (ViewBag.active == 3)
-                            {
-                                <a href="/BorrowBook/Index" class="nav-item nav-link active">Thuê sách</a>
-                            }
-                            else
-                            {
-                                <a href="/BorrowBook/Index" class="nav-item nav-link">Thuê sách</a>
-
-                            }
-
-                            @if (ViewBag.active == 4)
-                            {
-                                <a href="/Contact/Index" class="nav-item nav-link active">Liên hệ</a>
-                            }
-                            else
-                            {
-                                <a href="/Contact/Index" class="nav-item nav-link">Liên hệ</a>
-
-                            }
+                            <!-- Liên hệ -->
+                            <a href="/Contact/Index" class="nav-item nav-link @((ViewBag.active == 4) ? "active" : "")">Liên hệ</a>
                         </div>
+
                         
-                        @if (Context.User.Identity.IsAuthenticated)
+                        @* xác thực xem có tồn tại k *@
+                         @if (Context.User.Identity.IsAuthenticated)
                         {
                             <a href="/BorrowBook/GioHang" class="btn btn-primary px-3 d-none d-lg-flex">Giỏ hàng</a>
 
                             <div class="nav-item dropdown">
+                               @*  //lấy tên user để hiển thị lên *@
                                 <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">@User.Identity.Name</a>
                                 <div class="dropdown-menu rounded-0 rounded-bottom border-0 shadow-sm m-0">
                                     <a href="~/User/HistoryOfBorrowingBooks" class="dropdown-item">Lịch sử</a>
