@@ -6,7 +6,7 @@ using static Azure.Core.HttpHeader;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using System.Diagnostics;
-using WebApp.Models.Responses;
+using WebApp.Responses;
 
 namespace WebApp.Controllers
 {
