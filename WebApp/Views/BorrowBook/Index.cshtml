@@ -2,7 +2,6 @@
     ViewData["Title"] = "Index";
     Layout = "~/Views/Shared/_Layout.cshtml";
     ViewBag.active = 3;
-
 }
 
 @{
@@ -74,10 +73,7 @@
                     </div>
                 </div>
 
-
             </div>
-
-
 
         </div>
     </div>
@@ -109,11 +105,11 @@
                                     <a href=""><img class="img-fluid" src="@urlImage" style="width: 100%; height: 100%; object-fit: cover;" alt=""></a>
                                 </div>
                                 <!-- Hiển thị số lượng sách -->
-                            <div id="soLuongSachNo_@item.MaSach" class="bg-primary rounded text-white position-absolute start-0 top-0 m-2 mt-0 py-0 px-1" style="z-index: 0;">Số lượng: @item.soluonghientai</div>
-                                <small id="soLuongSach_@item.MaSach" hidden>@item.soluonghientai</small>
+                            <div id="soLuongSachNo_@item.masach" class="bg-primary rounded text-white position-absolute start-0 top-0 m-2 mt-0 py-0 px-1" style="z-index: 0;">Số lượng: @item.soluonghientai</div>
+                            <small id="soLuongSach_@item.masach" hidden>@item.soluonghientai</small>
 
                                 <!-- Hiển thị thông tin về thể loại với nền đỏ và cách lề trên là 4 -->
-                                <div id="theLoai_@item.MaSach" class="bg-danger rounded text-white position-absolute start-0 top-0 m-2 mt-4 py-0 px-1" style="z-index: 1;">@item.theloai</div>
+                            <div id="theLoai_@item.masach" class="bg-danger rounded text-white position-absolute start-0 top-0 m-2 mt-4 py-0 px-1" style="z-index: 1;">@item.theloai</div>
 
                                 <!-- Phần thông tin về sách -->
                                 <div class="bg-white rounded-bottom text-primary" style="position: absolute; bottom: 0; left: 0; width: 100%; background-color: rgba(255, 255, 255, 0.7); padding: 10px;">
@@ -122,7 +118,7 @@
 
                                     @if (item.soluonghientai > 5)
                                     {
-                                        <button id="ThueSach" class="btn btn-outline-primary active" data-bs-toggle="pill" onclick="ThueSach('@item.MaSach', '@item.tensach')">Thuê sách</button>
+                                    <button id="ThueSach" class="btn btn-outline-primary active" data-bs-toggle="pill" onclick="ThueSach('@item.masach', '@item.tensach')">Thuê sách</button>
                                     }
                                     else
                                     {
@@ -178,7 +174,7 @@
                 <input type="number" id="soLuong" min="1" max="2" class="form-control" onkeydown="validateInput(event, 2)" />
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-primary" onclick="DangKyMuon()">Đăng ký</button>
+                <button type="button" class="btn btn-primary" onclick="ThemVaoGioHang()">Thêm</button>
             </div>
         </div>
     </div>
@@ -240,7 +236,6 @@
         });
     }
 
-
     // Hàm ResetView để trả về giao diện ban đầu
     function ResetView() {
         // Đặt lại nội dung của #resultContainer về nội dung ban đầu
@@ -271,17 +266,17 @@
                             <div class="position-relative overflow-hidden" style="width: 100%; height: 100%;">
                                 <a href="#"><img class="img-fluid" src="${urlImage}" style="width: 100%; height: 100%; object-fit: cover;" alt=""></a>
                             </div>
-                            <div id="soLuongSachNo_${item.MaSach}" class="bg-primary rounded text-white position-absolute start-0 top-0 m-2 mt-0 py-0 px-1" style="z-index: 0;">
+                            <div id="soLuongSachNo_${item.masach}" class="bg-primary rounded text-white position-absolute start-0 top-0 m-2 mt-0 py-0 px-1" style="z-index: 0;">
                                 Số lượng: ${item.soluonghientai}
                             </div>
-                            <div id="theLoai_${item.MaSach}" class="bg-danger rounded text-white position-absolute start-0 top-0 m-2 mt-4 py-0 px-1" style="z-index: 1;">
+                                    <div id="theLoai_${item.masach}" class="bg-danger rounded text-white position-absolute start-0 top-0 m-2 mt-4 py-0 px-1" style="z-index: 1;">
                                 ${item.theloai}
                             </div>
                             <div class="bg-white rounded-bottom text-primary" style="position: absolute; bottom: 0; left: 0; width: 100%; background-color: rgba(255, 255, 255, 0.7); padding: 10px;">
                                 <a class="d-block h5 mb-2" href="#">${item.tensach}</a>
                                 <h6 class="text-primary mb-3">--${item.tacgia}--</h6>
                                 ${item.soluonghientai > 5
-                        ? `<button id="ThueSach" class="btn btn-outline-primary active" data-bs-toggle="pill" onclick="ThueSach('${item.MaSach}', '${item.tensach}')">Thuê sách</button>`
+                        ? `<button id="ThueSach" class="btn btn-outline-primary active" data-bs-toggle="pill" onclick="ThueSach('${item.masach}', '${item.tensach}')">Thuê sách</button>`
                         : `<button class="btn btn-outline-primary" data-bs-toggle="pill">Tạm ngừng mượn</button>`
                     }
                             </div>
@@ -297,7 +292,6 @@
             $("#resultContainer").append('<p>Không tìm thấy sách nào.</p>');
         }
     }
-
 
     function LocSach() {
         console.log("Function LocSach called");
@@ -358,70 +352,168 @@
         return (key >= '0' && key <= '2') || key === 'Backspace' || key === 'Delete' || key === 'ArrowLeft' || key === 'ArrowRight';
     }
         /////////////////////// Đăng ký mượn sách /////////////////////////////
-        function ThueSach(maSach, tenSach) {
-            // Lưu mã sách vào biến toàn cục để sử dụng sau này
-            selectedMaSach = maSach;
+    function ThueSach(maSach, tenSach) {
+        // Lưu mã sách vào biến toàn cục để sử dụng sau này
+        selectedMaSach = maSach;
 
-            // Hiển thị giá trị của maSach trong modal
-            $('#maSachDisplay').text('Đăng ký mượn sách: ' + tenSach);
+        // Hiển thị giá trị của maSach trong modal
+        $('#maSachDisplay').text('Đăng ký mượn sách: ' + tenSach);
 
-            // Hiển thị modal
-            $('#dangKyDialog').modal('show');
+        // Hiển thị modal
+        $('#dangKyDialog').modal('show');
+    }
+
+    // function XoaDuLieuCu() {
+    //     localStorage.removeItem('gioHang'); // Xóa chỉ mục 'gioHang'
+    //     console.log("Dữ liệu cũ trong localStorage đã được xóa.");
+    // }
+    //     XoaDuLieuCu();
+    var currentUserPhone = '@User.FindFirst("PhoneNumber")?.Value';
+    function ThemVaoGioHang() {
+        var currentUserId = currentUserPhone;
+        if (!currentUserId) {
+            console.error("Không tìm thấy số điện thoại người dùng.");
+            document.getElementById("contentModalError").innerHTML = "Vui lòng đăng nhập để thêm vào giỏ hàng!";
+            $("#ModalError").modal("show");
+            return;
         }
+        var soLuongMuon = parseInt($('#soLuong').val());
+        var soLuongSachHienTai = parseInt($('#soLuongSach_' + selectedMaSach).text());
 
-        function DangKyMuon() {
-            // Lấy giá trị từ dropdown
-            var soLuongMuon = parseInt($('#soLuong').val());
-            var soLuongSachHienTai = parseInt($('#soLuongSach_' + selectedMaSach).text());
+        if (!isNaN(soLuongMuon) && !isNaN(soLuongSachHienTai) && (soLuongMuon <= (soLuongSachHienTai - 5))) {
+            if (soLuongMuon < 1) {
+                document.getElementById("contentModalError").innerHTML = "Số lượng không phù hợp! Vui lòng kiểm tra lại";
+                $("#ModalError").modal("show");
+            } else {
+                var gioHang = JSON.parse(localStorage.getItem('gioHang')) || [];
 
-            console.log("So luong muon:", soLuongMuon);    // Kiểm tra dữ liệu
-            console.log("maSach:", selectedMaSach);    // Kiểm tra dữ liệu
-            console.log("So luong sach hien tai :", soLuongSachHienTai);    // Kiểm tra dữ liệu
+                var sachTrongGio = gioHang.find(item => item.maSach === selectedMaSach && item.userId === currentUserId);
 
-            // Kiểm tra xem số sách muốn mượn có nằm trong khoảng từ 1 đến số sách hiện tại hay không (ví dụ)
+                if (sachTrongGio) {
+                    var tongSoLuongMuon = sachTrongGio.soLuongMuon + soLuongMuon;
 
-            if (!isNaN(soLuongMuon) && !isNaN(soLuongSachHienTai) && (soLuongMuon <= (soLuongSachHienTai - 5))) {
-                if (soLuongMuon < 1) {
-                    document.getElementById("contentModalError").innerHTML = "Số lượng không phù hợp! Vui lòng kiểm tra lại";
-                    $("#ModalError").modal("show");
+                    if (tongSoLuongMuon > 2) {
+                        document.getElementById("contentModalError").innerHTML = "Số lượng mượn sách đã vượt quá giới hạn cho phép (tối đa 2 quyển mỗi sách).";
+                        $("#ModalError").modal("show");
+                    } else {
+                        sachTrongGio.soLuongMuon = tongSoLuongMuon; // Cập nhật số lượng mượn
+                        localStorage.setItem('gioHang', JSON.stringify(gioHang));
+                        document.getElementById("contentModalSuccess").innerHTML = "Bạn đã thêm giỏ hàng thành công!";
+                        $("#ModalSuccess").modal("show");
+                        $('#dangKyDialog').modal('hide');
+                    }
                 } else {
-                    console.log("Số lượng sách mượn hợp lệ");
-
-                    $.ajax({
-                        url: "/BorrowBook/Borrow",
-                        type: "POST",
-                        data: {
+                    if (soLuongMuon > 2) {
+                        document.getElementById("contentModalError").innerHTML = "Số lượng mượn sách vượt quá giới hạn cho phép (tối đa 2 quyển mỗi sách).";
+                        $("#ModalError").modal("show");
+                    } else {
+                        gioHang.push({
                             maSach: selectedMaSach,
                             soLuongMuon: soLuongMuon,
-                            soLuongSachHienTai: soLuongSachHienTai
-                        },
-                        success: function (data) {
-
-                            if (data.success) {
-                                // Xử lý khi đăng ký thành công
-                                document.getElementById("contentModalSuccess").innerHTML = "Bạn đã đăng ký thành công!";
-                                $("#ModalSuccess").modal("show");
-
-                                // Đóng modal sau khi đăng ký
-                                $('#dangKyDialog').modal('hide');
-                                        } else {
-                                document.getElementById("contentModalError").innerHTML = data.message;
-                                $("#ModalError").modal("show");
-                            }
-
-
-                        },
-                        error: function (result) {
-                            // Xử lý khi có lỗi
-                            document.getElementById("contentModalError").innerHTML = "Đã xảy ra lỗi! " + result.error;
-                            $("#ModalError").modal("show");
-                        }
-                    });
+                            soLuongSachHienTai: soLuongSachHienTai,
+                            userId: currentUserId
+                        });
+                        localStorage.setItem('gioHang', JSON.stringify(gioHang));
+                        document.getElementById("contentModalSuccess").innerHTML = "Bạn đã thêm giỏ hàng thành công!";
+                        $("#ModalSuccess").modal("show");
+                        $('#dangKyDialog').modal('hide');
+                    }
                 }
-            } else {
-                document.getElementById("contentModalError").innerHTML = "Xin lỗi quý khách! Số lượng sách còn lại tại Thư viện đã đạt giới hạn tối thiểu";
-                $("#ModalError").modal("show");
             }
+        } else {
+            document.getElementById("contentModalError").innerHTML = "Xin lỗi quý khách! Số lượng sách còn lại tại Thư viện đã đạt giới hạn tối thiểu";
+            $("#ModalError").modal("show");
         }
+    }
+   
+
+    // function HienThiGioHang() {
+    //     // Lấy userId của người dùng hiện tại từ localStorage
+    //     var currentUserId = localStorage.getItem('currentUserId');
+
+    //     // Lấy toàn bộ giỏ hàng từ localStorage
+    //     var gioHang = JSON.parse(localStorage.getItem('gioHang')) || [];
+
+        
+    //     // Lọc giỏ hàng cho người dùng hiện tại
+    //    // var gioHangUser = gioHang.filter(item => item.userId === currentUserId);
+    //     var gioHangUser = gioHang.filter(item => item.userId === currentUserId);
+    //     console.log("Giỏ hàng của người dùng:", gioHangUser);
+
+    //     // Hiển thị dữ liệu giỏ hàng (tùy chỉnh giao diện)
+    //     var container = $('#gioHangContainer');
+    //     container.empty(); // Xóa nội dung cũ
+
+    //     if (gioHangUser.length === 0) {
+    //         container.append('<p>Giỏ hàng trống</p>');
+    //     } else {
+    //         gioHangUser.forEach(item => {
+    //             container.append(`
+    //                 <div>
+    //                     <p>Mã sách: ${item.maSach}</p>
+    //                     <p>Số lượng mượn: ${item.soLuongMuon}</p>
+    //                     <p>Số lượng sách hiện tại: ${item.soLuongSachHienTai}</p>
+    //                     <hr>
+    //                 </div>
+    //             `);
+    //         });
+    //     }
+    // }
+
+    //Thêm giỏ hàng bằng cách cũ
+    // function ThemVaoGioHang() {
+    //     // Lấy giá trị từ dropdown
+    //     var soLuongMuon = parseInt($('#soLuong').val());
+    //     var soLuongSachHienTai = parseInt($('#soLuongSach_' + selectedMaSach).text());
+
+    //     console.log("So luong them vào gio hang:", soLuongMuon);    // Kiểm tra dữ liệu
+    //     console.log("maSach:", selectedMaSach);    // Kiểm tra dữ liệu
+    //     console.log("So luong sach hien tai :", soLuongSachHienTai);    // Kiểm tra dữ liệu
+
+    //     // Kiểm tra xem số sách muốn mượn có nằm trong khoảng từ 1 đến số sách hiện tại hay không (ví dụ)
+
+    //     if (!isNaN(soLuongMuon) && !isNaN(soLuongSachHienTai) && (soLuongMuon <= (soLuongSachHienTai - 5))) {
+    //         if (soLuongMuon < 1) {
+    //             document.getElementById("contentModalError").innerHTML = "Số lượng không phù hợp! Vui lòng kiểm tra lại";
+    //             $("#ModalError").modal("show");
+    //         } else {
+    //             console.log("Số lượng sách hợp lệ");
+
+    //             $.ajax({
+    //                 url: "/BorrowBook/Borrow",
+    //                 type: "POST",
+    //                 data: {
+    //                     maSach: selectedMaSach,
+    //                     soLuongMuon: soLuongMuon,
+    //                     soLuongSachHienTai: soLuongSachHienTai
+    //                 },
+    //                 success: function (data) {
+
+    //                     if (data.success) {
+    //                         // Xử lý khi đăng ký thành công
+    //                         document.getElementById("contentModalSuccess").innerHTML = "Bạn đã thêm giỏ hàng thành công!";
+    //                         $("#ModalSuccess").modal("show");
+
+    //                         // Đóng modal sau khi đăng ký
+    //                         $('#dangKyDialog').modal('hide');
+    //                                 } else {
+    //                         document.getElementById("contentModalError").innerHTML = data.message;
+    //                         $("#ModalError").modal("show");
+    //                     }
+
+
+    //                 },
+    //                 error: function (result) {
+    //                     // Xử lý khi có lỗi
+    //                     document.getElementById("contentModalError").innerHTML = "Đã xảy ra lỗi! " + result.error;
+    //                     $("#ModalError").modal("show");
+    //                 }
+    //             });
+    //         }
+    //     } else {
+    //         document.getElementById("contentModalError").innerHTML = "Xin lỗi quý khách! Số lượng sách còn lại tại Thư viện đã đạt giới hạn tối thiểu";
+    //         $("#ModalError").modal("show");
+    //     }
+    // }
 
         </script>

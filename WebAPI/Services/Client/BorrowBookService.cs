@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebAPI.Models;
 
@@ -17,72 +18,26 @@ namespace WebAPI.Services.Client
             _mapper = mapper;
         }
 
-        public async Task<List<Sach>> GetAll()
-        {
-            return await _context.Saches.ToListAsync();
-        }
-        public async Task<List<Sach>> GetBookByName(string tenSach)
+
+        public async Task<List<Sach>> GetBooksForBorrow(int[] maSach)
         {
             try
             {
-                // Loại bỏ khoảng trắng ở đầu và cuối
-                tenSach = tenSach?.Trim();
-
-                // Tìm kiếm sách theo tên hoặc tác giả
+                // Lấy danh sách sách theo danh sách mã sách
                 var sachLoc = await _context.Saches
-                    .Where(item => item.Tensach.Contains(tenSach) || item.Tacgia.Contains(tenSach))
+                    .Where(s => maSach.Contains(s.Masach))
                     .ToListAsync();
 
-                // Trả về danh sách sách phù hợp (có thể là rỗng nếu không có sách phù hợp)
-                return sachLoc;
+                // Sử dụng mapper để chuyển đổi sang DTO nếu cần
+                var sachMuon = _mapper.Map<List<Sach>>(sachLoc);
+
+                return sachMuon; // Trả về danh sách sách được tìm thấy
             }
             catch (Exception ex)
             {
-                // Ghi log lỗi nếu cần và trả về một danh sách trống để báo lỗi phía client
-                Console.WriteLine($"Error: {ex.Message}");
-                return new List<Sach>(); // Trả về danh sách trống khi có lỗi
+                throw new Exception($"Error fetching books: {ex.Message}", ex);
             }
         }
-        public async Task<List<Sach>> GetBookByCategory(string ngonNgu, string theLoai, string namXB)
-        {
-            try
-            {
-                var sachLoc = _context.Saches.AsQueryable();
-
-                if (ngonNgu != "All")
-                {
-                    sachLoc = sachLoc.Where(m => m.Ngonngu == ngonNgu);
-                }
-
-                if (theLoai != "All")
-                {
-                    sachLoc = sachLoc.Where(m => m.Theloai == theLoai);
-                }
-
-                if (namXB != "All")
-                {
-                    if (int.TryParse(namXB, out int namXBValue))
-                    {
-                        sachLoc = sachLoc.Where(m => m.Namxb == namXBValue);
-                    }
-                    else
-                    {
-                        // Bạn có thể throw một exception nếu cần thiết
-                        throw new ArgumentException("Giá trị năm xuất bản không hợp lệ.");
-                    }
-                }
-
-                // Thực hiện truy vấn và trả về danh sách
-                return await sachLoc.ToListAsync();
-            }
-            catch (Exception ex)
-            {
-                // Ghi log lỗi nếu cần
-                Console.WriteLine($"Error: {ex.Message}");
-                return new List<Sach>(); // Trả về danh sách rỗng khi có lỗi
-
-
-            }
-        }
+    
     }
 }

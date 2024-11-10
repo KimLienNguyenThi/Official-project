@@ -9,7 +9,7 @@ using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pag
 using Newtonsoft.Json;
 using Microsoft.AspNetCore.Authorization;
 using System.Net.Http.Headers;
-using WebApp.Models.Responses;
+using WebApp.Responses;
 
 namespace WebApp.Controllers
 {

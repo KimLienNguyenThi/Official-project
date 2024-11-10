@@ -1,4 +1,4 @@
-﻿namespace WebApp.Models.Responses
+﻿namespace WebApp.Responses
 {
     public class GetBookByNameResDto
     {
