@@ -453,7 +453,7 @@
                         // Mở modal
                         $("#chinhSuaThongTinModal").modal("show");
                     } else {
-                        console.error("Không thành công trong việc nhận dữ liệu từ server.");
+                        console.error(data.message)
                     }
                 },
                 error: function (error) {

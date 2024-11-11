@@ -405,7 +405,9 @@
         document.getElementById("ngayDangKy").value = formatCurrentDate;
 
         // Set mã nhân viên
-        var manv = @User.FindFirst("MaNV")?.Value;   // Update MaNV
+        // var manv = @User.FindFirst("MaNV")?.Value;   // Update MaNV
+        var manv = 1;   // Update MaNV
+
         document.getElementById("MaNhanVien").value = manv;
 
         // Format date
