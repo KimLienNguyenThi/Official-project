@@ -161,74 +161,36 @@ namespace WebApp.Controllers
 
             return Json(new { success = true, data = bookList });
         }
-        //[HttpPost]
-        //public async Task<IActionResult> LayThongTinSach([FromBody] int[] maSach)
-        //{
-        //    try
-        //    {
-        //        // Gọi API backend để lấy thông tin sách
-        //        using (var client = new HttpClient())
-        //        {
-        //            HttpResponseMessage response = _client.GetAsync(_client.BaseAddress + $"/BorrowBook/GetBooksForBorrow/{maSach}").Result;
-        //            if (response.IsSuccessStatusCode)
-        //            {
-        //                var data = await response.Content.ReadAsStringAsync();
-        //                var books = JsonConvert.DeserializeObject<List<GetBookByNameResDto>>(data);
+        
+        [HttpPost]
+        public async Task<IActionResult> DangKyMuon([FromBody] DKMuon dto)
+        {
+            try
+            {
+                if (dto == null)
+                {
+                    return BadRequest("Invalid data.");
+                }
 
-        //                return Ok(books); // Trả về danh sách sách cho frontend
-        //            }
-        //            else
-        //            {
-        //                return BadRequest(new { message = "Không thể lấy thông tin từ backend." });
-        //            }
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return BadRequest(new { message = ex.Message });
-        //    }
-        //}
+                var jsonContent = JsonConvert.SerializeObject(dto);
+                var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                HttpResponseMessage response = await _client.PostAsync(_client.BaseAddress + "/BorrowBook/DangKyMuon", httpContent);
 
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadAsStringAsync();
+                    return Json(new { success = true });
+                }
+                else
+                {
+                    return Json(new { success = false });
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"API call failed    {ex.Message}");
 
-        //[HttpPost]
-        //public IActionResult Borrow(int maSach, int soLuongMuon, int soLuongSachHienTai)
-        //{
-        //    try
-        //    {
-        //        if (ListSachMuon.listSachMuon.ContainsKey(maSach))
-        //        {
-        //            var value = ListSachMuon.listSachMuon[maSach];
-
-        //            if ((value + soLuongMuon) > (soLuongSachHienTai - 5))
-        //            {
-        //                return Json(new { success = false, message = "Số lượng sách vượt quá số lượng sách hiện có!" });
-        //            }
-        //            if ((value + soLuongMuon) > 2)
-        //            {
-        //                return Json(new { success = false, message = "Số lượng sách mượn vượt quá 2 quyển cùng loại!" });
-        //            }
-        //            ListSachMuon.listSachMuon[maSach] = value + soLuongMuon;
-        //        }
-        //        else
-        //        {
-        //            if (soLuongMuon > 2)
-        //            {
-        //                return Json(new { success = false, message = "Số lượng sách mượn vượt quá 2 quyển cùng loại!" });
-        //            }
-        //            ListSachMuon.listSachMuon.Add(maSach, soLuongMuon);
-        //        }
-        //        return Ok(new { success = true });
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return Json(new { success = false, message = ex.Message });
-        //    }
-        //}
-
-
-
-
-
-
+            }
+        }
     }
 }
