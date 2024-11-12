@@ -357,7 +357,7 @@
         selectedMaSach = maSach;
 
         // Hiển thị giá trị của maSach trong modal
-        $('#maSachDisplay').text('Đăng ký mượn sách: ' + tenSach);
+        $('#maSachDisplay').text('Thêm giỏ hàng sách: ' + tenSach);
 
         // Hiển thị modal
         $('#dangKyDialog').modal('show');
@@ -426,94 +426,4 @@
         }
     }
    
-
-    // function HienThiGioHang() {
-    //     // Lấy userId của người dùng hiện tại từ localStorage
-    //     var currentUserId = localStorage.getItem('currentUserId');
-
-    //     // Lấy toàn bộ giỏ hàng từ localStorage
-    //     var gioHang = JSON.parse(localStorage.getItem('gioHang')) || [];
-
-        
-    //     // Lọc giỏ hàng cho người dùng hiện tại
-    //    // var gioHangUser = gioHang.filter(item => item.userId === currentUserId);
-    //     var gioHangUser = gioHang.filter(item => item.userId === currentUserId);
-    //     console.log("Giỏ hàng của người dùng:", gioHangUser);
-
-    //     // Hiển thị dữ liệu giỏ hàng (tùy chỉnh giao diện)
-    //     var container = $('#gioHangContainer');
-    //     container.empty(); // Xóa nội dung cũ
-
-    //     if (gioHangUser.length === 0) {
-    //         container.append('<p>Giỏ hàng trống</p>');
-    //     } else {
-    //         gioHangUser.forEach(item => {
-    //             container.append(`
-    //                 <div>
-    //                     <p>Mã sách: ${item.maSach}</p>
-    //                     <p>Số lượng mượn: ${item.soLuongMuon}</p>
-    //                     <p>Số lượng sách hiện tại: ${item.soLuongSachHienTai}</p>
-    //                     <hr>
-    //                 </div>
-    //             `);
-    //         });
-    //     }
-    // }
-
-    //Thêm giỏ hàng bằng cách cũ
-    // function ThemVaoGioHang() {
-    //     // Lấy giá trị từ dropdown
-    //     var soLuongMuon = parseInt($('#soLuong').val());
-    //     var soLuongSachHienTai = parseInt($('#soLuongSach_' + selectedMaSach).text());
-
-    //     console.log("So luong them vào gio hang:", soLuongMuon);    // Kiểm tra dữ liệu
-    //     console.log("maSach:", selectedMaSach);    // Kiểm tra dữ liệu
-    //     console.log("So luong sach hien tai :", soLuongSachHienTai);    // Kiểm tra dữ liệu
-
-    //     // Kiểm tra xem số sách muốn mượn có nằm trong khoảng từ 1 đến số sách hiện tại hay không (ví dụ)
-
-    //     if (!isNaN(soLuongMuon) && !isNaN(soLuongSachHienTai) && (soLuongMuon <= (soLuongSachHienTai - 5))) {
-    //         if (soLuongMuon < 1) {
-    //             document.getElementById("contentModalError").innerHTML = "Số lượng không phù hợp! Vui lòng kiểm tra lại";
-    //             $("#ModalError").modal("show");
-    //         } else {
-    //             console.log("Số lượng sách hợp lệ");
-
-    //             $.ajax({
-    //                 url: "/BorrowBook/Borrow",
-    //                 type: "POST",
-    //                 data: {
-    //                     maSach: selectedMaSach,
-    //                     soLuongMuon: soLuongMuon,
-    //                     soLuongSachHienTai: soLuongSachHienTai
-    //                 },
-    //                 success: function (data) {
-
-    //                     if (data.success) {
-    //                         // Xử lý khi đăng ký thành công
-    //                         document.getElementById("contentModalSuccess").innerHTML = "Bạn đã thêm giỏ hàng thành công!";
-    //                         $("#ModalSuccess").modal("show");
-
-    //                         // Đóng modal sau khi đăng ký
-    //                         $('#dangKyDialog').modal('hide');
-    //                                 } else {
-    //                         document.getElementById("contentModalError").innerHTML = data.message;
-    //                         $("#ModalError").modal("show");
-    //                     }
-
-
-    //                 },
-    //                 error: function (result) {
-    //                     // Xử lý khi có lỗi
-    //                     document.getElementById("contentModalError").innerHTML = "Đã xảy ra lỗi! " + result.error;
-    //                     $("#ModalError").modal("show");
-    //                 }
-    //             });
-    //         }
-    //     } else {
-    //         document.getElementById("contentModalError").innerHTML = "Xin lỗi quý khách! Số lượng sách còn lại tại Thư viện đã đạt giới hạn tối thiểu";
-    //         $("#ModalError").modal("show");
-    //     }
-    // }
-
         </script>

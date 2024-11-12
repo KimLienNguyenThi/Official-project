@@ -1,4 +1,8 @@
-﻿
+﻿@using WebApp.Models
+
+@model List<DkiMuonSach>
+
+
 @{
     ViewData["Title"] = "HistoryOfBorrowingBooks";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -21,7 +25,6 @@
                 </th>
                 <th>
                     <h6>Tình trạng</h6>
-
                 </th>
                 <th>
                     <h6>Thao tác</h6>
@@ -29,59 +32,49 @@
             </tr>
         </thead>
         <tbody>
-           @*  @foreach (var item in Model)
+            @if (Model == null || !Model.Any())
             {
-                <p style="font-style:italic; padding-left:30px">@ViewBag.MessageData</p>
-
-                <tr id="row_@item.MaDk" class="@if(item.Tinhtrang == 3) 
+                <p>Không có dữ liệu để hiển thị.</p>
+            }
+            else
+            {
+                @foreach (var item in Model)
                 {
-                    <text>da-huy</text>
-                }">
-                                <td style="margin-right:50px">
-                                    @Html.DisplayFor(modelItem => item.MaDk)
-                                </td>
-                                <td>
-                                    @Html.DisplayFor(modelItem => item.NgayDkmuon)
-                                </td>
-                                <td>
-                                    @Html.DisplayFor(modelItem => item.NgayHen)
-                                </td>
-                                <td class="trang-thai">
-
-                                    @if (item.Tinhtrang == 0)
-                                    {
-                                        <span class="badge badge-secondary" style="color:black;">Chưa duyệt</span>
-                                    }
-
-                                    else if (item.Tinhtrang == 1)
-                                    {
-                                        <span class="badge badge-success" style="color:black">Đã duyệt</span>
-
-                                    }
-                                    else if (item.Tinhtrang == 2)
-                                    {
-                                        <span class="badge badge-info" style="color:black">Đã mượn</span>
-                                    }
-                                    else if (item.Tinhtrang == 3)
-                                    {
-                                        <span class="badge badge-danger" style="color:black">Đã hủy</span>
-                                    }
-                                </td>
-
-                                <td>
-                                    @if (item.Tinhtrang == 0)
-                                    {
-                                        <button class="btn btn-danger btn-sm btn-huy" onclick="HuyDon(@item.MaDk)">Hủy</button>
-                                    }
-
-                                    <button class="btn btn-danger btn-sm" onclick="showDetails(@item.MaDk)">Chi tiết</button>
-                                </td>
-                </tr>
-            } *@
+                    <tr id="row_@item.Madk">
+                        <td>@Html.DisplayFor(modelItem => item.Madk)</td>
+                        <td>@Html.DisplayFor(modelItem => item.Ngaydkmuon)</td>
+                        <td>@Html.DisplayFor(modelItem => item.Ngayhen)</td>
+                        <td class="trang-thai">
+                            @if (item.Tinhtrang == 0)
+                            {
+                                <span class="badge badge-secondary" style="color:black;">Chưa duyệt</span>
+                            }
+                            else if (item.Tinhtrang == 1)
+                            {
+                                <span class="badge badge-success" style="color:black">Đã duyệt</span>
+                            }
+                            else if (item.Tinhtrang == 2)
+                            {
+                                <span class="badge badge-info" style="color:black">Đã mượn</span>
+                            }
+                            else if (item.Tinhtrang == 3)
+                            {
+                                <span class="badge badge-danger" style="color:black">Đã hủy</span>
+                            }
+                        </td>
+                        <td>
+                            @if (item.Tinhtrang == 0)
+                            {
+                                <button class="btn btn-danger btn-sm btn-huy" onclick="HuyDon(@item.Madk)">Hủy</button>
+                            }
+                            <button class="btn btn-danger btn-sm" onclick="showDetails(@item.Madk)">Chi tiết</button>
+                        </td>
+                    </tr>
+                }
+            }
         </tbody>
     </table>
 </div>
-@*/////////////////////////////////*@
 
 <div class="modal fade bd-example-modal-lg" id="ModaldanhSachDkiMuon" tabindex="-1" role="dialog" aria-labelledby="exampleModalScrollableTitle" aria-hidden="true">
     <div class="modal-dialog modal-dialog-scrollable modal-dialog modal-lg" role="document">
@@ -127,32 +120,27 @@
     </div>
 </div>
 
-
-
-
 <script>
-    function HuyDon(maDK) {
 
+
+    function HuyDon(maDK) {
         var confirmed = confirm("Bạn chắc chắn muốn hủy đơn?");
         if (confirmed) {
-
-            console.log("maDK", maDK)
-
             $.ajax({
                 url: "/User/CancelOrderBooks",
                 type: "PUT",
-                data: {
-                    maDK: maDK,
-                },
+                data: { maDK: maDK },
                 success: function (data) {
                     if (data.success) {
                         alert(data.message);
 
-                        // Ẩn nút Hủy và cập nhật trạng thái đã hủy
+                        // Lấy hàng của bảng theo ID
                         var row = $("#row_" + maDK);
-                        var trangThaiElement = row.find(".trang-thai");
-                        trangThaiElement.html("<span class='badge badge-danger' style='color:black;'>Đã hủy</span>");
-                        row.addClass("da-huy");
+
+                        // Cập nhật trạng thái "Đã hủy"
+                        row.find(".trang-thai").html("<span class='badge badge-danger' style='color:black;'>Đã hủy</span>");
+
+                        // Ẩn nút Hủy
                         row.find(".btn-huy").hide();
                     } else {
                         alert(data.message);
@@ -164,11 +152,7 @@
             });
         }
     }
-
-
     function showDetails(maDK) {
-
-
         $.ajax({
             url: "/User/DetailsOrderBooks",
             type: "POST",
@@ -187,12 +171,12 @@
                 $.each(data, function (index, item) {
                     console.log("item: ", item);
 
-                    document.getElementById("maDangKyModal").value = item.chiTietDk.maDk;
+                    document.getElementById("maDangKyModal").value = item.chiTietDk.madk;
 
 
-                    var newRow = $(` <tr class="sachdk-row" data-ma-sach="${item.chiTietDk.maSach}">
-                                        <td>${item.chiTietDk.maSach}</td>
-                                        <td>${item.tenSach}</td>
+                    var newRow = $(` <tr class="sachdk-row" data-ma-sach="${item.chiTietDk.masach}">
+                                        <td>${item.chiTietDk.masach}</td>
+                                            <td>${item.tenSach}</td>
                                         <td>${item.chiTietDk.soluongmuon}</td>
                                         </tr> `);
 
@@ -206,7 +190,6 @@
             }
         });
     }
-
 
     function getTinhTrangLabel(tinhTrang) {
         if (tinhTrang == 0) {
