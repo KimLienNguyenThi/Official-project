@@ -14,14 +14,14 @@ builder.Services.AddAuthentication(option =>
     {
         option.LoginPath = "/User/Login"; // Đường dẫn khi user chưa đăng nhập
     })
-    
 
-    //.AddCookie("AdminCookie", options =>
-    //{
-    //    options.LoginPath = "/admin/Account/Login"; // Đường dẫn khi admin chưa đăng nhập
-    //    options.AccessDeniedPath = "/admin/phanquyen/LoiPhanQuyen"; // Đường dẫn khi admin không có quyền truy cập
-    //    options.Cookie.Name = "AdminAuthCookie"; // Tên của cookie dành cho admin
-    //})
+
+    .AddCookie("AdminCookie", options =>
+    {
+        options.LoginPath = "/admin/Account/Login"; // Đường dẫn khi admin chưa đăng nhập
+        options.AccessDeniedPath = "/admin/phanquyen/LoiPhanQuyen"; // Đường dẫn khi admin không có quyền truy cập
+        options.Cookie.Name = "AdminAuthCookie"; // Tên của cookie dành cho admin
+    })
 
     .AddGoogle(GoogleDefaults.AuthenticationScheme, option =>
     {
@@ -30,45 +30,45 @@ builder.Services.AddAuthentication(option =>
     });
 
 
-//// Thêm chính sách "AdminPolicy"
-//builder.Services.AddAuthorization(options =>
-//{
-//    options.AddPolicy("AdminPolicy", policy =>
-//    {
-//        // Chỉ định rằng chính sách này sử dụng schema xác thực "AdminCookie"
-//        policy.AuthenticationSchemes.Add("AdminCookie");
+// Thêm chính sách "AdminPolicy"
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminPolicy", policy =>
+    {
+        // Chỉ định rằng chính sách này sử dụng schema xác thực "AdminCookie"
+        policy.AuthenticationSchemes.Add("AdminCookie");
 
-//        // Yêu cầu người dùng phải được xác thực
-//        policy.RequireAuthenticatedUser();
+        // Yêu cầu người dùng phải được xác thực
+        policy.RequireAuthenticatedUser();
 
-//        // Có thể thêm các yêu cầu khác nếu cần
-//        policy.RequireRole("Admin"); // Ví dụ: yêu cầu người dùng phải có vai trò "Admin"
-//    });
+        // Có thể thêm các yêu cầu khác nếu cần
+        policy.RequireRole("Admin"); // Ví dụ: yêu cầu người dùng phải có vai trò "Admin"
+    });
 
-//    options.AddPolicy("QuanLyKhoPolicy", policy =>
-//    {
-//        // Chỉ định rằng chính sách này sử dụng schema xác thực "AdminCookie"
-//        policy.AuthenticationSchemes.Add("AdminCookie");
+    options.AddPolicy("QuanLyKhoPolicy", policy =>
+    {
+        // Chỉ định rằng chính sách này sử dụng schema xác thực "AdminCookie"
+        policy.AuthenticationSchemes.Add("AdminCookie");
 
-//        // Yêu cầu người dùng phải được xác thực
-//        policy.RequireAuthenticatedUser();
+        // Yêu cầu người dùng phải được xác thực
+        policy.RequireAuthenticatedUser();
 
-//        // Có thể thêm các yêu cầu khác nếu cần
-//        policy.RequireRole("QuanLyKho"); // Ví dụ: yêu cầu người dùng phải có vai trò "QuanLyKho"
-//    });
+        // Có thể thêm các yêu cầu khác nếu cần
+        policy.RequireRole("QuanLyKho"); // Ví dụ: yêu cầu người dùng phải có vai trò "QuanLyKho"
+    });
 
-//    options.AddPolicy("ThuThuPolicy", policy =>
-//    {
-//        // Chỉ định rằng chính sách này sử dụng schema xác thực "AdminCookie"
-//        policy.AuthenticationSchemes.Add("AdminCookie");
+    options.AddPolicy("ThuThuPolicy", policy =>
+    {
+        // Chỉ định rằng chính sách này sử dụng schema xác thực "AdminCookie"
+        policy.AuthenticationSchemes.Add("AdminCookie");
 
-//        // Yêu cầu người dùng phải được xác thực
-//        policy.RequireAuthenticatedUser();
+        // Yêu cầu người dùng phải được xác thực
+        policy.RequireAuthenticatedUser();
 
-//        // Có thể thêm các yêu cầu khác nếu cần
-//        policy.RequireRole("ThuThu"); // Ví dụ: yêu cầu người dùng phải có vai trò "ThuThu"
-//    });
-//});
+        // Có thể thêm các yêu cầu khác nếu cần
+        policy.RequireRole("ThuThu"); // Ví dụ: yêu cầu người dùng phải có vai trò "ThuThu"
+    });
+});
 
 
 // Thêm dịch vụ sử dụng Session

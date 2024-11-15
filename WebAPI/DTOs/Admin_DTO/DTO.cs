@@ -17,9 +17,9 @@ namespace WebAPI.Areas.Admin.Data
         public string SDT { get; set; }
         public string DiaChi { get; set; }
         public string GioiTinh { get; set; }
-        public DateOnly NgaySinh { get; set; }
-        public DateOnly NgayDangKy { get; set; }
-        public DateOnly NgayHetHan { get; set; }
+        public DateOnly? NgaySinh { get; set; }
+        public DateOnly? NgayDangKy { get; set; }
+        public DateOnly? NgayHetHan { get; set; }
         public decimal TienThe { get; set; }
     }
 

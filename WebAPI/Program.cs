@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using WebAPI.Models;
+using WebAPI.Service_Admin;
+using WebAPI.Services.Admin;
 using WebAPI.Services.Client;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -34,9 +36,9 @@ builder.Services.AddTransient<UserAuthService, UserAuthService>();
 //builder.Services.AddTransient<KhoSachService, KhoSachService>();
 //builder.Services.AddTransient<NhapSachService, NhapSachService>();
 //builder.Services.AddTransient<ThanhLySachService, ThanhLySachService>();
-//builder.Services.AddTransient<TheDocGiaService, TheDocGiaService>();
-//builder.Services.AddTransient<ThongTinDocGiaService, ThongTinDocGiaService>();
-//builder.Services.AddTransient<AccountService, AccountService>();
+builder.Services.AddTransient<TheDocGiaService, TheDocGiaService>();
+builder.Services.AddTransient<ThongTinDocGiaService, ThongTinDocGiaService>();
+builder.Services.AddTransient<AccountService, AccountService>();
 //builder.Services.AddTransient<DangKyMuonSachService, DangKyMuonSachService>();
 
 
