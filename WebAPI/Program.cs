@@ -39,7 +39,7 @@ builder.Services.AddTransient<UserAuthService, UserAuthService>();
 builder.Services.AddTransient<TheDocGiaService, TheDocGiaService>();
 builder.Services.AddTransient<ThongTinDocGiaService, ThongTinDocGiaService>();
 builder.Services.AddTransient<AccountService, AccountService>();
-//builder.Services.AddTransient<DangKyMuonSachService, DangKyMuonSachService>();
+builder.Services.AddTransient<DangKyMuonSachService, DangKyMuonSachService>();
 
 
 var app = builder.Build();
