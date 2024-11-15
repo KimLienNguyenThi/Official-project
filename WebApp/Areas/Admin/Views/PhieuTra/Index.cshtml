@@ -2,155 +2,130 @@
     ViewBag.Title = "Phiếu Trả";
     Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
 }
+<style>
+    .container-fluid {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+    }
 
+    .row.flex-grow-4 {
+        flex: 4; /* Tỷ lệ phần trên */
+    }
+
+    .row.flex-grow-7 {
+        flex: 7; /* Tỷ lệ phần dưới */
+    }
+
+    .table-responsive {
+        max-height: 300px; /* Giới hạn chiều cao bảng để tránh bị kéo dài quá mức */
+        overflow-y: auto; /* Thêm thanh cuộn nếu bảng dài */
+    }
+
+</style>
 <!-- Hiển thị danh sách NhanViens -->
 <section class="content">
     <div class="container-fluid pt-4">
-        <div class="row">
-
-            <!-- Tạo phiếu trả -->
-            <div class="col-7" style="height: 80vh;">
-                <div class="card" style="height: 100%;">
-                    <div class="card-header">
-                        <div class="form-row">
-                            <div class="col-7">
-                                <h3 class="text-center  text-blue text-bold"> Phiếu trả </h3>
-                            </div>
-                            <div class="col-3">
-                                <button type="button" class="btn btn-primary" onclick="Save();">Tạo phiếu trả</button>
-                                @* <button type="submit" class="btn btn-primary taoPhieuTra" id="taoPhieuTra">Tạo phiếu trả</button>*@
-                            </div>
-                            <div class="col-2">
-                                <button type="button" class="btn btn-warning lamMoiSach" onclick="lamMoi()">Làm mới</button>
-                            </div>
-
-
+        <div class="container-fluid" style="height: 100vh; display: flex; flex-direction: column;">
+            <!-- Phần trên (chiều cao 4 phần) -->
+            <div class="row flex-grow-3" id="phanTren" style="overflow-y: auto;">
+                <div class="col-12">
+                    <div class="card" style="height: 100%;">
+                        <div class="card-header">
+                            <h4 class="text-center text-blue text-bold">T.T Phiếu mượn</h4>
                         </div>
-                    </div>
-                    <div class="card-body" style="overflow-y: auto;">
-                        <form>
-                            <!--Mã thẻ-->
-                            <div class="form-row">
-                                <div class="form-group col">
-                                    <label for="name">Mã thẻ độc giả:</label>
-                                    <input type="text" class="form-control" id="selectedMaThe" name="selectedMaThe" readonly>
-                                    <!--Thêm readonly sẽ không cho phép sửa-->
-                                </div>
-                                <!--Mã nhân viên-->
-                                <div class="form-group col">
-                                    <label for="selectedMaNhanVien">Mã nhân viên:</label>
-                                    <input type="text" class="form-control" id="selectedMaNhanVien" name="selectedMaNhanVien" value="@User.FindFirst("MaNV")?.Value" readonly>
-                                </div>
-                            </div>
-
-                            <div class="form-row">
-
-                                <div class="form-group col">
-                                    <label for="name">Tên độc giả:</label>
-                                    <input type="text" class="form-control" id="selectedName" name="selectedName" readonly>
-                                </div>
-
-                                <!--Số điện thoại-->
-                                <div class="form-group col">
-                                    <label for="book">Số điện thoại:</label>
-                                    <input type="text" class="form-control" id="selectedSDT" name="selectedSDT" readonly>
-                                </div>
-                            </div>
-                            <div class="form-row">
-                                <!--Ngày mượn-->
-                                <div class="form-group col">
-                                    <label for="return_date">Ngày mượn:</label>
-                                    <input type="date" class="form-control" id="return_datemuon" name="return_datemuon" readonly>
-                                </div>
-
-                                <!--hạn trả-->
-                                <div class="form-group col">
-                                    <label for="return_date">Hạn trả:</label>
-                                    <input type="date" class="form-control" id="return_datehan" name="return_datehan" readonly>
-                                </div>
-                            </div>
-                            <div class="form-row">
-                                <!--Ngày trả-->
-                                <div class="form-group col">
-                                    <label for="return_date">Ngày trả:</label>
-                                    <input type="date" class="form-control" id="return_datetra" name="return_datetra" readonly>
-                                </div>
-                                <div class="form-group col-4">
-                                    <label for="tongTienPhuThu">Tổng tiền:</label>
-                                    <input type="text" class="form-control" id="tongTienPhuThu" name="tongTienPhuThu" readonly>
-
-                                </div>
-                            </div>
-                            <!--Body table thông tin sách-->
-                            <div class="card-body table-responsive p-0"
-                                 style="height: 71.2vh" id="thongTinSachTable">
-                                <table class="table table-head-fixed table-hover">
-                                    <!--text-nowrap-->
-                                    <thead>
-                                        <tr>
-                                            <th style="width: 20%">Mã Sách</th>
-                                            <th style="width: 30%">Tên sách</th>
-                                            <th style="width: 15%">SL Mượn</th>
-                                            <th style="width: 12%"> Trả</th>
-                                            <th style="width: 12%"> Lỗi  </th>
-                                            <th style="width: 12%"> Mất  </th>
-                                            <th style="width: 30%"> Phụ Thu  </th>
-
-                                        </tr>
-
-                                    </thead>
-                                    <tbody id="tableBody">
-                                    </tbody>
-                                </table>
-                            </div>
-                            <!--Button trả sách-->
-                            <button type="button" class="btn btn-primary" onclick="Save();">Lưu</button>
-                            @* field ẩn lưu mã PM khi click 1 row  *@
-                            <input id="hdfMaPM" type="hidden" value="0" />
-                        </form>
+                        <div class="card-body table-responsive p-0" id="thongTinPhieuMuonTable">
+                            <table id="tablephieuMuon" class="table table-head-fixed table-hover table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Mã PM</th>
+                                        <th>Mã thẻ</th>
+                                        <th>Họ tên DG</th>
+                                        <th>SĐT</th>
+                                        <th>Ngày mượn</th>
+                                        <th>Hạn trả</th>
+                                    </tr>
+                                </thead>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Nút chọn Sách hoặc Thông tin độc giả -->
-            <div class="col-5">
-                <div class="card">
-                    <div class="card-header">
-                        <button id="thongTinPhieuMuonButton" class="btn btn-primary">T.T Phiếu mượn</button>
-                        @*<button id="thongTinDocGiaButton" class="btn btn-primary">T.T Độc giả</button>*@
-
-                        <div class="card-tools">
-
-                            <div class="input-group input-group-sm pt-2" style="width: 150px">
-                                <!--<input type="text" name="table_search" class="form-control float-right" id="searchInput" placeholder="Search" />-->
-                                @* <input type="text" id="searchInput" class="form-control" placeholder="Search" />*@
-                                <!--<div class="input-group-append">
-                                    <button type="submit" class="btn btn-default" id="searchButton">
-                                        <i class="fas fa-search"></i>
-                                    </button>
-                                </div>-->
-                            </div>
+            <!-- Phần dưới (chiều cao 7 phần) -->
+            <div class="row flex-grow-7" id="phanDuoi" style="overflow-y: auto;">
+                <div class="col-12">
+                    <div class="card" style="height: 100%;">
+                        <div class="card-header">
+                            <h4 class="text-center text-blue text-bold">Phiếu trả</h4>
+                        </div>
+                        <div class="card-body">
+                            <form>
+                                <div class="form-row">
+                                    <div class="form-group col">
+                                        <label for="selectedMaNhanVien">Mã nhân viên:</label>
+                                        <input type="text" class="form-control" id="selectedMaNhanVien" readonly>
+                                    </div>
+                                    <div class="form-group col">
+                                        <label for="selectedMaThe">Mã thẻ độc giả:</label>
+                                        <input type="text" class="form-control" id="selectedMaThe" readonly>
+                                    </div>
+                                    <div class="form-group col">
+                                        <label for="selectedName">Tên độc giả:</label>
+                                        <input type="text" class="form-control" id="selectedName" readonly>
+                                    </div>
+                                    <div class="form-group col">
+                                        <label for="selectedSDT">Số điện thoại:</label>
+                                        <input type="text" class="form-control" id="selectedSDT" readonly>
+                                    </div>
+                                   
+                                </div>
+                                
+                                <div class="form-row">
+                                    <div class="form-group col">
+                                        <label for="return_datemuon">Ngày mượn:</label>
+                                        <input type="date" class="form-control" id="return_datemuon" readonly>
+                                    </div>
+                                    <div class="form-group col">
+                                        <label for="return_datehan">Hạn trả:</label>
+                                        <input type="date" class="form-control" id="return_datehan" readonly>
+                                    </div>
+                                    <div class="form-group col">
+                                        <label for="return_datetra">Ngày trả:</label>
+                                        <input type="date" class="form-control" id="return_datetra" readonly>
+                                    </div>
+                                    <div class="form-group col-4">
+                                        <label for="tongTienPhuThu">Tổng tiền:</label>
+                                        <input type="text" class="form-control" id="tongTienPhuThu" readonly>
+                                    </div>
+                                </div>
+                                <div class="table-responsive" style="height: 200px; overflow-y: auto;">
+                                    <table class="table table-head-fixed table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Mã Đ.Sách</th>
+                                                <th>Tên sách</th>
+                                                <th>SL Mượn</th>
+                                                <th>Mã C.Sách</th>
+                                                 <th>Trả</th>
+                                                <th>Lỗi</th>
+                                                <th>Mất</th>
+                                                <th>Phụ Thu</th> 
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tableBody"></tbody>
+                                    </table>
+                                </div>
+@*                                 <button type="button" class="btn btn-primary mt-3" onclick="Save();">Lưu</button>
+ *@                                <input id="hdfMaPM" type="hidden" value="0" />
+                            </form>
                         </div>
                     </div>
-                    <!--Body table pm-->
-                    <div class="card-body table-responsive p-0" style="height: 71.2vh" id="thongTinPhieuMuonTable">
-                        <table id="tablephieuMuon" class="table table-head-fixed table-hover  table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>Mã PM</th>
-                                    <th>Mã thẻ</th>
-                                    <th>Họ tên DG</th>
-                                    <th>SĐT</th>
-                                    <th>Ngày mượn</th>
-                                    <th>Hạn trả</th>
-                                </tr>
-                            </thead>
-                        </table>
-                    </div>
-
                 </div>
             </div>
         </div>
+
+
     </div>
 </section>
 
@@ -177,7 +152,7 @@
     </div>
 </div>
 
-@section scripts
+@* @section scripts
 {
     <script>
       
@@ -521,4 +496,4 @@
 
 
     </script>
-}
+} *@

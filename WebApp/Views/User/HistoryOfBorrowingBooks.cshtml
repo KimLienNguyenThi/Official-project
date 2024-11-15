@@ -119,39 +119,96 @@
         </div>
     </div>
 </div>
+<!-- Modal Xác Nhận hủy -->
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmModalLabel">Xác nhận hủy đơn</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Bạn chắc chắn muốn hủy đơn này?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" id="confirmCancelButton" class="btn btn-danger">Xác nhận</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Thông Báo thành công-->
+<div class="modal fade" id="notificationModal" tabindex="-1" aria-labelledby="notificationModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="notificationModalLabel">Thông báo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="notificationMessage">
+                <!-- Nội dung thông báo sẽ được cập nhật tại đây -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+@* Modal thông báo lỗi *@
+ <div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="errorModalLabel">Lỗi</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="errorMessage">
+                <!-- Nội dung thông báo lỗi sẽ được cập nhật tại đây -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 <script>
 
 
     function HuyDon(maDK) {
-        var confirmed = confirm("Bạn chắc chắn muốn hủy đơn?");
-        if (confirmed) {
+        // Hiển thị modal xác nhận
+        $("#confirmModal").modal('show');
+
+        // Gắn sự kiện xác nhận vào nút trong modal
+        $("#confirmCancelButton").off("click").on("click", function () {
+            $("#confirmModal").modal('hide'); // Ẩn modal xác nhận
             $.ajax({
                 url: "/User/CancelOrderBooks",
                 type: "PUT",
                 data: { maDK: maDK },
                 success: function (data) {
+                    // Hiển thị modal thông báo kết quả
+                    $("#notificationMessage").text(data.message);
+                    $("#notificationModal").modal('show');
+
                     if (data.success) {
-                        alert(data.message);
-
-                        // Lấy hàng của bảng theo ID
+                        // Cập nhật giao diện nếu hủy thành công
                         var row = $("#row_" + maDK);
-
-                        // Cập nhật trạng thái "Đã hủy"
                         row.find(".trang-thai").html("<span class='badge badge-danger' style='color:black;'>Đã hủy</span>");
-
-                        // Ẩn nút Hủy
                         row.find(".btn-huy").hide();
-                    } else {
-                        alert(data.message);
                     }
                 },
                 error: function () {
-                    alert("Error fetching data.");
+                    // Hiển thị thông báo lỗi
+                    $("#notificationMessage").text("Đã xảy ra lỗi khi xử lý yêu cầu.");
+                    $("#notificationModal").modal('show');
                 }
             });
-        }
+        });
     }
+
     function showDetails(maDK) {
         $.ajax({
             url: "/User/DetailsOrderBooks",
@@ -173,7 +230,6 @@
 
                     document.getElementById("maDangKyModal").value = item.chiTietDk.madk;
 
-
                     var newRow = $(` <tr class="sachdk-row" data-ma-sach="${item.chiTietDk.masach}">
                                         <td>${item.chiTietDk.masach}</td>
                                             <td>${item.tenSach}</td>
@@ -185,11 +241,13 @@
                 });
             },
             error: function () {
-                // Handle the error if the request fails
-                alert("Error fetching details.");
+                // Hiển thị modal lỗi
+                $("#errorMessage").text("Không thể tải thông tin chi tiết. Vui lòng thử lại sau.");
+                $("#errorModal").modal("show");
             }
         });
     }
+
 
     function getTinhTrangLabel(tinhTrang) {
         if (tinhTrang == 0) {
