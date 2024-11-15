@@ -1,6 +1,9 @@
 ﻿using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 using System.Net.Http;
+using WebAPI.DTOs;
 using WebAPI.Services.Client;
 
 namespace WebAPI.Controllers.Client
@@ -31,5 +34,53 @@ namespace WebAPI.Controllers.Client
                 return StatusCode(500, "Đã xảy ra lỗi khi xử lý yêu cầu.");
             }
         }
+
+        [HttpGet("{sdt}")]
+        public IActionResult HistoryOfBorrowingBooks(string sdt)
+        {
+            try
+            {
+                var dkiMuonSach = _userAuthService.GetHistoryOfBorrowingBooks(sdt);
+                return Ok(dkiMuonSach);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { Message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Đã xảy ra lỗi hệ thống.", Details = ex.Message });
+            }
+        }
+
+        [HttpPut("{maDK}")]
+        public async Task<IActionResult> CancelOrderBooks(int maDK)
+        {
+            try
+            {
+                await _userAuthService.CancelOrderBooksAsync(maDK);
+                return Ok(new { Message = "Đơn mượn sách đã được hủy thành công." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Message = "Hủy đơn mượn sách thất bại.", Details = ex.Message });
+            }
+        }
+
+        [HttpGet("{maDK}")]
+        public async Task<IActionResult> DetailsOrderBooks(int maDK)
+        {
+            try
+            {
+                var chiTietDkList = await _userAuthService.GetDetailsOrderBooksAsync(maDK);
+                return Ok(chiTietDkList);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Message = "Lỗi khi lấy chi tiết đơn mượn sách.", Details = ex.Message });
+            }
+        }
+
     }
 }
+

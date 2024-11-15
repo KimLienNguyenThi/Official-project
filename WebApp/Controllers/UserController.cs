@@ -10,6 +10,7 @@ using Newtonsoft.Json;
 using Microsoft.AspNetCore.Authorization;
 using System.Net.Http.Headers;
 using WebApp.Responses;
+using WebApp.Models;
 
 namespace WebApp.Controllers
 {
@@ -79,241 +80,91 @@ namespace WebApp.Controllers
             }
         }
 
+        [Authorize]
+        public IActionResult HistoryOfBorrowingBooks()
+        {
+            try
+            {
+                List<DkiMuonSach> bookList = new List<DkiMuonSach>();
+                var user = HttpContext.User;
 
-        //public async Task LoginByGoogle()
-        //{
-        //    await HttpContext.ChallengeAsync(GoogleDefaults.AuthenticationScheme, new AuthenticationProperties
-        //    {
-        //        RedirectUri = Url.Action("GoogleResponse")
-        //    });
-        //}
+                var sdt = user.FindFirst("PhoneNumber")?.Value;
 
+                // gọi API lấy ra dữ liệu từ bảng DkiMuonSaches với sđt = sdt của user
+                HttpResponseMessage response = _client.GetAsync(_client.BaseAddress + $"/UserAuth/HistoryOfBorrowingBooks/{sdt}").Result;
 
-        //public async Task<IActionResult> GoogleResponse()
-        //{
-        //    var result = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+                if (response.IsSuccessStatusCode)
+                {
+                    string data = response.Content.ReadAsStringAsync().Result;
+                    bookList = JsonConvert.DeserializeObject<List<DkiMuonSach>>(data);
+                }
+                // Kiểm tra nếu user có dữ liệu ở bảng DkiMuonSaches thì trả dữ liệu ra view
+                if (bookList.Count > 0)
+                {
+                    return View(bookList);
+                }
+                else
+                {
+                    ViewBag.MessageData = "Không có dữ liệu";
+                    return View(bookList);
+                }
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
 
-        //    var claims = result.Principal.Identities.FirstOrDefault().Claims.Select(claim => new
-        //    {
-        //        claim.Issuer,
-        //        claim.OriginalIssuer,
-        //        claim.Type,
-        //        claim.Value
-        //    });
+        }
 
-        //    return RedirectToAction("ConfirmLoginGG", "User");
-        //}
+        public async Task<IActionResult> CancelOrderBooks(int maDK)
+        {
+            try
+            {
+                // Tạo request URL
+                string requestUrl = _client.BaseAddress + $"/UserAuth/CancelOrderBooks/{maDK}";
 
+                // Tạo nội dung trống để gửi đi với PUT request
+                using (var httpContent = new StringContent(string.Empty))
+                {
+                    httpContent.Headers.ContentType = new MediaTypeHeaderValue("application/json");
 
-        //public IActionResult ConfirmLoginGG()
-        //{
-        //    var user = HttpContext.User;
+                    // Gửi PUT request
+                    HttpResponseMessage response = await _client.PutAsync(requestUrl, httpContent);
 
-        //    // Lấy thông tin về người dùng từ claims
-        //    var userEmail = user.FindFirst(ClaimTypes.Email)?.Value;
+                    // Kiểm tra kết quả trả về
+                    if (response.IsSuccessStatusCode)
+                    {
+                        return Json(new { success = true, message = "Đã hủy đơn thành công" });
+                    }
+                    else
+                    {
+                        return Json(new { success = false, message = "Hủy đơn thất bại" });
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = $"Lỗi: {ex.Message}" });
+            }
+        }
 
-        //    HttpResponseMessage response = _client.GetAsync(_client.BaseAddress + $"/UserAuth/CheckUserLoginByGoogle/{userEmail}").Result;
+        [HttpPost]
+        public IActionResult DetailsOrderBooks(int maDK)
+        {
+            List<ChiTietDangKyDTO> bookList = new List<ChiTietDangKyDTO>();
+            HttpResponseMessage response = _client.GetAsync(_client.BaseAddress + $"/UserAuth/DetailsOrderBooks/{maDK}").Result;
 
-        //    if (response.IsSuccessStatusCode)
-        //    {
-        //        // Add sđt vào Claim
-        //        HttpResponseMessage respon = _client.GetAsync(_client.BaseAddress + $"/UserAuth/GetSdtByEmail/{userEmail}").Result;
-        //        string data = respon.Content.ReadAsStringAsync().Result;
+            if (response.IsSuccessStatusCode)
+            {
+                string data = response.Content.ReadAsStringAsync().Result;
+                bookList = JsonConvert.DeserializeObject<List<ChiTietDangKyDTO>>(data);
 
-        //        // Lấy danh sách Claims hiện tại của người dùng
-        //        var listClaimsUser = User.Claims.ToList();
-
-        //        // Thêm Claim mới
-        //        listClaimsUser.Add(new Claim("PhoneNumber", data));
-
-        //        // Tạo danh sách Claims mới cho người dùng
-        //        var newIdentity = new ClaimsIdentity(listClaimsUser, CookieAuthenticationDefaults.AuthenticationScheme);
-
-        //        // Cập nhật danh sách Claims cho người dùng
-        //        HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(newIdentity));
-
-        //        return RedirectToAction("Index", "Home");
-        //    }
-        //    else
-        //    {
-        //        return View();
-
-        //    }
-        //}
-
-
-        //[HttpPost]
-        //public IActionResult ConfirmLoginGG(string phoneNumber)
-        //{
-
-        //    try
-        //    {
-        //        var user = HttpContext.User;
-
-        //        var userEmail = user.FindFirst(ClaimTypes.Email)?.Value;
-        //        var userName = user.FindFirst(ClaimTypes.Name)?.Value;
-
-        //        LoginDgDTO model = new LoginDgDTO()
-        //        {
-        //            Sdt = phoneNumber,
-        //            PasswordDg = "null",
-        //            Email = userEmail,
-        //            HoTen = userName
-        //        };
-
-        //        HttpResponseMessage response = _client.PostAsJsonAsync(_client.BaseAddress + "/UserAuth/Register", model).Result;
-
-        //        if (response.IsSuccessStatusCode)
-        //        {
-        //            // Lấy danh sách Claims hiện tại của người dùng
-        //            var listClaimsUser = User.Claims.ToList();
-
-        //            // Thêm Claim mới
-        //            listClaimsUser.Add(new Claim("PhoneNumber", phoneNumber));
-
-        //            // Tạo danh sách Claims mới cho người dùng
-        //            var newIdentity = new ClaimsIdentity(listClaimsUser, CookieAuthenticationDefaults.AuthenticationScheme);
-
-        //            // Cập nhật danh sách Claims cho người dùng
-        //            HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(newIdentity));
-
-        //            return Json(new { success = true });
-        //        }
-        //        else
-        //        {
-        //            return Json(new { success = false });
-        //        }
-        //    }
-        //    catch
-        //    {
-        //        return Json(new { success = false });
-        //    }
-        //}
-
-
-
-        //public IActionResult Register()
-        //{
-        //    return View();
-        //}
-
-
-        //[HttpPost]
-        //public IActionResult Register(string phoneNumber, string password, string username, string email)
-        //{
-        //    try
-        //    {
-        //        LoginDgDTO model = new LoginDgDTO()
-        //        {
-        //            Sdt = phoneNumber,
-        //            PasswordDg = password,
-        //            Email = email,
-        //            HoTen = username
-        //        };
-
-        //        HttpResponseMessage response = _client.PostAsJsonAsync(_client.BaseAddress + "/UserAuth/Register", model).Result;
-
-        //        if (response.IsSuccessStatusCode)
-        //        {
-        //            return Json(new { success = true });
-        //        }
-        //        else
-        //        {
-        //            return Json(new { success = false });
-        //        }
-        //    }
-        //    catch
-        //    {
-        //        return Json(new { success = false });
-        //    }
-        //}
-
-
-        //[Authorize]
-        //public async Task<IActionResult> Logout()
-        //{
-        //    ListSachMuon.listSachMuon.Clear();
-        //    await HttpContext.SignOutAsync();
-        //    return RedirectToAction("Index", "User");
-        //}
-
-
-        //[Authorize]
-        //public IActionResult HistoryOfBorrowingBooks()
-        //{
-        //    try
-        //    {
-        //        List<DkiMuonSach> bookList = new List<DkiMuonSach>();
-        //        var user = HttpContext.User;
-
-        //        var sdt = user.FindFirst("PhoneNumber")?.Value;
-
-        //        // gọi API lấy ra dữ liệu từ bảng DkiMuonSaches với sđt = sdt của user
-        //        HttpResponseMessage response = _client.GetAsync(_client.BaseAddress + $"/UserAuth/HistoryOfBorrowingBooks/{sdt}").Result;
-
-        //        if (response.IsSuccessStatusCode)
-        //        {
-        //            string data = response.Content.ReadAsStringAsync().Result;
-        //            bookList = JsonConvert.DeserializeObject<List<DkiMuonSach>>(data);
-        //        }
-        //        // Kiểm tra nếu user có dữ liệu ở bảng DkiMuonSaches thì trả dữ liệu ra view
-        //        if (bookList.Count > 0)
-        //        {
-        //            return View(bookList);
-        //        }
-        //        else
-        //        {
-        //            ViewBag.MessageData = "Không có dữ liệu";
-        //            return View(bookList);
-        //        }
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        return BadRequest(e.Message);
-        //    }
-
-        //}
-
-        //[HttpPut]
-        //public async Task<IActionResult> CancelOrderBooks(int maDK)
-        //{
-
-        //    var requestUrl = new Uri(_client.BaseAddress + $"/UserAuth/CancelOrderBooks/{maDK}");
-
-        //    using (var httpContent = new StringContent(string.Empty))
-        //    {
-        //        httpContent.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-        //        var response = await _client.PutAsync(requestUrl, httpContent);
-
-        //        if (response.IsSuccessStatusCode)
-        //        {
-        //            return Json(new { success = true, message = "Đã hủy đơn thành công" });
-        //        }
-        //        else
-        //        {
-        //            return Json(new { success = false, message = "Hủy đơn thất bại" });
-        //        }
-        //    }
-        //}
-
-        //[HttpPost]
-        //public IActionResult DetailsOrderBooks(int maDK)
-        //{
-        //    List<ChiTietDangKyDTO> bookList = new List<ChiTietDangKyDTO>();
-        //    HttpResponseMessage response = _client.GetAsync(_client.BaseAddress + $"/UserAuth/DetailsOrderBooks/{maDK}").Result;
-
-        //    if (response.IsSuccessStatusCode)
-        //    {
-        //        string data = response.Content.ReadAsStringAsync().Result;
-        //        bookList = JsonConvert.DeserializeObject<List<ChiTietDangKyDTO>>(data);
-
-        //        return Ok(bookList);
-        //    }
-        //    else
-        //    {
-        //        return BadRequest();
-        //    }
-        //}
-
+                return Ok(bookList);
+            }
+            else
+            {
+                return BadRequest();
+            }
+        }
     }
 }

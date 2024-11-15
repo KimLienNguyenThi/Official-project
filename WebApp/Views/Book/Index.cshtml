@@ -133,6 +133,24 @@
         <a class="page-link" href="@Url.Action("Index", new { page = ViewBag.CurrentPage + 1 })">Trang tiếp theo &raquo;</a>
     </li>
 </ul>
+
+<div class="modal fade" id="notificationModal" tabindex="-1" aria-labelledby="notificationModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="notificationModalLabel">Thông báo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Nội dung thông báo sẽ được cập nhật tại đây -->
+                <p id="notificationMessage"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
 <!-- Pagination End -->
 
 <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
@@ -143,7 +161,10 @@
 
         var search = $("#searchInput").val().trim();
         if (!search) {
-            alert("Vui lòng nhập tên sách để tìm kiếm.");
+            // Cập nhật nội dung của modal
+            $("#notificationMessage").text("Vui lòng nhập tên sách để tìm kiếm.");
+            // Hiển thị modal
+            $("#notificationModal").modal('show');
             ResetView();
             return;
         }
@@ -158,11 +179,17 @@
                 if (result.success) {
                     UpdateView(result.sachList);
                 } else {
-                    alert(result.message);
+                    // Cập nhật nội dung modal với thông báo từ server
+                    $("#notificationMessage").text(result.message);
+                    // Hiển thị modal
+                    $("#notificationModal").modal('show');
                 }
             },
             error: function (data) {
                 console.log("Lỗi khi gửi yêu cầu AJAX:", data);
+                // Hiển thị lỗi trong modal
+                $("#notificationMessage").text("Đã xảy ra lỗi khi gửi yêu cầu. Vui lòng thử lại.");
+                $("#notificationModal").modal('show');
             }
         });
     }

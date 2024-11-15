@@ -202,6 +202,24 @@
     </div>
 </div>
 
+<!-- Modal thông báo-->
+<div class="modal fade" id="notificationModal" tabindex="-1" aria-labelledby="notificationModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="notificationModalLabel">Thông báo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Nội dung thông báo sẽ được cập nhật tại đây -->
+                <p id="notificationMessage"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
 
@@ -212,7 +230,10 @@
 
         var search = $("#searchInput").val().trim();
         if (!search) {
-            alert("Vui lòng nhập tên sách để tìm kiếm.");
+            // Cập nhật nội dung của modal
+            $("#notificationMessage").text("Vui lòng nhập tên sách để tìm kiếm.");
+            // Hiển thị modal
+            $("#notificationModal").modal('show');
             ResetView();
             return;
         }
@@ -227,11 +248,17 @@
                 if (result.success) {
                     UpdateView(result.sachList);
                 } else {
-                    alert(result.message);
+                    // Cập nhật nội dung modal với thông báo từ server
+                    $("#notificationMessage").text(result.message);
+                    // Hiển thị modal
+                    $("#notificationModal").modal('show');
                 }
             },
             error: function (data) {
                 console.log("Lỗi khi gửi yêu cầu AJAX:", data);
+                // Hiển thị lỗi trong modal
+                $("#notificationMessage").text("Đã xảy ra lỗi khi gửi yêu cầu. Vui lòng thử lại.");
+                $("#notificationModal").modal('show');
             }
         });
     }
@@ -357,7 +384,7 @@
         selectedMaSach = maSach;
 
         // Hiển thị giá trị của maSach trong modal
-        $('#maSachDisplay').text('Đăng ký mượn sách: ' + tenSach);
+        $('#maSachDisplay').text('Thêm giỏ hàng sách: ' + tenSach);
 
         // Hiển thị modal
         $('#dangKyDialog').modal('show');
@@ -426,94 +453,4 @@
         }
     }
    
-
-    // function HienThiGioHang() {
-    //     // Lấy userId của người dùng hiện tại từ localStorage
-    //     var currentUserId = localStorage.getItem('currentUserId');
-
-    //     // Lấy toàn bộ giỏ hàng từ localStorage
-    //     var gioHang = JSON.parse(localStorage.getItem('gioHang')) || [];
-
-        
-    //     // Lọc giỏ hàng cho người dùng hiện tại
-    //    // var gioHangUser = gioHang.filter(item => item.userId === currentUserId);
-    //     var gioHangUser = gioHang.filter(item => item.userId === currentUserId);
-    //     console.log("Giỏ hàng của người dùng:", gioHangUser);
-
-    //     // Hiển thị dữ liệu giỏ hàng (tùy chỉnh giao diện)
-    //     var container = $('#gioHangContainer');
-    //     container.empty(); // Xóa nội dung cũ
-
-    //     if (gioHangUser.length === 0) {
-    //         container.append('<p>Giỏ hàng trống</p>');
-    //     } else {
-    //         gioHangUser.forEach(item => {
-    //             container.append(`
-    //                 <div>
-    //                     <p>Mã sách: ${item.maSach}</p>
-    //                     <p>Số lượng mượn: ${item.soLuongMuon}</p>
-    //                     <p>Số lượng sách hiện tại: ${item.soLuongSachHienTai}</p>
-    //                     <hr>
-    //                 </div>
-    //             `);
-    //         });
-    //     }
-    // }
-
-    //Thêm giỏ hàng bằng cách cũ
-    // function ThemVaoGioHang() {
-    //     // Lấy giá trị từ dropdown
-    //     var soLuongMuon = parseInt($('#soLuong').val());
-    //     var soLuongSachHienTai = parseInt($('#soLuongSach_' + selectedMaSach).text());
-
-    //     console.log("So luong them vào gio hang:", soLuongMuon);    // Kiểm tra dữ liệu
-    //     console.log("maSach:", selectedMaSach);    // Kiểm tra dữ liệu
-    //     console.log("So luong sach hien tai :", soLuongSachHienTai);    // Kiểm tra dữ liệu
-
-    //     // Kiểm tra xem số sách muốn mượn có nằm trong khoảng từ 1 đến số sách hiện tại hay không (ví dụ)
-
-    //     if (!isNaN(soLuongMuon) && !isNaN(soLuongSachHienTai) && (soLuongMuon <= (soLuongSachHienTai - 5))) {
-    //         if (soLuongMuon < 1) {
-    //             document.getElementById("contentModalError").innerHTML = "Số lượng không phù hợp! Vui lòng kiểm tra lại";
-    //             $("#ModalError").modal("show");
-    //         } else {
-    //             console.log("Số lượng sách hợp lệ");
-
-    //             $.ajax({
-    //                 url: "/BorrowBook/Borrow",
-    //                 type: "POST",
-    //                 data: {
-    //                     maSach: selectedMaSach,
-    //                     soLuongMuon: soLuongMuon,
-    //                     soLuongSachHienTai: soLuongSachHienTai
-    //                 },
-    //                 success: function (data) {
-
-    //                     if (data.success) {
-    //                         // Xử lý khi đăng ký thành công
-    //                         document.getElementById("contentModalSuccess").innerHTML = "Bạn đã thêm giỏ hàng thành công!";
-    //                         $("#ModalSuccess").modal("show");
-
-    //                         // Đóng modal sau khi đăng ký
-    //                         $('#dangKyDialog').modal('hide');
-    //                                 } else {
-    //                         document.getElementById("contentModalError").innerHTML = data.message;
-    //                         $("#ModalError").modal("show");
-    //                     }
-
-
-    //                 },
-    //                 error: function (result) {
-    //                     // Xử lý khi có lỗi
-    //                     document.getElementById("contentModalError").innerHTML = "Đã xảy ra lỗi! " + result.error;
-    //                     $("#ModalError").modal("show");
-    //                 }
-    //             });
-    //         }
-    //     } else {
-    //         document.getElementById("contentModalError").innerHTML = "Xin lỗi quý khách! Số lượng sách còn lại tại Thư viện đã đạt giới hạn tối thiểu";
-    //         $("#ModalError").modal("show");
-    //     }
-    // }
-
         </script>
