@@ -5,6 +5,7 @@ using System.Security.Claims;
 using Newtonsoft.Json;
 using WebApp.Areas.Admin.Data;
 using Microsoft.AspNetCore.Authorization;
+using WebApp.Admin.Data;
 
 namespace WebApp.Areas.Admin.Controllers
 {
@@ -13,100 +14,84 @@ namespace WebApp.Areas.Admin.Controllers
     [Route("admin/account")]
     public class AccountController : Controller
     {
-        // Constructor của lớp AccountController
+        Uri baseAddress = new Uri("https://localhost:7028/api/admin");
+        private readonly HttpClient _client;
+
         public AccountController()
         {
-            // Không cần khởi tạo HttpClient vì chưa có API
+            _client = new HttpClient();
+            _client.BaseAddress = baseAddress;
+
         }
 
-        // Trang chủ của khu vực Admin (nếu người dùng chưa đăng nhập sẽ chuyển hướng tới Login)
         [Route("")]
         public ActionResult Index()
-
         {
             if (!User.Identity.IsAuthenticated)
                 return RedirectToAction("Login");
             else
-                return RedirectToAction("Index", "Home"); // Chuyển hướng đến Home nếu đã đăng nhập
+                return RedirectToAction("Index", "Home");
         }
 
-        // Action hiển thị trang đăng nhập
+
         [Route("Login")]
-        public ActionResult Login()
+        public IActionResult Login()
         {
             return View();
         }
-        //Uri baseAddress = new Uri("https://localhost:7028/api/admin");
-        //private readonly HttpClient _client;
-
-        //public AccountController()
-        //{
-        //    _client = new HttpClient();
-        //    _client.BaseAddress = baseAddress;
-
-        //}
-
-        //[Route("")]
-        //public ActionResult Index()
-        //{
-        //    if (!User.Identity.IsAuthenticated)
-        //        return RedirectToAction("Login");
-        //    else
-        //        return RedirectToAction("Index", "Home");
-        //}
-
-        //[Route("Login")]
-        //public async Task<ActionResult> Login()
-        //{
-        //    return View();
-        //}
-
-        //[HttpPost]
-        //[Route("Login")]
-        //public async Task<ActionResult> Login(string username, string password)
-        //{
-        //    // check database
-        //    DTO_NhanVien_LoginNV login = new DTO_NhanVien_LoginNV();
-
-        //    HttpResponseMessage response = _client.GetAsync(_client.BaseAddress + $"/Account/Login/{username}/{password}").Result;
-
-        //    if (response.IsSuccessStatusCode)
-        //    {
-        //        string dataJson = response.Content.ReadAsStringAsync().Result;
-        //        login = JsonConvert.DeserializeObject<DTO_NhanVien_LoginNV>(dataJson);
-
-        //        var claims = new List<Claim>()
-        //        {
-        //            new Claim(ClaimTypes.Name, login.HoTenNV),
-        //            new Claim(ClaimTypes.Role, login.ChucVu),
-        //            new Claim("chucvu", login.ChucVu),
-        //            new Claim("MaNV", login.MaNV.ToString()),
-
-        //        };
 
 
-        //        var claimsIdentity = new ClaimsIdentity(claims, "AdminCookie");
-        //        var claimsPrincial = new ClaimsPrincipal(claimsIdentity);
+        [HttpPost]
+        [Route("Login")]
+        public async Task<IActionResult> Login(string username, string password)
+        {
+            HttpResponseMessage response = await _client.GetAsync(_client.BaseAddress + $"/Account/Login/{username}/{password}");
 
-        //        await HttpContext.SignInAsync("AdminCookie", claimsPrincial);
+            if (response.IsSuccessStatusCode)
+            {
+                string dataJson = await response.Content.ReadAsStringAsync();
+                var apiResponse = JsonConvert.DeserializeObject<APIResponse<DTO_NhanVien_LoginNV>>(dataJson);
 
-        //        return RedirectToAction("Index", "Home");
-        //    }
-        //    else
-        //    {
-        //        TempData["error"] = "Tài khoản hoặc mật khẩu không chính xác!";
-        //        return View();
-        //    }
-        //}
+                if (apiResponse != null && apiResponse.Success)
+                {
+                    var claims = new List<Claim>()
+                    {
+                        new Claim(ClaimTypes.Name, apiResponse.Data.HoTenNV),
+                        new Claim(ClaimTypes.Role, apiResponse.Data.ChucVu),
+                        new Claim("chucvu", apiResponse.Data.ChucVu),
+                        new Claim("MaNV", apiResponse.Data.MaNV.ToString()),
 
-        //[Route("Logout")]
-        //[Authorize(AuthenticationSchemes = "AdminCookie")]
-        //public async Task<IActionResult> Logout()
-        //{
-        //    // Xóa phiên đăng nhập
-        //    await HttpContext.SignOutAsync("AdminCookie");
+                    };
 
-        //    return RedirectToAction("Login");
-        //}
+                    var claimsIdentity = new ClaimsIdentity(claims, "AdminCookie");
+                    var claimsPrincial = new ClaimsPrincipal(claimsIdentity);
+
+                    await HttpContext.SignInAsync("AdminCookie", claimsPrincial);
+
+                    return RedirectToAction("Index", "Home");
+                }
+                else
+                {
+                    TempData["error"] = apiResponse.Message;
+                    return View();
+                }
+
+            }
+            else
+            {
+                TempData["error"] = await response.Content.ReadAsStringAsync();
+                return View();
+            }
+        }
+
+        [Route("Logout")]
+        [Authorize(AuthenticationSchemes = "AdminCookie")]
+        public async Task<IActionResult> Logout()
+        {
+            // Xóa phiên đăng nhập
+            await HttpContext.SignOutAsync("AdminCookie");
+
+            return RedirectToAction("Login");
+        }
     }
 }
