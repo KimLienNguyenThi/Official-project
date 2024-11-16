@@ -2,130 +2,147 @@
     ViewBag.Title = "Phiếu Trả";
     Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
 }
-<style>
-    .container-fluid {
-        display: flex;
-        flex-direction: column;
-        height: 100vh;
-    }
 
-    .row.flex-grow-4 {
-        flex: 4; /* Tỷ lệ phần trên */
-    }
-
-    .row.flex-grow-7 {
-        flex: 7; /* Tỷ lệ phần dưới */
-    }
-
-    .table-responsive {
-        max-height: 300px; /* Giới hạn chiều cao bảng để tránh bị kéo dài quá mức */
-        overflow-y: auto; /* Thêm thanh cuộn nếu bảng dài */
-    }
-
-</style>
 <!-- Hiển thị danh sách NhanViens -->
 <section class="content">
     <div class="container-fluid pt-4">
-        <div class="container-fluid" style="height: 100vh; display: flex; flex-direction: column;">
-            <!-- Phần trên (chiều cao 4 phần) -->
-            <div class="row flex-grow-3" id="phanTren" style="overflow-y: auto;">
-                <div class="col-12">
-                    <div class="card" style="height: 100%;">
-                        <div class="card-header">
-                            <h4 class="text-center text-blue text-bold">T.T Phiếu mượn</h4>
+        <div class="row">
+
+            <!-- Tạo phiếu trả -->
+            <div class="col-7" style="height: 87vh;">
+                <div class="card" style="height: 100%;">
+                    <div class="card-header">
+                        <div class="form-row">
+                            <div class="col-7">
+                                <h3 class="text-center  text-blue text-bold"> Phiếu trả </h3>
+                            </div>
+                            <div class="col-3">
+                                <button type="button" class="btn btn-primary" onclick="Save();">Tạo phiếu trả</button>
+                            </div>
+                            <div class="col-2">
+                                <button type="button" class="btn btn-warning lamMoiSach" onclick="lamMoi()">Làm mới</button>
+                            </div>
+
                         </div>
-                        <div class="card-body table-responsive p-0" id="thongTinPhieuMuonTable">
-                            <table id="tablephieuMuon" class="table table-head-fixed table-hover table-bordered">
-                                <thead>
-                                    <tr>
-                                        <th>Mã PM</th>
-                                        <th>Mã thẻ</th>
-                                        <th>Họ tên DG</th>
-                                        <th>SĐT</th>
-                                        <th>Ngày mượn</th>
-                                        <th>Hạn trả</th>
-                                    </tr>
-                                </thead>
-                            </table>
-                        </div>
+                    </div>
+                    <div class="card-body" style="overflow-y: auto;">
+                        <form>
+                            <!--Mã thẻ-->
+                            <div class="form-row">
+                                <div class="form-group col">
+                                    <label for="name">Mã thẻ độc giả:</label>
+                                    <input type="text" class="form-control" id="selectedMaThe" name="selectedMaThe" readonly>
+                                    <!--Thêm readonly sẽ không cho phép sửa-->
+                                </div>
+                                <!--Mã nhân viên-->
+                                <div class="form-group col">
+                                    <label for="selectedMaNhanVien">Mã nhân viên:</label>
+                                    <input type="text" class="form-control" id="selectedMaNhanVien" name="selectedMaNhanVien" value="@User.FindFirst("MaNV")?.Value" readonly>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+
+                                <div class="form-group col">
+                                    <label for="name">Tên độc giả:</label>
+                                    <input type="text" class="form-control" id="selectedName" name="selectedName" readonly>
+                                </div>
+
+                                <!--Số điện thoại-->
+                                <div class="form-group col">
+                                    <label for="book">Số điện thoại:</label>
+                                    <input type="text" class="form-control" id="selectedSDT" name="selectedSDT" readonly>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <!--Ngày mượn-->
+                                <div class="form-group col">
+                                    <label for="return_date">Ngày mượn:</label>
+                                    <input type="date" class="form-control" id="return_datemuon" name="return_datemuon" readonly>
+                                </div>
+
+                                <!--hạn trả-->
+                                <div class="form-group col">
+                                    <label for="return_date">Hạn trả:</label>
+                                    <input type="date" class="form-control" id="return_datehan" name="return_datehan" readonly>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <!--Ngày trả-->
+                                <div class="form-group col">
+                                    <label for="return_date">Ngày trả:</label>
+                                    <input type="date" class="form-control" id="return_datetra" name="return_datetra" readonly>
+                                </div>
+                                <div class="form-group col-4">
+                                    <label for="tongTienPhuThu">Tổng tiền:</label>
+                                    <input type="text" class="form-control" id="tongTienPhuThu" name="tongTienPhuThu" readonly>
+
+                                </div>
+                            </div>
+                            <!--Body table thông tin sách-->
+                            <div class="card-body table-responsive p-0"
+                                 style="height: 71.2vh" id="thongTinSachTable">
+                                <table class="table table-head-fixed table-hover">
+                                    <!--text-nowrap-->
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 20%">Mã Sách</th>
+                                            <th style="width: 30%">Tên sách</th>
+                                            <th style="width: 15%">SL Mượn</th>
+                                            <th style="width: 12%"> Trả</th>
+                                            <th style="width: 12%"> Lỗi  </th>
+                                            <th style="width: 12%"> Mất  </th>
+                                            <th style="width: 30%"> Phụ Thu  </th>
+
+                                        </tr>
+
+                                    </thead>
+                                    <tbody id="tableBody">
+                                    </tbody>
+                                </table>
+                            </div>
+                            <!--Button trả sách-->
+                            <button type="button" class="btn btn-primary" onclick="Save();">Lưu</button>
+                            @* field ẩn lưu mã PM khi click 1 row  *@
+                            <input id="hdfMaPM" type="hidden" value="0" />
+                        </form>
                     </div>
                 </div>
             </div>
 
-            <!-- Phần dưới (chiều cao 7 phần) -->
-            <div class="row flex-grow-7" id="phanDuoi" style="overflow-y: auto;">
-                <div class="col-12">
-                    <div class="card" style="height: 100%;">
-                        <div class="card-header">
-                            <h4 class="text-center text-blue text-bold">Phiếu trả</h4>
-                        </div>
-                        <div class="card-body">
-                            <form>
-                                <div class="form-row">
-                                    <div class="form-group col">
-                                        <label for="selectedMaNhanVien">Mã nhân viên:</label>
-                                        <input type="text" class="form-control" id="selectedMaNhanVien" readonly>
-                                    </div>
-                                    <div class="form-group col">
-                                        <label for="selectedMaThe">Mã thẻ độc giả:</label>
-                                        <input type="text" class="form-control" id="selectedMaThe" readonly>
-                                    </div>
-                                    <div class="form-group col">
-                                        <label for="selectedName">Tên độc giả:</label>
-                                        <input type="text" class="form-control" id="selectedName" readonly>
-                                    </div>
-                                    <div class="form-group col">
-                                        <label for="selectedSDT">Số điện thoại:</label>
-                                        <input type="text" class="form-control" id="selectedSDT" readonly>
-                                    </div>
-                                   
-                                </div>
-                                
-                                <div class="form-row">
-                                    <div class="form-group col">
-                                        <label for="return_datemuon">Ngày mượn:</label>
-                                        <input type="date" class="form-control" id="return_datemuon" readonly>
-                                    </div>
-                                    <div class="form-group col">
-                                        <label for="return_datehan">Hạn trả:</label>
-                                        <input type="date" class="form-control" id="return_datehan" readonly>
-                                    </div>
-                                    <div class="form-group col">
-                                        <label for="return_datetra">Ngày trả:</label>
-                                        <input type="date" class="form-control" id="return_datetra" readonly>
-                                    </div>
-                                    <div class="form-group col-4">
-                                        <label for="tongTienPhuThu">Tổng tiền:</label>
-                                        <input type="text" class="form-control" id="tongTienPhuThu" readonly>
-                                    </div>
-                                </div>
-                                <div class="table-responsive" style="height: 200px; overflow-y: auto;">
-                                    <table class="table table-head-fixed table-hover">
-                                        <thead>
-                                            <tr>
-                                                <th>Mã Đ.Sách</th>
-                                                <th>Tên sách</th>
-                                                <th>SL Mượn</th>
-                                                <th>Mã C.Sách</th>
-                                                 <th>Trả</th>
-                                                <th>Lỗi</th>
-                                                <th>Mất</th>
-                                                <th>Phụ Thu</th> 
-                                            </tr>
-                                        </thead>
-                                        <tbody id="tableBody"></tbody>
-                                    </table>
-                                </div>
-@*                                 <button type="button" class="btn btn-primary mt-3" onclick="Save();">Lưu</button>
- *@                                <input id="hdfMaPM" type="hidden" value="0" />
-                            </form>
+            <!-- Nút chọn Sách hoặc Thông tin độc giả -->
+            <div class="col-5">
+                <div class="card" style="height: 100%">
+                    <div class="card-header">
+                        <h5 id="thongTinPhieuMuonButton" class="btn btn-primary">T.T Phiếu mượn</h5>
+
+                        <div class="card-tools">
+
+                            <div class="input-group input-group-sm pt-2" style="width: 150px">
+                              
+                            </div>
                         </div>
                     </div>
+                    <!--Body table pm-->
+                    <div class="card-body table-responsive p-0" style="height: 100%" id="thongTinPhieuMuonTable">
+                        <table id="tablephieuMuon" class="table table-head-fixed table-hover  table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Mã PM</th>
+                                    @* <th>Mã thẻ</th> *@
+                                    <th>Tên DG</th>
+                                    <th>SĐT</th>
+                                    <th>Ngày mượn</th>
+                                    <th>Hạn trả</th>
+                                    <th>Tình trạng</th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+
                 </div>
             </div>
         </div>
-
-
     </div>
 </section>
 
@@ -152,10 +169,10 @@
     </div>
 </div>
 
-@* @section scripts
+ @section scripts
 {
     <script>
-      
+
         function lamMoi() {
             document.getElementById("selectedMaThe").value = "";
             document.getElementById("selectedName").value = "";
@@ -180,116 +197,127 @@
 
             // Set the default value for the "return_date" field to the current date
             document.getElementById("return_datetra").value = formatCurrentDate;
-            document.getElementById("tongTienPhuThu").value = formatMoney(0);
+         //   document.getElementById("tongTienPhuThu").value = formatMoney(0);
 
             $('#tablephieuMuon').DataTable(
-                {
-                    processing: true,
-                    serverSide: true,
-                    paging: true,
-                    searching: true,
-                    searchDelay: 400,
-                    scrollY: false,
-                    iDisplayLength: 5,
-                    bLengthChange: false,
-                    language: {
-                        info: "Hiển thị _START_ đến _END_ của _TOTAL_ mục",
-                        lengthMenu: "Hiển thị _MENU_ mục",
-                        search: "Tìm kiếm",
-                        processing: "Đang tải dữ liệu...",
-                        paginate: {
-                            previous: "Trước",
-                            next: "Tiếp theo",
-                            last: "Cuối"
+            {
+                processing: true,
+                serverSide: true,
+                paging: true,
+                searching: true,
+                searchDelay: 400,
+                scrollY: false,
+                iDisplayLength: 4,
+                bLengthChange: false,
+                language: {
+                    info: "Hiển thị _START_ đến _END_ của _TOTAL_ mục",
+                    lengthMenu: "Hiển thị _MENU_ mục",
+                    search: "Tìm kiếm",
+                    processing: "Đang tải dữ liệu...",
+                    paginate: {
+                        previous: "Trước",
+                        next: "Tiếp theo",
+                        last: "Cuối"
+                    }
+                },
+
+                ajax: {
+                    url: "/admin/phieutra/GetListPhieuMuonPaging_APP",
+                    // url: "/phieutra/GetListPhieuMuonPaging_APP",
+
+                    type: "POST",
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    beforeSend: function () {
+                        // Optional: Show loading indicator
+                    },
+                    data: function (data) {
+                        var tablephieuMuonA = $("#tablephieuMuon").DataTable();
+                        var settings = tablephieuMuonA.settings();
+                        var currentPageIndex = Math.ceil(settings[0]._iDisplayStart / settings[0]._iDisplayLength) + 1;
+                        var request = {
+                            PageSize: 4,
+                            Page: currentPageIndex,
+                            Keyword: $('.dt-search input[type="search"]').val()
+                        };
+                        return JSON.stringify(request);
+                    },
+                    dataSrc: function (res) {
+                        if (res.success && res.phieuMuonList != null) {
+                            return res.phieuMuonList.results;
+                        } else {
+                            return [];
                         }
                     },
-
-                    ajax: {
-                        url: "/admin/phieutra/GetListPhieuMuonPaging_APP",
-                        // url: "/phieutra/GetListPhieuMuonPaging_APP",
-
-                        type: "POST",
-                        contentType: "application/json; charset=utf-8",
-                        dataType: "json",
-                        beforeSend: function () {
-                            // Optional: Show loading indicator
-                        },
-                        data: function (data) {
-                            var tablephieuMuonA = $("#tablephieuMuon").DataTable();
-                            var settings = tablephieuMuonA.settings();
-                            var currentPageIndex = Math.ceil(settings[0]._iDisplayStart / settings[0]._iDisplayLength) + 1;
-                            var request = {
-                                PageSize: 5,
-                                Page: currentPageIndex,
-                                Keyword: $('.dt-search input[type="search"]').val()
-                            };
-                            return JSON.stringify(request);
-                        },
-                        dataSrc: function (res) {
-                            if (res.success && res.phieuMuonList != null) {
-                                return res.phieuMuonList.results;
-                            } else {
-                                return [];
-                            }
-                        },
-                        dataFilter: function (data) {
-                            var page = $.parseJSON(data);
-                            if (!page.success || page.phieuMuonList == null) {
-                                page.recordsTotal = 0;
-                                page.recordsFiltered = 0;
-                                return JSON.stringify(page);
-                            }
-                            page.recordsTotal = page.phieuMuonList.rowCount || 0;
-                            page.recordsFiltered = page.phieuMuonList.rowCount || 0;
+                    dataFilter: function (data) {
+                        var page = $.parseJSON(data);
+                        if (!page.success || page.phieuMuonList == null) {
+                            page.recordsTotal = 0;
+                            page.recordsFiltered = 0;
                             return JSON.stringify(page);
-                        },
-                        error: function (status) {
-                            // Handle error
                         }
+                        page.recordsTotal = page.phieuMuonList.rowCount || 0;
+                        page.recordsFiltered = page.phieuMuonList.rowCount || 0;
+                        return JSON.stringify(page);
                     },
-                    columns: [
-                        { data: "maPM", width: "7%" },
-                        { data: "maThe", width: "10%" },
-                        { data: "hoTenDG", width: "15%" },
-                        { data: "sdt", width: "15%" },
-                        { data: "ngayMuon", width: "15%" },
-                        { data: "hanTra", width: "15%" }
-                    ],
-                    columnDefs: [{
-                        "defaultContent": "-",
-                        "targets": "_all"
-                    }]
-                });
-
-            // Thay thế sự kiện '.btn-see-all' bằng sự kiện click trên mỗi hàng (row)
-            $('body').on('click', '#tablephieuMuon tbody tr', function () {
-                // Lấy DataTable
-                var table = $('#tablephieuMuon').DataTable();
-
-                // Lấy dữ liệu của hàng được click
-                var rowData = table.row(this).data();
-
-                // Sử dụng hàm formatDate để chuyển đổi và định dạng ngày
-                //var formattedNgayMuon = formatDate(rowData.ngayMuon);
-                // var formattedHanTra = formatDate(rowData.hanTra);
-
-                // Hiển thị thông tin ngày mượn và hạn trả vào các ô nhập dạng ngày trong form
-                document.getElementById("selectedMaThe").value = rowData.maThe;
-                console.log(rowData.maThe);
-                document.getElementById("selectedName").value = rowData.hoTenDG;
-                console.log(rowData.hoTenDG);
-                document.getElementById("selectedSDT").value = rowData.sdt;
-                document.getElementById("return_datemuon").value = rowData.ngayMuon;
-                document.getElementById("return_datehan").value = rowData.hanTra;
-
-                // Lưu mã PM vào input hidden
-                document.getElementById("hdfMaPM").value = rowData.maPM;
-
-                // Gọi hàm loadSachMuons với tham số là mã PM
-                loadSachMuons(rowData.maPM);
+                    error: function (status) {
+                        // Handle error
+                    }
+                },
+               columns: [
+                    { data: "maPM", width: "7%" },
+                    // { data: "maThe", width: "10%" },
+                    { data: "hoTenDG", width: "15%" },
+                    { data: "sdt", width: "15%" },
+                    { data: "ngayMuon", width: "15%" },
+                    { data: "hanTra", width: "15%" },
+                    {
+                        data: "hanTra",
+                        width: "10%",
+                        render: function (data, type, row) {
+                            var today = new Date();
+                            var hanTraDate = new Date(data); // Chuyển `hanTra` thành đối tượng Date
+                            if (hanTraDate < today) {
+                                return '<span style="color: red;">Hết hạn</span>';
+                            } else {
+                                return '<span style="color: green;">Còn hạn</span>';
+                            }
+                        }
+                    }
+               ],
+                columnDefs: [{
+                    "defaultContent": "-",
+                    "targets": "_all"
+                }]
             });
-
         }
+        // Thay thế sự kiện '.btn-see-all' bằng sự kiện click trên mỗi hàng (row)
+        $('body').on('click', '#tablephieuMuon tbody tr', function () {
+            // Lấy DataTable
+            var table = $('#tablephieuMuon').DataTable();
+
+            // Lấy dữ liệu của hàng được click
+            var rowData = table.row(this).data();
+
+            // Sử dụng hàm formatDate để chuyển đổi và định dạng ngày
+            //var formattedNgayMuon = formatDate(rowData.ngayMuon);
+            // var formattedHanTra = formatDate(rowData.hanTra);
+
+            // Hiển thị thông tin ngày mượn và hạn trả vào các ô nhập dạng ngày trong form
+            document.getElementById("selectedMaThe").value = rowData.maThe;
+            console.log(rowData.maThe);
+            document.getElementById("selectedName").value = rowData.hoTenDG;
+            console.log(rowData.hoTenDG);
+            document.getElementById("selectedSDT").value = rowData.sdt;
+            document.getElementById("return_datemuon").value = rowData.ngayMuon;
+            document.getElementById("return_datehan").value = rowData.hanTra;
+
+            // Lưu mã PM vào input hidden
+            document.getElementById("hdfMaPM").value = rowData.maPM;
+
+            // Gọi hàm loadSachMuons với tham số là mã PM
+            //  loadSachMuons(rowData.maPM);
+        });
 
         function loadSachMuons(maPM) {
             $('#hdfMaPM').val(maPM);
@@ -325,175 +353,303 @@
             });
         }
 
-        function PhuThu(maSach, giasach) {
-            var NgayTra = document.getElementById("return_datetra").value;
-            var HanTra = document.getElementById("return_datehan").value;
-            var Soluongloi = document.getElementById('phuThuSoLuongLoi' + maSach).value;
-            var Soluongtra = document.getElementById('phuThuSoLuongTra' + maSach).value;
-            var Soluongmat = document.getElementById('phuThuSoLuongMat' + maSach).value;
+        // function PhuThu(maSach, giasach) {
+        //     var NgayTra = document.getElementById("return_datetra").value;
+        //     var HanTra = document.getElementById("return_datehan").value;
+        //     var Soluongloi = document.getElementById('phuThuSoLuongLoi' + maSach).value;
+        //     var Soluongtra = document.getElementById('phuThuSoLuongTra' + maSach).value;
+        //     var Soluongmat = document.getElementById('phuThuSoLuongMat' + maSach).value;
 
-            let soNgayChenhLech = Math.max(0, (new Date(NgayTra) - new Date(HanTra)) / (1000 * 60 * 60 * 24));
-            // Khai báo biến phuThu ở đây
+        //     let soNgayChenhLech = Math.max(0, (new Date(NgayTra) - new Date(HanTra)) / (1000 * 60 * 60 * 24));
+        //     // Khai báo biến phuThu ở đây
 
-            if (Soluongtra > 0 || Soluongloi > 0 || Soluongmat > 0) {
-                if (soNgayChenhLech > 0) {// trễ
+        //     if (Soluongtra > 0 || Soluongloi > 0 || Soluongmat > 0) {
+        //         if (soNgayChenhLech > 0) {// trễ
 
-                    document.getElementById("phuThu" + maSach).innerHTML = (soNgayChenhLech * 3000 * Soluongtra) + (giasach * 0.5 * Soluongloi + soNgayChenhLech * 3000 * Soluongloi) + (Soluongmat * giasach + soNgayChenhLech * 3000 * Soluongmat * 2); //+ " VND";
+        //             document.getElementById("phuThu" + maSach).innerHTML = (soNgayChenhLech * 3000 * Soluongtra) + (giasach * 0.5 * Soluongloi + soNgayChenhLech * 3000 * Soluongloi) + (Soluongmat * giasach + soNgayChenhLech * 3000 * Soluongmat * 2); //+ " VND";
 
-                } else {//khong trễ
-                    document.getElementById("phuThu" + maSach).innerHTML = giasach * 0.5 * Soluongloi + Soluongmat * giasach * 2; //+ " VND";
+        //         } else {//khong trễ
+        //             document.getElementById("phuThu" + maSach).innerHTML = giasach * 0.5 * Soluongloi + Soluongmat * giasach * 2; //+ " VND";
 
-                }
-            }
-            else {
-                document.getElementById("phuThu" + maSach).innerHTML = 0;
-            }
-        }
-        function updateTongTien() {
-            var tongTienPhuThu = 0;
+        //         }
+        //     }
+        //     else {
+        //         document.getElementById("phuThu" + maSach).innerHTML = 0;
+        //     }
+        // }
+        // function updateTongTien() {
+        //     var tongTienPhuThu = 0;
 
-            // Lấy danh sách các hàng trong bảng thông tin sách
-            var sachRows = document.querySelectorAll(".sach-row");
+        //     // Lấy danh sách các hàng trong bảng thông tin sách
+        //     var sachRows = document.querySelectorAll(".sach-row");
 
-            // Lặp qua từng hàng và tính tổng tiền Phụ Thu
-            sachRows.forEach(function (row) {
-                var maSach = row.querySelector('td:nth-child(1)').textContent;
-                var phuThuValue = parseFloat(row.querySelector('.phuThu').textContent);
+        //     // Lặp qua từng hàng và tính tổng tiền Phụ Thu
+        //     sachRows.forEach(function (row) {
+        //         var maSach = row.querySelector('td:nth-child(1)').textContent;
+        //         var phuThuValue = parseFloat(row.querySelector('.phuThu').textContent);
 
-                // Kiểm tra nếu giá trị là một số hợp lệ thì thêm vào tổng tiền
-                if (!isNaN(phuThuValue)) {
-                    tongTienPhuThu += phuThuValue;
-                }
-            });
+        //         // Kiểm tra nếu giá trị là một số hợp lệ thì thêm vào tổng tiền
+        //         if (!isNaN(phuThuValue)) {
+        //             tongTienPhuThu += phuThuValue;
+        //         }
+        //     });
 
-            // Hiển thị tổng tiền trong trường "Tổng tiền"
-            document.getElementById("tongTienPhuThu").value = formatMoney(tongTienPhuThu);
-        }
+        //     // Hiển thị tổng tiền trong trường "Tổng tiền"
+        //     document.getElementById("tongTienPhuThu").value = formatMoney(tongTienPhuThu);
+        // }
 
-        // Hàm format tiền
-        function formatMoney(number) {
-            return number.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' });
-        }
-
-
-        var ListSachTra = [];
-
-        function createSachTraPostData() {
-            var sachValues = [];
-
-            // Lấy các ô nhập liệu từ bảng
-            var sachRows = document.querySelectorAll(".sach-row");
-
-            sachRows.forEach(function (row) {
-                // Lấy các ô nhập liệu từ hàng (sử dụng lớp hoặc ID thích hợp)
-                var maSach = row.querySelector('td:nth-child(1)').textContent;
-                var tenSach = row.querySelector('td:nth-child(2)').textContent;
-                var soLuongMuon = row.querySelector('td:nth-child(3)').textContent;
-                var soLuongTra = row.querySelector('input.tra').value;
-                var soluongLoi = row.querySelector('input.loi').value;
-                var soluongMat = row.querySelector('input.mat').value;
-                var PhuThu = row.querySelector('td:nth-child(7)').textContent;
-
-                // Thêm giá trị từ các ô nhập liệu vào mảng
-                sachValues.push({
-                    MaSach: maSach,
-                    TenSach: tenSach,
-                    SoLuongMuon: soLuongMuon,
-                    SoLuongTra: soLuongTra,
-                    SoLuongLoi: soluongLoi,
-                    SoLuongMat: soluongMat,
-                    PhuThu: PhuThu,
-                });
-            });
+        // // Hàm format tiền
+        // function formatMoney(number) {
+        //     return number.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' });
+        // }
 
 
-            var data = {
-                MaNhanVien: document.getElementById("selectedMaNhanVien").value,
-                MaPhieuMuon: $('#hdfMaPM').val(),
-                MaThe: document.getElementById("selectedMaThe").value,
-                NgayTra: document.getElementById("return_datetra").value,
-                ListSachTra: sachValues,
-            }
-            return data;
-        }
+        // var ListSachTra = [];
+
+        // function createSachTraPostData() {
+        //     var sachValues = [];
+
+        //     // Lấy các ô nhập liệu từ bảng
+        //     var sachRows = document.querySelectorAll(".sach-row");
+
+        //     sachRows.forEach(function (row) {
+        //         // Lấy các ô nhập liệu từ hàng (sử dụng lớp hoặc ID thích hợp)
+        //         var maSach = row.querySelector('td:nth-child(1)').textContent;
+        //         var tenSach = row.querySelector('td:nth-child(2)').textContent;
+        //         var soLuongMuon = row.querySelector('td:nth-child(3)').textContent;
+        //         var soLuongTra = row.querySelector('input.tra').value;
+        //         var soluongLoi = row.querySelector('input.loi').value;
+        //         var soluongMat = row.querySelector('input.mat').value;
+        //         var PhuThu = row.querySelector('td:nth-child(7)').textContent;
+
+        //         // Thêm giá trị từ các ô nhập liệu vào mảng
+        //         sachValues.push({
+        //             MaSach: maSach,
+        //             TenSach: tenSach,
+        //             SoLuongMuon: soLuongMuon,
+        //             SoLuongTra: soLuongTra,
+        //             SoLuongLoi: soluongLoi,
+        //             SoLuongMat: soluongMat,
+        //             PhuThu: PhuThu,
+        //         });
+        //     });
 
 
-        function Save() {
-            var dataPost = createSachTraPostData();
-
-            // Kiểm tra xem tất cả các hàng có số lượng bằng 0 không
-            var allRowsZero = dataPost.ListSachTra.every(function (item) {
-                return parseFloat(item.SoLuongTra) === 0 && parseFloat(item.SoLuongLoi) === 0 === parseFloat(item.SoLuongMat) === 0;
-            });
-
-            if (allRowsZero) {
-                document.getElementById("contentModalError").innerHTML = "Hãy nhập số lượng sách muốn trả!";
-                $("#ModalError").modal("show");
-                return;
-            }
-
-            for (var i = 0; i < dataPost.ListSachTra.length; i++) {
-                var item = dataPost.ListSachTra[i];
-
-                var soLuongTra = parseFloat(item.SoLuongTra);
-                var soLuongLoi = parseFloat(item.SoLuongLoi);
-                var soLuongMat = parseFloat(item.SoLuongMat);
-
-                // Kiểm tra xem có biến số lượng nào bé hơn 0 không
-                if (soLuongTra < 0 || soLuongLoi < 0 || soLuongMat < 0) {
-                    document.getElementById("contentModalError").innerHTML = "Số lượng nhập không hợp lệ!";
-                    $("#ModalError").modal("show");
-                    return;
-                }
+        //     var data = {
+        //         MaNhanVien: document.getElementById("selectedMaNhanVien").value,
+        //         MaPhieuMuon: $('#hdfMaPM').val(),
+        //         MaThe: document.getElementById("selectedMaThe").value,
+        //         NgayTra: document.getElementById("return_datetra").value,
+        //         ListSachTra: sachValues,
+        //     }
+        //     return data;
+        // }
 
 
-                var soLuongMuon = parseFloat(item.SoLuongMuon);
+        // function Save() {
+        //     var dataPost = createSachTraPostData();
 
-                // Kiểm tra xem số lượng mượn có lớn hơn số lượng trả và số lượng lỗi không
-                if (isNaN(soLuongMuon) || soLuongMuon < soLuongTra + soLuongLoi + soLuongMat) {
-                    document.getElementById("contentModalError").innerHTML = "Hãy nhập đúng số lượng sách muốn trả!";
-                    $("#ModalError").modal("show");
-                    return;
-                }
-                else {
+        //     // Kiểm tra xem tất cả các hàng có số lượng bằng 0 không
+        //     var allRowsZero = dataPost.ListSachTra.every(function (item) {
+        //         return parseFloat(item.SoLuongTra) === 0 && parseFloat(item.SoLuongLoi) === 0 === parseFloat(item.SoLuongMat) === 0;
+        //     });
 
-                }
-            }
+        //     if (allRowsZero) {
+        //         document.getElementById("contentModalError").innerHTML = "Hãy nhập số lượng sách muốn trả!";
+        //         $("#ModalError").modal("show");
+        //         return;
+        //     }
 
-            var confirmed = confirm("Bạn có chắc muốn tạo phiếu trả không?");
-            if (confirmed) {
+        //     for (var i = 0; i < dataPost.ListSachTra.length; i++) {
+        //         var item = dataPost.ListSachTra[i];
 
-                // Gửi dữ liệu đến controller bằng phương thức AJAX POST
-                $.ajax({
-                    type: "POST",
-                    url: "/Admin/PhieuTra/TaoPhieuTra_APP",
-                    data: JSON.stringify(dataPost),
-                    contentType: "application/json; charset=utf-8",
-                    dataType: "json",
-                    
-                    success: function (response) {
-                        console.log("test index ", response.success);
-                        if (response.success) {
+        //         var soLuongTra = parseFloat(item.SoLuongTra);
+        //         var soLuongLoi = parseFloat(item.SoLuongLoi);
+        //         var soLuongMat = parseFloat(item.SoLuongMat);
 
-                            document.getElementById("contentModalSuccess").innerHTML = "Thêm phiếu trả thành công!";
-                            $('#tablephieuMuon').DataTable().ajax.reload();
-                            $("#ModalSuccess").modal("show");
-                            lamMoi();
+        //         // Kiểm tra xem có biến số lượng nào bé hơn 0 không
+        //         if (soLuongTra < 0 || soLuongLoi < 0 || soLuongMat < 0) {
+        //             document.getElementById("contentModalError").innerHTML = "Số lượng nhập không hợp lệ!";
+        //             $("#ModalError").modal("show");
+        //             return;
+        //         }
 
-                            console.log('Tạo phiếu trả: ', response);
-                        } else {
-                            document.getElementById("contentModalError").innerHTML = "Hãy thêm số lượng sách muốn trả!";
-                            $("#ModalError").modal("show");
-                            console.log('Tạo phiếu trả: ', response);
-                        }
-                    },
-                    error: function () {
-                        alert("Lỗi khi gửi yêu cầu đến máy chủ.");
-                    }
-                });
-            }
-        }
+
+        //         var soLuongMuon = parseFloat(item.SoLuongMuon);
+
+        //         // Kiểm tra xem số lượng mượn có lớn hơn số lượng trả và số lượng lỗi không
+        //         if (isNaN(soLuongMuon) || soLuongMuon < soLuongTra + soLuongLoi + soLuongMat) {
+        //             document.getElementById("contentModalError").innerHTML = "Hãy nhập đúng số lượng sách muốn trả!";
+        //             $("#ModalError").modal("show");
+        //             return;
+        //         }
+        //         else {
+
+        //         }
+        //     }
+
+        //     var confirmed = confirm("Bạn có chắc muốn tạo phiếu trả không?");
+        //     if (confirmed) {
+
+        //         // Gửi dữ liệu đến controller bằng phương thức AJAX POST
+        //         $.ajax({
+        //             type: "POST",
+        //             url: "/Admin/PhieuTra/TaoPhieuTra_APP",
+        //             data: JSON.stringify(dataPost),
+        //             contentType: "application/json; charset=utf-8",
+        //             dataType: "json",
+
+        //             success: function (response) {
+        //                 console.log("test index ", response.success);
+        //                 if (response.success) {
+
+        //                     document.getElementById("contentModalSuccess").innerHTML = "Thêm phiếu trả thành công!";
+        //                     $('#tablephieuMuon').DataTable().ajax.reload();
+        //                     $("#ModalSuccess").modal("show");
+        //                     lamMoi();
+
+        //                     console.log('Tạo phiếu trả: ', response);
+        //                 } else {
+        //                     document.getElementById("contentModalError").innerHTML = "Hãy thêm số lượng sách muốn trả!";
+        //                     $("#ModalError").modal("show");
+        //                     console.log('Tạo phiếu trả: ', response);
+        //                 }
+        //             },
+        //             error: function () {
+        //                 alert("Lỗi khi gửi yêu cầu đến máy chủ.");
+        //             }
+        //         });
+        //     }
+        // }
 
 
     </script>
-} *@
+} 
+
+@* <!-- Hiển thị danh sách NhanViens -->
+<section class="content">
+    <div class="container-fluid pt-4">
+        <div class="container-fluid" style="height: 100vh; display: flex; flex-direction: column;">
+            <!-- Phần trên (chiều cao 4 phần) -->
+            <div class="row flex-grow-3" id="phanTren" style="overflow-y: auto;">
+                <div class="col-12">
+                    <div class="card" style="height: 100%;">
+                        <div class="card-header">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h4 class="text-blue text-bold mb-0">T.T Phiếu mượn</h4>
+                                @* <div class="d-flex">
+                                    <input type="text" id="searchInput" class="form-control" placeholder="Search">
+                                    <button type="submit" class="btn btn-default ml-2" id="searchButton">
+                                        <i class="fas fa-search"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive p-0" id="thongTinPhieuMuonTable">
+                                <table id="tablephieuMuon" class="table table-head-fixed table-hover table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th>Mã PM</th>
+                                            <th>Mã thẻ</th>
+                                            <th>Họ tên DG</th>
+                                            <th>SĐT</th>
+                                            <th>Ngày mượn</th>
+                                            <th>Hạn trả</th>
+                                            <th>Tình trạng</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- Các dòng dữ liệu sẽ được thêm ở đây qua JavaScript -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Phần dưới (chiều cao 7 phần) -->
+            <div class="row flex-grow-7" id="phanDuoi" style="overflow-y: auto;">
+                <div class="col-12">
+                    <div class="card" style="height: 100%;">
+                        <div class="card-header">
+                            <div class="row align-items-center">
+                                <div class="col-auto">
+                                    <h4 class="text-center text-blue text-bold">Phiếu trả</h4>
+                                </div>
+                                <div class="col-auto ml-auto">
+                                    <button type="button" class="btn btn-primary" onclick="Save();">Tạo phiếu trả</button>
+                                    <button type="button" class="btn btn-warning lamMoiSach ml-2" onclick="lamMoi()">Làm mới</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <form>
+                                <div class="form-row">
+                                    <div class="form-group col">
+                                        <label for="selectedMaNhanVien">Mã nhân viên:</label>
+                                        <input type="text" class="form-control" id="selectedMaNhanVien" readonly>
+                                    </div>
+                                    <div class="form-group col">
+                                        <label for="selectedMaThe">Mã thẻ độc giả:</label>
+                                        <input type="text" class="form-control" id="selectedMaThe" readonly>
+                                    </div>
+                                    <div class="form-group col">
+                                        <label for="selectedName">Tên độc giả:</label>
+                                        <input type="text" class="form-control" id="selectedName" readonly>
+                                    </div>
+                                    <div class="form-group col">
+                                        <label for="selectedSDT">Số điện thoại:</label>
+                                        <input type="text" class="form-control" id="selectedSDT" readonly>
+                                    </div>
+
+                                </div>
+
+                                <div class="form-row">
+                                    <div class="form-group col">
+                                        <label for="return_datemuon">Ngày mượn:</label>
+                                        <input type="date" class="form-control" id="return_datemuon" readonly>
+                                    </div>
+                                    <div class="form-group col">
+                                        <label for="return_datehan">Hạn trả:</label>
+                                        <input type="date" class="form-control" id="return_datehan" readonly>
+                                    </div>
+                                    <div class="form-group col">
+                                        <label for="return_datetra">Ngày trả:</label>
+                                        <input type="date" class="form-control" id="return_datetra" readonly>
+                                    </div>
+                                    <div class="form-group col-4">
+                                        <label for="tongTienPhuThu">Tổng tiền:</label>
+                                        <input type="text" class="form-control" id="tongTienPhuThu" readonly>
+                                    </div>
+                                </div>
+                                <div class="table-responsive" style="height: 200px; overflow-y: auto;">
+                                    <table class="table table-head-fixed table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Mã Đ.Sách</th>
+                                                <th>Tên sách</th>
+                                                <th>SL Mượn</th>
+                                                <th>Mã C.Sách</th>
+                                                <th>Trả</th>
+                                                <th>Lỗi</th>
+                                                <th>Mất</th>
+                                                <th>Phụ Thu</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tableBody"></tbody>
+                                    </table>
+                                </div>
+                                                             <button type="button" class="btn btn-primary mt-3" onclick="Save();">Lưu</button>
+                                                           <input id="hdfMaPM" type="hidden" value="0" />
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+ *@
