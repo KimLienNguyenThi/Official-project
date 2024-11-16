@@ -15,7 +15,7 @@ BEGIN
 	)
 	FROM SACH
 	JOIN INSERTED ON INSERTED.MASACH = SACH.MASACH
-END
+END;
 
 --BẢNG CUỐN SÁCH KHI LƯU KHI BẢNG CHI TIET PN CÓ MÃ SÁCH VÀ SỐ LƯỢNG.
 CREATE OR ALTER TRIGGER TRG_TAO_MA_CUON_SACH
@@ -107,6 +107,12 @@ AFTER INSERT AS
     SET TinhTrang = 1  -- Đã mượn
     FROM CuonSach cs
     INNER JOIN inserted i ON cs.MaCuonSach = i.MaCuonSach;
+
+	-- Cập nhật tình trạng ở bảng ChiTietSachMuon thành 1 (Đã mượn)
+    UPDATE ChiTietSachMuon
+    SET TINHTRANG = 0  -- Đã mượn
+    FROM ChiTietSachMuon ctsm
+    INNER JOIN inserted i ON ctsm.MAPM = i.MAPM AND ctsm.MACUONSACH = i.MACUONSACH;
 END;
 
 
@@ -201,7 +207,7 @@ END;
 
 
 
-/* UPDATE NẾU TÌNH TRẠNG Ở BẢNG CUỐN SÁCH sau khi trả*/
+/* UPDATE NẾU TÌNH TRẠNG Ở BẢNG CUỐN SÁCH và bảng chitietsachmuon sau khi trả*/
 CREATE OR ALTER  TRIGGER TRG_TT_CUONSACHTRA
 ON CHITIETSACHTRA
 AFTER INSERT
@@ -227,6 +233,12 @@ BEGIN
     FROM CuonSach cs
     INNER JOIN inserted i ON cs.MACUONSACH = i.MACUONSACH
     WHERE i.TINHTRANG = 3;--MẤT
+
+	 -- Cập nhật tình trạng ở bảng ChiTietSachMuon thành 1 (ĐÃ TRẢ) khi sách đã được trả
+    UPDATE ChiTietSachMuon
+    SET TINHTRANG = 1  -- ĐÃ TRẢ
+    FROM ChiTietSachMuon ctsm
+    INNER JOIN inserted i ON ctsm.MACUONSACH = i.MACUONSACH;
 END;
 
 
@@ -253,6 +265,8 @@ BEGIN
 	SET TINHTRANG = 1
 	FROM CHITIETKHOTHANHLY 
 	JOIN INSERTED ON INSERTED.MACUONSACH = CHITIETKHOTHANHLY.MACUONSACH
+	 -- Cập nhật tình trạng trong bảng CHITIETSACHTHANHLY thành 1 (Đã thanh lý) sau khi insert
+   
 END;
 
 
@@ -350,6 +364,19 @@ BEGIN
 			) AS CountResult ON PM.mapm = CountResult.mapm
 		end
    -- WHERE CountResult.loaisach = CountResult.soluongls;
+END;
+
+
+--/* CẬP NHẬT TÌNH TRẠNG chitietsachthanhly */
+--MẶC ĐỊNH =1 đã thanh lý
+CREATE OR ALTER  TRIGGER SetTinhTrangchitietsachthanhly
+ON chitietsachthanhly 
+FOR INSERT AS
+BEGIN 
+	UPDATE chitietsachthanhly 
+	SET TINHTRANG = 1
+	FROM chitietsachthanhly 
+	JOIN INSERTED ON INSERTED.MaCuonSach = chitietsachthanhly.MaCuonSach
 END;
 
 --/* CẬP NHẬT TÌNH TRẠNG ĐK MƯỢN SÁCH */

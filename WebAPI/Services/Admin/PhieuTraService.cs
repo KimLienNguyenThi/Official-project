@@ -22,7 +22,7 @@ namespace WebAPI.Services.Admin
                  join CHITIETPM in _context.ChiTietPms
                     on PhieuMuon.Mapm equals CHITIETPM.Mapm
                  where PhieuMuon.Tinhtrang == false
-                       && (string.IsNullOrEmpty(req.Keyword) || DocGia.Hotendg.Contains(req.Keyword))
+                       && (string.IsNullOrEmpty(req.Keyword) || DocGia.Hotendg.Contains(req.Keyword) || DocGia.Sdt.Contains(req.Keyword))
                  select new PhieuMuonDTO
                  {
                      MaPM = PhieuMuon.Mapm,
@@ -47,65 +47,71 @@ namespace WebAPI.Services.Admin
             };
         }
 
-        public IEnumerable<SachMuonDTO> getSachMuon(int MaPm)
-        {
-            // Lấy danh sách sách đã trả
-            var listSachTra = (
-                from phieuTra in _context.PhieuTras
-                join chiTietPT in _context.ChiTietPts on phieuTra.Mapt equals chiTietPT.Mapt
-                where phieuTra.Mapm == MaPm
-                group chiTietPT by chiTietPT.Masach into g
-                select new SachDaTraDTO
-                {
-                    MaSach = g.Key,
-                    SoLuongDaTra = g.Sum(a => a.Soluongtra + a.Soluongloi + a.Soluongmat)
-                }
-            ).ToList();
-            // Lấy danh sách sách mượn
-            var sachMuonList = (
-                from chiTietPM in _context.ChiTietPms
-                join sach in _context.Saches on chiTietPM.Masach equals sach.Masach
-                join CHITIETPN in _context.Chitietpns on chiTietPM.Masach equals CHITIETPN.Masach
-                where chiTietPM.Mapm == MaPm
-                select new SachMuonDTO
-                {
-                    MaSach = sach.Masach,
-                    TenSach = sach.Tensach,
-                    SoLuongMuon = chiTietPM.Soluongmuon,
-                    giasach = CHITIETPN.Giasach.Value
-                })
-                .GroupBy(group => new { group.MaSach, group.TenSach, group.SoLuongMuon })
-                .AsEnumerable()
-                .Select(x =>
-                {
-                    // Tìm kiếm thông tin sách đã trả tương ứng
-                    var sachDaTra = listSachTra.FirstOrDefault(s => s.MaSach == x.Key.MaSach);
+        //public IEnumerable<SachMuonDTO> getSachMuon(int MaPm)
+        //{
+            //// Lấy danh sách sách đã trả
+            //var listSachTra = (
+            //    from phieuTra in _context.PhieuTras
+            //    join chiTietPT in _context.ChiTietPts on phieuTra.Mapt equals chiTietPT.Mapt
+            //    join ChiTietSachTra in _context.ChiTietSachTras on chiTietPT.Mapt equals ChiTietSachTra.Mapt
+            //    where phieuTra.Mapm == MaPm
+            //    group chiTietPT by chiTietPT.Masach into g
+            //    select new SachDaTraDTO
+            //    {
+            //        MaSach = g.Key,
+            //        SoLuongDaTra = g.Sum(a => a.Soluongtra + a.Soluongloi + a.Soluongmat),
+            //       // MACUONSACH = g.Key
+            //    }
+            //).ToList();
+            //// Lấy danh sách sách mượn
+            //var sachMuonList = (
+            //    from chiTietPM in _context.ChiTietPms
+            //    join sach in _context.Saches on chiTietPM.Masach equals sach.Masach
+            //    join CHITIETPN in _context.Chitietpns on chiTietPM.Masach equals CHITIETPN.Masach
+            //   // join ChiTietSachMuon in _context.CuonSaches on CHITIETPN.Masach equals CuonSach.Masach
+            //    //join CuonSach in _context.CuonSaches on CHITIETPN.Masach equals CuonSach.Masach
+            //    where chiTietPM.Mapm == MaPm
+            //    select new SachMuonDTO
+            //    {
+            //        MaSach = sach.Masach,
+            //        TenSach = sach.Tensach,
+            //        //SoLuongMuon = chiTietPM.Soluongmuon,
+            //       /// MACUONSACH = sach.ma
+            //        giasach = CHITIETPN.Giasach.Value
+            //    })
+            //    .GroupBy(group => new { group.MaSach, group.TenSach, group.SoLuongMuon })
+            //    .AsEnumerable()
+            //    .Select(x =>
+            //    {
+            //        // Tìm kiếm thông tin sách đã trả tương ứng
+            //        var sachDaTra = listSachTra.FirstOrDefault(s => s.MaSach == x.Key.MaSach);
 
-                    // Nếu không tìm thấy, sử dụng giá trị mặc định là 0
-                    int soLuongDaTra = sachDaTra?.SoLuongDaTra ?? 0;
+            //        // Nếu không tìm thấy, sử dụng giá trị mặc định là 0
+            //        int soLuongDaTra = sachDaTra?.SoLuongDaTra ?? 0;
 
-                    // Tính toán số lượng còn lại của sách mượn
-                    int? soLuongMuonConLaiNullable = x.Key.SoLuongMuon - soLuongDaTra;
+            //        // Tính toán số lượng còn lại của sách mượn
+            //        int? soLuongMuonConLaiNullable = x.Key.SoLuongMuon - soLuongDaTra;
 
-                    // Chuyển đổi kiểu dữ liệu từ int? sang int
-                    int soLuongMuonConLai = soLuongMuonConLaiNullable ?? 0;
+            //        // Chuyển đổi kiểu dữ liệu từ int? sang int
+            //        int soLuongMuonConLai = soLuongMuonConLaiNullable ?? 0;
 
 
-                    // Tạo đối tượng SachMuonDTO mới
-                    return new SachMuonDTO
-                    {
-                        MaSach = x.Key.MaSach,
-                        TenSach = x.Key.TenSach,
-                        SoLuongMuon = soLuongMuonConLai,
-                        giasach = x.OrderByDescending(item => item.giasach).First().giasach
-                    };
-                })
-                .Where(x => x.SoLuongMuon > 0)
-                .ToList();
+            //        // Tạo đối tượng SachMuonDTO mới
+            //        return new SachMuonDTO
+            //        {
+            //            MaSach = x.Key.MaSach,
+            //            TenSach = x.Key.TenSach,
+            //            MACUONSACH = x.Key.MACUONSACH,
+            //            //SoLuongMuon = soLuongMuonConLai,
+            //            giasach = x.OrderByDescending(item => item.giasach).First().giasach
+            //        };
+            //    })
+            //    .Where(x => x.SoLuongMuon > 0)
+            //    .ToList();
 
-            // Trả về danh sách sách mượn còn lại
-            return sachMuonList;
-        }
+            //// Trả về danh sách sách mượn còn lại
+            //return sachMuonList;
+       // }
 
         public bool Insert(DTO_Tao_Phieu_Tra x)
         {
