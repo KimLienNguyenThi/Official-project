@@ -11,11 +11,11 @@ public partial class CuonSach
 
     public int Masach { get; set; }
 
+    public virtual ICollection<ChiTietSachMuon> ChiTietSachMuons { get; set; } = new List<ChiTietSachMuon>();
+
     public virtual ICollection<ChiTietSachTra> ChiTietSachTras { get; set; } = new List<ChiTietSachTra>();
 
     public virtual ChitietKhoThanhLy? ChitietKhoThanhLy { get; set; }
 
     public virtual Sach MasachNavigation { get; set; } = null!;
-
-    public virtual ICollection<PhieuMuon> Mapms { get; set; } = new List<PhieuMuon>();
 }

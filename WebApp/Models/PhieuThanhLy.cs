@@ -15,9 +15,9 @@ public partial class PhieuThanhLy
 
     public virtual ICollection<ChiTietPtl> ChiTietPtls { get; set; } = new List<ChiTietPtl>();
 
+    public virtual ICollection<ChiTietSachThanhLy> ChiTietSachThanhLies { get; set; } = new List<ChiTietSachThanhLy>();
+
     public virtual DonViTl? MadvNavigation { get; set; }
 
     public virtual NhanVien? ManvNavigation { get; set; }
-
-    public virtual ICollection<ChitietKhoThanhLy> Macuonsaches { get; set; } = new List<ChitietKhoThanhLy>();
 }

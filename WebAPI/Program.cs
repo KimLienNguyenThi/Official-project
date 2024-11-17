@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using WebAPI.Models;
+
+//using WebAPI.Models;
 using WebAPI.Service_Admin;
 using WebAPI.Services.Admin;
 using WebAPI.Services.Client;
@@ -29,7 +31,7 @@ builder.Services.AddTransient<BorrowBookService, BorrowBookService>();
 builder.Services.AddTransient<UserAuthService, UserAuthService>();
 builder.Services.AddTransient<PhieuMuonService, PhieuMuonService>();
 //builder.Services.AddTransient<ThongKeService, ThongKeService>();
-//builder.Services.AddTransient<PhieuTraService, PhieuTraService>();
+builder.Services.AddTransient<PhieuTraService, PhieuTraService>();
 //builder.Services.AddTransient<QuanLyPhieuTraService, QuanLyPhieuTraService>();
 //builder.Services.AddTransient<QuanLyPhieuMuonService, QuanLyPhieuMuonService>();
 

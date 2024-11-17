@@ -13,9 +13,9 @@ public partial class ChitietKhoThanhLy
 
     public int? Tinhtrang { get; set; }
 
+    public virtual ICollection<ChiTietSachThanhLy> ChiTietSachThanhLies { get; set; } = new List<ChiTietSachThanhLy>();
+
     public virtual CuonSach MacuonsachNavigation { get; set; } = null!;
 
     public virtual KhoSachThanhLy MasachkhoNavigation { get; set; } = null!;
-
-    public virtual ICollection<PhieuThanhLy> Maptls { get; set; } = new List<PhieuThanhLy>();
 }

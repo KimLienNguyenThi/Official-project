@@ -16,74 +16,59 @@ namespace WebApp.Areas.Admin.Controllers
 
     public class PhieuTraController : Controller
     {
-        // Constructor của lớp DangKyMuonSachController (có thể để trống vì chưa cần API)
+        Uri baseAddress = new Uri("https://localhost:7028/api/admin");
+        private readonly HttpClient _client;
+
         public PhieuTraController()
         {
-            // Không cần khởi tạo HttpClient vì chưa có API
-        }
+            _client = new HttpClient();
+            _client.BaseAddress = baseAddress;
 
-        // Action để hiển thị trang đăng ký mượn sách
+        }
+        [Route("")]
         public IActionResult Index()
         {
-            return View(); // Trả về view Index.cshtml
+            //if (User.IsInRole("QuanLyKho"))
+            //{
+            //    return RedirectToAction("LoiPhanQuyen", "phanquyen");
+            //}
+            //else
+            //{
+                return View();
+            //}
         }
 
+        [HttpPost]
+        [Route("GetListPhieuMuonPaging_APP")]
+        public async Task<IActionResult> GetListPhieuMuonPaging_APP([FromBody] GetListPhieuMuonPaging req)
+        {
+            try
+            {
+                List<PhieuMuonDTO> phieuMuonList = new List<PhieuMuonDTO>();
 
+                var reqjson = JsonConvert.SerializeObject(req);
+                var httpContent = new StringContent(reqjson, Encoding.UTF8, "application/json");
+                HttpResponseMessage response = await _client.PostAsync(_client.BaseAddress + "/PhieuTra/GetListPhieuMuonPaging_API", httpContent);
 
-        //Uri baseAddress = new Uri("https://localhost:7028/api/admin");
-        //private readonly HttpClient _client;
-
-        //public PhieuTraController()
-        //{
-        //    _client = new HttpClient();
-        //    _client.BaseAddress = baseAddress;
-
-        //}
-
-        //[Route("")]
-        //public IActionResult Index()
-        //{
-        //    if (User.IsInRole("QuanLyKho"))
-        //    {
-        //        return RedirectToAction("LoiPhanQuyen", "phanquyen");
-        //    }
-        //    else
-        //    {
-        //        return View();
-        //    }
-        //}
-
-        //[HttpPost]
-        //[Route("GetListPhieuMuonPaging_APP")]
-        //public async Task<IActionResult> GetListPhieuMuonPaging_APP([FromBody] GetListPhieuMuonPaging req)
-        //{
-        //    try
-        //    {
-        //        List<PhieuMuonDTO> phieuMuonList = new List<PhieuMuonDTO>();
-
-        //        var reqjson = JsonConvert.SerializeObject(req);
-        //        var httpContent = new StringContent(reqjson, Encoding.UTF8, "application/json");
-        //            HttpResponseMessage response = await _client.PostAsync(_client.BaseAddress + "/PhieuTra/GetListPhieuMuonPaging_API", httpContent);
-
-        //        if (response.IsSuccessStatusCode)
-        //        {
-        //            string data =  response.Content.ReadAsStringAsync().Result;
-        //            var responseObject = JsonConvert.DeserializeObject<PagingResult<PhieuMuonDTO>>(data);
-        //            //return Ok(responseObject);
-        //            return Ok(new { success = true, phieuMuonList = responseObject });
-        //        }   
-        //        else
-        //        {
-        //            // Handle unsuccessful status code
-        //            return BadRequest(new { success = false, message = "Failed to retrieve data from API." });
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        // Handle exception
-        //        return StatusCode(500, new { success = false, message = ex.Message });
-        //    }
-        //}
+                if (response.IsSuccessStatusCode)
+                {
+                    string data = response.Content.ReadAsStringAsync().Result;
+                    var responseObject = JsonConvert.DeserializeObject<PagingResult<PhieuMuonDTO>>(data);
+                    //return Ok(responseObject);
+                    return Ok(new { success = true, phieuMuonList = responseObject });
+                }
+                else
+                {
+                    // Handle unsuccessful status code
+                    return BadRequest(new { success = false, message = "Failed to retrieve data from API." });
+                }
+            }
+            catch (Exception ex)
+            {
+                // Handle exception
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
 
 
         //[HttpPost]

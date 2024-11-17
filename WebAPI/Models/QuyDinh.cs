@@ -5,9 +5,7 @@ namespace WebAPI.Models;
 
 public partial class QuyDinh
 {
-    public int MaQd { get; set; }
-
-    public int? NamXbmax { get; set; }
+    public int NamXbmax { get; set; }
 
     public int? SosachmuonMax { get; set; }
 

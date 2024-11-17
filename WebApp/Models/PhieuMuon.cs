@@ -21,11 +21,11 @@ public partial class PhieuMuon
 
     public virtual ICollection<ChiTietPm> ChiTietPms { get; set; } = new List<ChiTietPm>();
 
+    public virtual ICollection<ChiTietSachMuon> ChiTietSachMuons { get; set; } = new List<ChiTietSachMuon>();
+
     public virtual NhanVien? ManvNavigation { get; set; }
 
     public virtual TheDocGium? MatheNavigation { get; set; }
 
     public virtual ICollection<PhieuTra> PhieuTras { get; set; } = new List<PhieuTra>();
-
-    public virtual ICollection<CuonSach> Macuonsaches { get; set; } = new List<CuonSach>();
 }
