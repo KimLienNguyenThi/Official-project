@@ -10,89 +10,93 @@ using WebApp.Areas.Admin.Helper;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using WebApp.DTOs;
 using Microsoft.AspNetCore.Authorization;
+using WebApp.Admin.Data;
 
 namespace WebApp.Areas.Admin.Controllers
 {
     [Area("admin")]
     [Route("admin/phieumuon")]
-   // [Authorize(AuthenticationSchemes = "AdminCookie")]
+    [Authorize(AuthenticationSchemes = "AdminCookie")]
 
     public class PhieuMuonController : Controller
     {
         // Constructor của lớp DangKyMuonSachController (có thể để trống vì chưa cần API)
+        Uri baseAddress = new Uri("https://localhost:7028/api/admin");
+        private readonly HttpClient _client;
+
         public PhieuMuonController()
         {
-            // Không cần khởi tạo HttpClient vì chưa có API
+            _client = new HttpClient();
+            _client.BaseAddress = baseAddress;
         }
 
-        // Action để hiển thị trang đăng ký mượn sách
-        public IActionResult Index()
+       /* Action để hiển thị trang đăng ký mượn sách*/
+       [Route("")]
+        public async Task <IActionResult> Index()
         {
-            return View(); // Trả về view Index.cshtml
+            if (User.IsInRole("QuanLyKho"))
+            {
+                return  RedirectToAction("LoiPhanQuyen", "phanquyen");
+            }
+            else
+            {
+                HttpResponseMessage response = await _client.GetAsync(_client.BaseAddress + "/TheDocGia/GetAllTheDocGia");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    string dataJson = response.Content.ReadAsStringAsync().Result;
+                    var apiResponse = JsonConvert.DeserializeObject<APIResponse<List<DTO_DocGia_TheDocGia>>>(dataJson);
+
+                    if (apiResponse != null && apiResponse.Success)
+                    {
+                        var data = apiResponse.Data;
+                        ViewData["ThongTinDocGia"] = data;
+                        return View();
+                    }
+                    else
+                    {
+                        return View();
+                    }
+                }
+                else
+                {
+                    return View();
+                }
+            }
+
+
         }
 
-      
+
+        [Route("GetAllThongTinDocGia")]
+        public ActionResult GetAllThongTinDocGia()
+        {
+            HttpResponseMessage response = _client.GetAsync(_client.BaseAddress + "/PhieuMuon/GetThongTinTheDocGia").Result;
+
+            if (response.IsSuccessStatusCode)
+            {
+                string dataJson = response.Content.ReadAsStringAsync().Result;
+                var apiResponse = JsonConvert.DeserializeObject<APIResponse<List<DTO_DocGia_TheDocGia>>>(dataJson);
+
+                if (apiResponse != null && apiResponse.Success)
+                {
+                    return Json(new { success = true, data = apiResponse.Data });
+                }
+                else
+                {
+                    return Json(new { success = false, Message = apiResponse.Message });
+                }
+            }
+            else
+            {
+                return Json(new { success = false, message = response.Content.ReadAsStringAsync() });
+            }
+        }
 
 
-        //Uri baseAddress = new Uri("https://localhost:7028/api/admin");
-        //private readonly HttpClient _client;
-
-        //public PhieuMuonController()
-        //{
-        //    _client = new HttpClient();
-        //    _client.BaseAddress = baseAddress;
-
-        //}
-
-        //[Route("")]
-        //public IActionResult Index()
-        //{
-        //    if (User.IsInRole("QuanLyKho"))
-        //    {
-        //        return RedirectToAction("LoiPhanQuyen", "phanquyen");
-        //    }
-        //    else
-        //    {
-        //        try
-        //        {
-
-        //            // Lấy tất cả sách trong db
-        //            // Lấy tất cả dữ liệu ở bảng thẻ độc giả
-        //            // Lấy tất cả dữ liệu ở bảng DkiMuonSach khi DkiMuonSach.Tinhtrang == 1 && TheDocGia.NgayHH >= DateTime.Now
-
-        //            DataStartPhieuMuonDTO data = new DataStartPhieuMuonDTO();
-        //            HttpResponseMessage response = _client.GetAsync(_client.BaseAddress + "/PhieuMuon/GetAllDataToStart").Result;
-
-        //            if (response.IsSuccessStatusCode)
-        //            {
-        //                string dataJson = response.Content.ReadAsStringAsync().Result;
-        //                data = JsonConvert.DeserializeObject<DataStartPhieuMuonDTO>(dataJson);
-
-        //                ViewBag.DocGia = data.docGia;
-        //                ViewBag.Sach = data.sach;
-        //                ViewBag.DangKyMuonSach = data.dKiMuonSach;
-
-        //                HttpContext.Session.SetObjectAsJson("LoaiClick", 2);
-
-        //                Console.WriteLine("LoaiClick: " + HttpContext.Session.GetObjectFromJson<int>("LoaiClick"));
-
-        //                return View();
-
-        //            }
-        //            else
-        //            {
-        //                return View();
-        //            }
-
-        //        }
-        //        catch (Exception ex)
-        //        {
-        //            return StatusCode(500, new { success = false, message = ex.Message });
-        //        }
-        //    }
 
 
-        //}
+
 
         //[HttpGet]
         //[Route("GetAllThongTinDangKy")]
