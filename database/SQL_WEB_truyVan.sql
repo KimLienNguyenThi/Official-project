@@ -8,7 +8,7 @@ SELECT * FROM LOGIN_NV
 SELECT * FROM NHACUNGCAP --where masach =15
 SELECT * FROM SACH
 select * from PHIEUNHAPSACH
-select * from CHITIETPN
+select * from CHITIETPN WHERE MASACH IN(2)
 SELECT * FROM CUONSACH
 SELECT * FROM DONVITL
 SELECT * FROM PHIEUMUON
@@ -28,12 +28,6 @@ SELECT * FROM CHITIETDK
 
 
 
-
-
-
-
-
-
 insert into PhieuMuon ( MaThe, NgayMuon, HanTra, MaNV, MADK) values ( 1,'2024-5-22', '2024-6-21', 2,4);--10
 
 -- Them chi tiet phieu muon
@@ -44,14 +38,30 @@ insert into ChiTietDK ( MaDK, MaSach, Soluongmuon) values ( 15, 3, 4);
 
 UPDATE dkimuonsach SET TINHTRANG = 1 WHERE  MADK in(4)
 
+--lấy mã sách của cùng 1 phiếu mượn đã trả
+SELECT B.MASACH,  C.MACUONSACH 
+FROM PHIEUTRA A JOIN CHITIETPT B ON A.MAPT = B.MAPT
+JOIN CHITIETSACHTRA C ON B.MAPT = C.MAPT 
+JOIN CUONSACH D ON C.MACUONSACH =D.MACUONSACH
+WHERE A.MAPM = 1  AND D.MASACH = B.MASACH
+GROUP BY B.MASACH, C.MACUONSACH 
 
-
+-- lấy mã sách của cùng 1 phiếu mượn
+SELECT B.MASACH,  C.MACUONSACH , GIASACH
+FROM PHIEUMUON A JOIN CHITIETPM B ON A.MAPM = B.MAPM
+JOIN CHITIETSACHMUON C ON B.MAPM = C.MAPM
+JOIN CUONSACH D ON C.MACUONSACH =D.MACUONSACH
+JOIN CHITIETPN ON D.MASACH = CHITIETPN.MASACH
+WHERE A.MAPM = 1  AND D.MASACH = B.MASACH
+GROUP BY B.MASACH, C.MACUONSACH  ,GIASACH
 
 select chitietpn.masach,tensach, giasach from chitietpm join chitietpn 
 on chitietpm.masach = chitietpn.masach  
 join sach on chitietpm.masach = sach.masach  
 group by chitietpn.masach,tensach, giasach
 order by giasach desc
+
+
 SELECT
     PM.MaPM,
     PM.MaThe,
@@ -97,6 +107,7 @@ GROUP BY
     PM.NgayMuon,
     PM.HanTra,
 	ctpm.masach;
+
 
 	--********************************
 	SELECT ChiTietPM.mapm ,ChiTietPM.MaSach,Soluongmuon ,sum(soluongtra+soluongloi) as setTinhTrang

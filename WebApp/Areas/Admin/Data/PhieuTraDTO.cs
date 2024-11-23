@@ -39,32 +39,41 @@
     }
 
     public class DTO_Sach_Tra
-        {
-            public int MaPT { get; set; }
-            public int MaSach { get; set; }
-            public string TenSach { get; set; }
+    {
+        public int MaPT { get; set; }
+        public int MaSach { get; set; }
+        public string? TenSach { get; set; }
+        public int SoLuongMuon { get; set; }
+        public int SoLuongTra { get; set; }
+        public int SoLuongLoi { get; set; }
+        public int SoLuongMat { get; set; }
+        public decimal PhuThu { get; set; }
 
-           // public int SoLuongMuon { get; set; }
-            public int SoLuongTra { get; set; }
-            public int SoLuongLoi { get; set; }
-            public int SoLuongMat { get; set; }
-            public decimal PhuThu { get; set; }
+    }
 
-        }
+    public class DTO_CT_Sach_Tra
+    {
+        public int MaPT { get; set; }
+        public string? MaCuonSach { get; set; }
+        public int? Tinhtrang { get; set; }
 
-        public class DTO_Tao_Phieu_Tra
-        {
-            public int MaNhanVien { get; set; }
-            public int MaTheDocGia { get; set; }
-            public DateOnly? NgayMuon { get; set; }
-            public DateOnly? HanTra { get; set; }
-            public DateOnly? NgayTra { get; set; }
+    }
 
-            public List<DTO_Sach_Tra> ListSachTra { get; set; }
-            public int MaPhieuMuon { get; set; }
 
-            public decimal PhuThu { get; set; } // Sử dụng decimal cho giá trị tiền tệ
-        }
+    public class DTO_Tao_Phieu_Tra
+    {
+        public int MaNhanVien { get; set; }
+        public int MaTheDocGia { get; set; }
+        public DateOnly? NgayMuon { get; set; }
+        public DateOnly? HanTra { get; set; }
+        public DateOnly? NgayTra { get; set; }
+
+        public List<DTO_Sach_Tra> ListSachTra { get; set; }
+        public List<DTO_CT_Sach_Tra> ListCTSachTra { get; set; }
+
+        public int MaPhieuMuon { get; set; }
+        public decimal PhuThu { get; set; } // Sử dụng decimal cho giá trị tiền tệ
+    }
     public class PhieuTra_GroupMaPM_DTO
     {
         public PhieuTra_GroupKey PhieuTra_GroupKey { get; set; }

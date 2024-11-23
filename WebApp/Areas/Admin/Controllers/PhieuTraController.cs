@@ -71,58 +71,58 @@ namespace WebApp.Areas.Admin.Controllers
         }
 
 
-        //[HttpPost]
-        //[Route("GetSachMuon_APP/{maPM}")]
-        //public IActionResult GetSachMuon_APP(int maPM)
-        //{
+        [HttpPost]
+        [Route("GetSachMuon_APP/{maPM}")]
+        public IActionResult GetSachMuon_APP(int maPM)
+        {
 
 
-        //    List<SachMuonDTO> bookList = new List<SachMuonDTO>();
-        //    HttpResponseMessage response = _client.GetAsync(_client.BaseAddress + $"/PhieuTra/GetSachMuon_API/{maPM}").Result;
+            List<SachMuonDTO> bookList = new List<SachMuonDTO>();
+            HttpResponseMessage response = _client.GetAsync(_client.BaseAddress + $"/PhieuTra/GetSachMuon_API/{maPM}").Result;
 
-        //    if (response.IsSuccessStatusCode)
-        //    {
-        //        string data = response.Content.ReadAsStringAsync().Result;
-        //        var responseObject = JsonConvert.DeserializeObject<dynamic>(data);
-        //       bookList = responseObject.ToObject<List<SachMuonDTO>>();
-        //       // bookList = responseObject.sachList.ToObject<List<SachMuonDTO>>();
+            if (response.IsSuccessStatusCode)
+            {
+                string data = response.Content.ReadAsStringAsync().Result;
+                var responseObject = JsonConvert.DeserializeObject<dynamic>(data);
+                bookList = responseObject.ToObject<List<SachMuonDTO>>();
+                // bookList = responseObject.sachList.ToObject<List<SachMuonDTO>>();
 
-        //    }
-        //    return Ok(bookList);
-        // //return Json(new { success = true, sachList = bookList });
-        //}
+            }
+            return Ok(bookList);
+            //return Json(new { success = true, sachList = bookList });
+        }
 
 
-        //[HttpPost]
-        //[Route("TaoPhieuTra_APP")]
-        //public async Task<IActionResult> TaoPhieuTra_APP([FromBody] DTO_Tao_Phieu_Tra dto)
-        //{
-        //    try
-        //    {
-        //        if (dto == null)
-        //        {
-        //            return BadRequest("Invalid data.");
-        //        }
+        [HttpPost]
+        [Route("TaoPhieuTra_APP")]
+        public async Task<IActionResult> TaoPhieuTra_APP([FromBody] DTO_Tao_Phieu_Tra dto)
+        {
+            try
+            {
+                if (dto == null)
+                {
+                    return BadRequest("Invalid data.");
+                }
 
-        //        var jsonContent = JsonConvert.SerializeObject(dto);
-        //        var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-        //        HttpResponseMessage response = await _client.PostAsync(_client.BaseAddress + "/PhieuTra/TaoPhieuTra_API", httpContent);
+                var jsonContent = JsonConvert.SerializeObject(dto);
+                var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                HttpResponseMessage response = await _client.PostAsync(_client.BaseAddress + "/PhieuTra/TaoPhieuTra_API", httpContent);
 
-        //        if (response.IsSuccessStatusCode)
-        //        {
-        //            var result = await response.Content.ReadAsStringAsync();
-        //            return Json(new { success = true });
-        //        }
-        //        else
-        //        {
-        //            return Json(new { success = false });
-        //        }
-        //    } 
-        //    catch (Exception ex)
-        //    {
-        //        return BadRequest($"API call failed    {  ex.Message}" );
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadAsStringAsync();
+                    return Json(new { success = true });
+                }
+                else
+                {
+                    return Json(new { success = false });
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"API call failed    {ex.Message}");
 
-        //    }
-        //}
+            }
+        }
     }
 }

@@ -13,7 +13,7 @@
     public class SachDaTraDTO
     {
         public int MaSach { get; set; }
-        public int? SoLuongDaTra { get; set; }
+        //public int? SoLuongDaTra { get; set; }
         public string MACUONSACH { get; set; }
     }
 }

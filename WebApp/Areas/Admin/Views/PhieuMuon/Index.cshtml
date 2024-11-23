@@ -2,268 +2,64 @@
     ViewBag.Title = "Phiếu Mượn";
     Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
 }
-
-<!-- Hiển thị danh sách NhanViens -->
-<section class="content">
-    <div class="container-fluid pt-4">
-        <div class="row">
-
-            <!-- Sách và Thông tin độc giả -->
-            <div class="col-6" style="height: 80vh;">
-                <div class="card" style="height: 100%;">
-                    <div class="card-header">
-                        <div class="form-row">
-                            <div class="col-6">
-                                <h3 class="text-center text-blue text-bold"> Phiếu Mượn </h3>
-                            </div>
-                            <div class="col-3">
-                                <button type="submit" class="btn btn-primary taoPhieuMuon" id="taoPhieuMuon" onclick="taoPhieuMuon()">Tạo phiếu mượn</button>
-                            </div>
-                            <div class="col-3">
-                                <button type="button" class="btn btn-warning lamMoiSach" id="lamMoiButton" onclick="lamMoi()">Làm mới</button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card-body" style="overflow-y: auto;">
-                        <form>
-                            <div class="form-row">
-                                <!--Mã thẻ-->
-                                <div class="form-group col">
-                                    <label for="name">Mã thẻ độc giả:</label>
-                                    <input type="text" class="form-control" id="MaThe" name="MaThe" readonly>
-                                    <!--Thêm readonly sẽ không cho phép sửa-->
-                                </div>
-
-                                <!--Mã nhân viên-->
-                                <div class="form-group col">
-                                    <label for="MaNhanVien">Mã nhân viên:</label>
-                                    <input type="text" class="form-control" id="MaNhanVien" name="MaNhanVien" readonly>
-                                </div>
-                                <!--Mã DK-->
-                                <div class="form-group col">
-                                    <label for="name">Mã ĐK:</label>
-                                    <input type="text" class="form-control" id="MaDK" name="MaDK" readonly>
-                                    <!--Thêm readonly sẽ không cho phép sửa-->
-                                </div>
-                            </div>
-
-                            <div class="form-row">
-                                <!--Tên độc giả-->
-                                <div class="form-group col">
-                                    <label for="name">Tên độc giả:</label>
-                                    <input type="text" class="form-control" id="Name" name="Name" readonly>
-                                </div>
-
-                                <!-- Số điện thoại-->
-                                <div class="form-group col">
-                                    <label for="book">Số điện thoại:</label>
-                                    <input type="text" class="form-control" id="SDT" name="SDT" readonly>
-                                </div>
-                            </div>
-
-                            <div class="form-row">
-                                <!--Ngày mượn-->
-                                <div class="form-group col">
-                                    <label for="NgayMuon">Ngày mượn:</label>
-                                    <input type="date" class="form-control" id="NgayMuon" name="NgayMuon" readonly>
-                                </div>
-
-                                <!--Ngày trả-->
-                                <div class="form-group col">
-                                    <label for="HanTra">Hạn trả:</label>
-                                    <select class="form-control" id="HanTra" name="HanTra">
-                                        <option>-- Chọn hạn trả --</option>
-                                        <option value="1">1 tuần</option>
-                                        <option value="2">2 tuần</option>
-                                        <option value="3">3 tuần</option>
-                                        <option value="4">4 tuần</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <!--Danh sách sách mượn-->
-                            <div class="text-center">
-                                <table class="table table-hover">
-                                    <thead>
-                                        <tr>
-                                            <th>Mã</th>
-                                            <th>Tên sách</th>
-                                            <th>S/Lượng</th>
-                                            <th>Thao tác</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="danhSachSachMuon">
-                                        @foreach (var item in ViewData["ListSachMuon"] as List<WebApp.Areas.Admin.Data.DTO_Sach_Muon> ?? new List<WebApp.Areas.Admin.Data.DTO_Sach_Muon>())
-                                        {
-                                            <tr class="sachmuon-row" data-ma-sach="@item.MaSach">
-                                                <td>@item.MaSach</td>
-                                                <td>@item.TenSach</td>
-                                                <td>@item.SoLuong</td>
-                                                <td>
-                                                    <button type="button" class="btn btn-danger xoaSachMuon" id="xoaSachMuon">Xóa</button>
-                                                </td>
-
-                                            </tr>
-                                        }
-                                    </tbody>
-                                </table>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Sách và Thông tin độc giả -->
-            <div class="col-6">
-                <div class="card">
-                    <div class="card-header">
-                        <button id="thongTinDocGiaButton" class="btn btn-primary" onclick="changeTableShow(thongTinDocGiaTable, thongTinSachTable,thongTinDKONLTable)">
-                            Thông tin độc giả
-                        </button>
-                        <button id="thongTinSachButton" class="btn btn-primary" onclick="changeTableShow(thongTinSachTable, thongTinDocGiaTable,thongTinDKONLTable)">Thông tin sách</button>
-                        <button id="thongTinDKIButton" class="btn btn-primary" onclick="changeTableShow(thongTinDKONLTable,thongTinSachTable, thongTinDocGiaTable)">Thông tin Đăng ký</button>
-                        <div class="card-tools">
-                            <div class="input-group input-group-sm pt-2"
-                                 style="width: 150px">
-                                <input type="text"
-                                       name="table_search"
-                                       class="form-control float-right"
-                                       placeholder="Search" id="inputSearch" onkeypress="handleKeyPress(event)" />
-
-                                <div class="input-group-append">
-                                    <button type="submit" onclick="search()" class="btn btn-default">
-                                        <i class="fas fa-search"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!--Body table độc giả-->
-                    <div class="card-body table-responsive p-0"
-                         style="height: 71.2vh" id="thongTinDocGiaTable">
-                        <table class="table table-head-fixed table-hover table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>Mã</th>
-                                    <th>Họ tên</th>
-                                    <th>SDT</th>
-                                    <th>Địa chỉ</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @* @foreach (var item in ViewBag.DocGia)
-                                {
-                                    <tr class="docgia-row">
-                                        <td>@item.MaThe</td>
-                                        <td>@item.HoTenDG</td>
-                                        <td>@item.SDT</td>
-                                        <td>@item.DiaChi</td>
-                                    </tr>
-                                } *@
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <div class="card-body table-responsive p-0"
-                         style="height: 71.2vh" id="thongTinDKONLTable">
-                        <table class="table table-head-fixed table-hover table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>Mã DK</th>
-                                    <th>Mã Thẻ</th>
-                                    <th>SDT</th>
-                                    <th>Họ Tên</th>
-                                    <th>Ngày Mượn</th>
-                                    <th>Ngày Hẹn</th>
-
-                                </tr>
-                            </thead>
-                            <tbody id="DanhSachThongTinDangKy">
-                                @* @foreach (var item in ViewBag.DangKyMuonSach)
-                                {
-                                    <tr class="dkOnl-row">
-                                        <td>@item.MaDK</td>
-                                        <td>@item.MaThe</td>
-                                        <td>@item.SDT</td>
-                                        <td>@item.HoTen</td>
-                                        <td>@item.NgayDK</td>
-                                        <td>@item.NgayHen</td>
-                                    </tr>
-                                } *@
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <!--Body table thông tin sách-->
-                    <div class="card-body table-responsive p-0"
-                         style="height: 71.2vh" id="thongTinSachTable">
-                        <table class="table table-head-fixed table-hover table-bordered">
-                            <!--text-nowrap-->
-                            <thead>
-                                <tr>
-                                    <th>Mã</th>
-                                    <th>Tên sách</th>
-                                    <th>S/Lượng</th>
-                                </tr>
-
-                            </thead>
-                            <tbody>
-                               @*  @foreach (var item in ViewBag.Sach)
-                                {
-                                    <tr class="sach-row" aria-expanded="false" data-widget="expandable-table">
-                                        <td>@item.MaSach</td>
-                                        <td>@item.TenSach</td>
-                                        <td class="soLuongSach" data-ma-sach="@item.MaSach">@item.SoLuongHientai</td>
-
-                                    </tr>
-                                    <tr class="expandable-body text-center">
-                                        <td colspan="4">
-                                            <div class="row sach-details">
-                                                <div class="col-5">
-                                                    <input type="number" class="form-control" id="inputSoluong" name="inputSoluong" placeholder="Nhập số lượng sách mượn" min="1" max="@item.SoLuongHientai" step="1" onkeydown="validateInput(event, inputSoluong)">
-                                                </div>
-                                                <div class="col-3">
-                                                    <button type="button" class="btn btn-primary btn-block themSachButton">Thêm sách</button>
-                                                </div>
-                                                <div class="col-4">
-                                                    <button type="button" class="btn btn-info btn-block xemChiTietButton">Xem chi tiết</button>
-                                                </div>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                } *@
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-    </div>
-</section>
-
-<!-- Modal error-->
-<div class="modal fade" id="ModalError" tabindex="-1" role="dialog" aria-labelledby="ModalError" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-body text-center bg-danger">
-                <span class="" id="contentModalError"></span>
-            </div>
-        </div>
+<div class="mt-2">
+    <h1 class="text-center text-blue text-bold">PHIẾU MƯỢN</h1>
+</div>
+<div class="row ml-2 d-flex justify-content-between align-items-center">
+    <!-- Ô tìm kiếm bên trái -->
+    <div class="col-4 d-flex align-items-center" id="SearchPM">
+        <input type="text" id="searchInput" class="form-control mb-2" placeholder="Search">
+        <button type="submit" class="btn btn-default ml-2 mb-2" id="searchButton">
+            <i class="fas fa-search"></i>
+        </button>
     </div>
 </div>
 
-<!-- Modal success-->
-<div class="modal fade" id="ModalSuccess" tabindex="-1" role="dialog" aria-labelledby="ModalSuccess" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-body text-center bg-green">
-                <span class="" id="contentModalSuccess"></span>
+    <div class="card-body table-responsive p-0">
+        <form>
+            <!--Danh sách sách mượn-->
+            <div class="text-center" id="tableThongTinDocGia">
+                <table class="table table-hover table-head-fixed table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Mã Thẻ</th>
+                            <th>Họ tên</th>
+                            <th>Giới tính</th>
+                            <th>Ngày sinh</th>
+                            <th>SDT</th>
+                            <th>Địa chỉ</th>
+                            <th>Ngày Đ/Ký</th>
+                            <th>Ngày H/Hạn</th>
+                            <th>Lập phiếu mượn</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ListThongTinĐocGia">
+                    @foreach (var item in ViewData["ThongTinDocGia"] as List<WebApp.Areas.Admin.Data.DTO_DocGia_TheDocGia>)
+                        {
+                            <tr class="thongtindocgia-row" data-ma-the="@item.MaThe">
+                                <td>@item.MaThe</td>
+                                <td>@item.HoTenDG</td>
+                                <td>@item.GioiTinh</td>
+                                <td>@string.Format("{0:MM-dd-yyyy}", item.NgaySinh)</td>
+                                <td>@item.SDT</td>
+                                <td>@item.DiaChi</td>
+
+                                <td>@string.Format("{0:MM-dd-yyyy}", item.NgayDangKy)</td>
+                                <td>@string.Format("{0:MM-dd-yyyy}", item.NgayHetHan)</td>
+                            <td>
+                                <!-- Nút lập phiếu mượn -->
+                                <button type="button" class="btn btn-primary" onclick="lapPhieuMuon('@item.MaThe')">
+                                    Lập phiếu mượn
+                                </button>
+                            </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
             </div>
-        </div>
+        </form>
     </div>
-</div>
+
 
 @section scripts
 {
