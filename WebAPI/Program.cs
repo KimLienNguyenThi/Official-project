@@ -20,6 +20,9 @@ builder.Services.AddDbContext<QuanLyThuVienContext>(option => option.UseSqlServe
     ServiceLifetime.Transient);
 // đăng ký AutoMapper
 builder.Services.AddAutoMapper(typeof(Program));
+ 
+// đăng ký dịch vụ Quest PDF
+builder.Services.AddSingleton<GeneratePDFService, GeneratePDFService>();
 
 // Đăng ký dịch vụ cho IMapper
 builder.Services.AddScoped<IMapper, Mapper>();
