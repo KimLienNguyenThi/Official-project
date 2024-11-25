@@ -43,7 +43,7 @@
                                 <!--Mã nhân viên-->
                                 <div class="form-group col">
                                     <label for="MaNhanVien">Mã NV:</label>
-                                    <input type="text" class="form-control" id="MaNhanVien" name="MaNhanVien" value="@User.FindFirst("MaNV")?.Value" readonly>
+                                    <input type="text" class="form-control" id="MaNhanVien" name="MaNhanVien" value="4" readonly>
                                 </div>
 
                                 <!--Ngày nhập sách-->
@@ -132,20 +132,7 @@
 
                     </div>
 
-                    <!--Form search-->
-                    <div class="card-tools">
-                        @* <div class="input-group input-group-sm pt-2" style="width: 100%">
-                        <input type="text"
-                        name="table_search"
-                        class="form-control float-right"
-                        placeholder="Search" id="inputSearch" onkeypress="handleKeyPress(event)" />
-
-                        <div class="input-group-append">
-                        <button type="submit" onclick="search()" class="btn btn-default">
-                        <i class="fas fa-search"></i>
-                        </button>
-                        </div> *@
-                    </div>
+                   
                     <!--<!--Body table sách-->
                     <div class="card-body table-responsive p-0"
                          style="height: 72vh" id="thongTinSachTable">
@@ -333,15 +320,15 @@
                     <!--Năm xuất bản-->
                     <div class="form-group col">
                         <label for="inputNamXuatBanModal">Năm xuất bản:</label>
-                        <select class="form-control" id="inputNamXuatBanModal">
+                        <select class="form-control" id="inputNamXuatBanModal" ">
                             <option value="">Chọn năm xuất bản</option>
-                            <script>
+                            @* <script>
                                 var currentYear = new Date().getFullYear();
                                 var startYear = 1500;
                                 for (var year = currentYear; year >= startYear; year--) {
                                     document.write('<option value="' + year + '">' + year + '</option>');
                                 }
-                            </script>
+                            </script> *@
                         </select>
                     </div>
                 </div>
@@ -516,7 +503,8 @@
             document.getElementById("tongTienPhuThu").value = "0";
 
             // Mặc định chọn nút "Thông tin đơn vị"
-            changeTableShow(thongTinNCCTable, thongTinSachTable);    
+            changeTableShow(thongTinNCCTable, thongTinSachTable);
+            createYearDropdown();
         }
         $(document).ready(function () {
             init();
@@ -625,10 +613,10 @@
                         }
                     },
                     columns: [
-                        { data: "maNcc", width: "15%" },
-                        { data: "tenNcc", width: "25%" },
-                        { data: "sdtNcc", width: "25%" },
-                        { data: "diaChiNcc", width: "35% " },
+                        { data: "mancc", width: "15%" },
+                        { data: "tenncc", width: "25%" },
+                        { data: "sdtncc", width: "25%" },
+                        { data: "diachincc", width: "35% " },
 
                     ],
                     columnDefs: [{
@@ -644,10 +632,10 @@
 
             // Lấy dữ liệu của hàng được click
             var rowData = table.row(this).data();
-            document.getElementById("MaNCC").value = rowData.maNcc;
-            document.getElementById("TenNCC").value = rowData.tenNcc;
-            document.getElementById("SDT").value = rowData.sdtNcc;
-            document.getElementById("DiaChi").value = rowData.diaChiNcc;
+            document.getElementById("MaNCC").value = rowData.mancc;
+            document.getElementById("TenNCC").value = rowData.tenncc;
+            document.getElementById("SDT").value = rowData.sdtncc;
+            document.getElementById("DiaChi").value = rowData.diachincc;
 
         });
         
@@ -726,8 +714,8 @@
 
                     },
                     columns: [
-                        { name: 'first', data: "maSach", width: "25%" },
-                        { data: "tenSach", width: "55%" },
+                        { name: 'first', data: "masach", width: "25%" },
+                        { data: "tensach", width: "55%" },
                         {
                             className: 'dt-control',
                             orderable: false,
@@ -752,14 +740,14 @@
 
                 var rowData = $('#danhSachSach').DataTable().row($(this).closest('tr')).data();
 
-                $("#maSachModal").val(rowData.maSach);
-                $("#tenSachModal").val(rowData.tenSach);
-                $("#theLoaiModal").val(rowData.theLoai);
-                $("#tacGiaModal").val(rowData.tacGia);
+                $("#maSachModal").val(rowData.masach);
+                $("#tenSachModal").val(rowData.tensach);
+                $("#theLoaiModal").val(rowData.theloai);
+                $("#tacGiaModal").val(rowData.tacgia);
                 $("#nhaXuatBanModal").val(rowData.nxb);
-                $("#namXuatBanModal").val(rowData.namXb);
-                $("#ngonNguModal").val(rowData.ngonNgu);
-                $("#soLuongHienTaiModal").val(rowData.soLuongHientai);
+                $("#namXuatBanModal").val(rowData.namxb);
+                $("#ngonNguModal").val(rowData.ngonngu);
+                $("#soLuongHienTaiModal").val(rowData.soluonghientai);
               
             });
         }
@@ -792,6 +780,7 @@
             document.getElementById("inputSoLuongModal").value = "";
             document.getElementById("inputGiaSachModal").value = "";
             $("#inputSachModal").modal("show");
+          
         }
         //=====================  btn Thêm Sách mới  =====================
         function themSachMoi() {
@@ -1113,5 +1102,38 @@
         function formatMoney(number) {
             return number.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' });
         }
+
+        function createYearDropdown() {
+            var currentYear = new Date().getFullYear(); // Lấy năm hiện tại
+
+            $.ajax({
+                url: "/admin/nhapsach/GetNamXBMax_APP",
+                type: 'POST',
+                success: function (response) {
+                    console.log("ket qua nam xb lon nhat" ,response); // Kiểm tra dữ liệu trả về từ API
+                    if (response.success && response.namXBMax) {
+                        var namMax = response.namXBMax; // Giá trị NamXBMax trả về từ API
+                        var selectElement = document.getElementById("inputNamXuatBanModal");
+
+                        // Xóa tất cả các option cũ trong dropdown
+                        selectElement.innerHTML = "<option value=''>Chọn năm xuất bản</option>";
+
+                        // Tạo các option từ năm hiện tại đến năm hiện tại trừ đi NamXBMax
+                        for (var year = currentYear; year >= (currentYear - namMax); year--) {
+                            var option = document.createElement("option");
+                            option.value = year;
+                            option.textContent = year;
+                            selectElement.appendChild(option);
+                        }
+                    } else {
+                        console.log("API không trả về NamXBMax hợp lệ");
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.log("Error fetching NamXBMax from API:", error);
+                }
+            });
+        }
+
     </script>
 }

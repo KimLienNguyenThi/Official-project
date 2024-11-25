@@ -218,7 +218,7 @@
                 searching: true,
                 searchDelay: 400,
                 scrollY: false,
-                iDisplayLength: 4,
+                iDisplayLength: 5,
                 bLengthChange: false,
                 language: {
                     info: "Hiển thị _START_ đến _END_ của _TOTAL_ mục",
@@ -247,7 +247,7 @@
                         var settings = tablephieuMuonA.settings();
                         var currentPageIndex = Math.ceil(settings[0]._iDisplayStart / settings[0]._iDisplayLength) + 1;
                         var request = {
-                            PageSize: 4,
+                            PageSize: 5,
                             Page: currentPageIndex,
                             Keyword: $('.dt-search input[type="search"]').val()
                         };

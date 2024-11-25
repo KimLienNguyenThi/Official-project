@@ -36,7 +36,7 @@ builder.Services.AddTransient<PhieuTraService, PhieuTraService>();
 //builder.Services.AddTransient<QuanLyPhieuMuonService, QuanLyPhieuMuonService>();
 
 builder.Services.AddTransient<KhoSachService, KhoSachService>();
-//builder.Services.AddTransient<NhapSachService, NhapSachService>();
+builder.Services.AddTransient<NhapSachService, NhapSachService>();
 //builder.Services.AddTransient<ThanhLySachService, ThanhLySachService>();
 builder.Services.AddTransient<TheDocGiaService, TheDocGiaService>();
 builder.Services.AddTransient<ThongTinDocGiaService, ThongTinDocGiaService>();

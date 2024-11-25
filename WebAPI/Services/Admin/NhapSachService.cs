@@ -1,4 +1,6 @@
-﻿using WebAPI.Areas.Admin.Data;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using WebAPI.Areas.Admin.Data;
 using WebAPI.DTOs.Admin_DTO;
 using WebAPI.Models;
 
@@ -132,6 +134,7 @@ namespace WebAPI.Services.Admin
 
         }
 
+        
         public bool InsertPhieuNhap(DTO_Tao_Phieu_Nhap obj, List<string> imageUrls)
         {
             if (obj.listSachNhap.Any(sach => sach.SoLuong > 0) == false)
@@ -143,6 +146,13 @@ namespace WebAPI.Services.Admin
             {
                 try
                 {
+                    // Lấy giá trị NamXBMax từ bảng QuyDinh
+                    int namXBMax = _context.QuyDinhs.Select(qd => qd.NamXbmax).FirstOrDefault();
+                    if (namXBMax == 0)
+                    {
+                        throw new Exception("Không tìm thấy quy định về năm xuất bản tối đa.");
+                    }
+
                     var newPhieuNhap = new PhieuNhapSach
                     {
                         Ngaynhap = obj.NgayNhap,
@@ -156,6 +166,11 @@ namespace WebAPI.Services.Admin
                     for (int i = 0; i < obj.listSachNhap.Count; i++)
                     {
                         var sachNhap = obj.listSachNhap[i];
+
+                        if (sachNhap.NamXB > namXBMax)
+                        {
+                            throw new Exception($"Năm xuất bản của sách '{sachNhap.TenSach}' vượt quá quy định ({namXBMax}).");
+                        }
 
                         if (sachNhap.MaSach > 0)
                         {
@@ -193,8 +208,6 @@ namespace WebAPI.Services.Admin
                             _context.Saches.Add(newSach);
                             _context.SaveChanges(); // Save to get the generated MaSach
 
-                           
-
                             var newChiTietPN = new Chitietpn
                             {
                                 Mapn = newPhieuNhap.Mapn,
@@ -221,7 +234,25 @@ namespace WebAPI.Services.Admin
                 }
             }
         }
+        public int GetNamXBMax()
+        {
+            try
+            {
+                // Lấy giá trị NamXBMax từ bảng QuyDinh
+                int namXBMax =  _context.QuyDinhs
+                    .Select(qd => qd.NamXbmax)
+                    .FirstOrDefault();
 
+                return namXBMax;
+            }
+            catch (Exception ex)
+            {
+                // Ghi log lỗi nếu cần
+                Console.WriteLine($"Error: {ex.Message}");
+                // Trả về giá trị mặc định nếu có lỗi
+                return 0;
+            }
+        }
 
     }
 }
