@@ -96,18 +96,20 @@ namespace WebAPI.Controllers.Admin
         {
             try
             {
-                if (_theDocGiaService.DangKyTheDocGia(obj))
+                var tdg = _theDocGiaService.DangKyTheDocGia(obj);
+
+                if (tdg != null)
                 {
-                    return Ok(new APIResponse<object>()
+                    return Ok(new APIResponse<DTO_DocGia_TheDocGia>()
                     {
                         Success = true,
                         Message = "Đăng ký thành công",
-                        Data = null 
+                        Data = tdg 
                     });
                 }
                 else
                 {
-                    return Ok(new APIResponse<object>()
+                    return Ok(new APIResponse<DTO_DocGia_TheDocGia>()
                     {
                         Success = false,
                         Message = "Số điện thoại đã tồn tại",
