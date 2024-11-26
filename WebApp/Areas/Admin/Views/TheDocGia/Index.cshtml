@@ -242,7 +242,7 @@
                     <!--Số điện thoại-->
                     <div class="form-group col">
                         <label>Số điện thoại:</label>
-                        <input class="form-control" id="soDienThoaiModal" readonly >
+                        <input class="form-control" id="soDienThoaiModal" readonly>
                     </div>
                 </div>
 
@@ -702,13 +702,58 @@
                             document.getElementById('hanThe').value = "Chọn hạn thẻ";
                             document.getElementById('tienDangKyThe').value = formatMoney(0);
 
+                            $.ajax({
+                                url: '@Url.Action("GenerateTheDocGiaPDF", "TheDocGia")',
+                                type: 'GET',
+                                data: {
+                                    maNV: maNV,
+                                    ngayDK: ngayDK,
+                                    tenDocGia: tenDocGia,
+                                    soDienThoai: soDienThoai,
+                                    gioiTinh: gioiTinh,
+                                    ngaySinh: ngaySinh,
+                                    diaChi: diaChi,
+                                    hanThe: hanThe,
+                                    tienDK: parseMoneyString(tienDK),
+                                },
+                                xhrFields: {
+                                    responseType: 'blob' // Để nhận phản hồi là file Blob
+                                },
+                                success: function (data, status, xhr) {
+                                    // Lấy tên file từ header Content-Disposition
+                                    var disposition = xhr.getResponseHeader('Content-Disposition');
+                                    var fileName = "HoaDonTaoThe.pdf"; // Tên mặc định
+                                    if (disposition && disposition.indexOf('attachment') !== -1) {
+                                        var matches = /filename="([^"]*)"/.exec(disposition);
+                                        if (matches != null && matches[1]) {
+                                            fileName = matches[1];
+                                        }
+                                    }
+
+                                    // Tải file về trình duyệt
+                                    var blob = new Blob([data], { type: 'application/pdf' });
+                                    var url = window.URL.createObjectURL(blob);
+                                    var a = document.createElement('a');
+                                    a.style.display = 'none';
+                                    a.href = url;
+                                    a.download = fileName;
+                                    document.body.appendChild(a);
+                                    a.click();
+                                    window.URL.revokeObjectURL(url);
+                                },
+                                error: function (xhr, status, error) {
+                                    console.log("Lỗi tải file: ", error);
+                                }
+                            });
+
+
                             // Reload the table
                             GetAllTheDocGia();
 
                         } else {
                             console.log("data: ", data)
 
-                            document.getElementById("contentModalError").innerHTML = data.message.result;
+                            document.getElementById("contentModalError").innerHTML = data.message;
                             $("#ModalError").modal("show");
 
                         }

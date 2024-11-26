@@ -22,6 +22,9 @@ builder.Services.AddDbContext<QuanLyThuVienContext>(option => option.UseSqlServe
     ServiceLifetime.Transient);
 // đăng ký AutoMapper
 builder.Services.AddAutoMapper(typeof(Program));
+ 
+// đăng ký dịch vụ Quest PDF
+builder.Services.AddSingleton<GeneratePDFService, GeneratePDFService>();
 
 // Đăng ký dịch vụ cho IMapper
 builder.Services.AddScoped<IMapper, Mapper>();
@@ -32,16 +35,16 @@ builder.Services.AddTransient<UserAuthService, UserAuthService>();
 builder.Services.AddTransient<PhieuMuonService, PhieuMuonService>();
 //builder.Services.AddTransient<ThongKeService, ThongKeService>();
 builder.Services.AddTransient<PhieuTraService, PhieuTraService>();
-//builder.Services.AddTransient<QuanLyPhieuTraService, QuanLyPhieuTraService>();
+builder.Services.AddTransient<QuanLyPhieuTraService, QuanLyPhieuTraService>();
 //builder.Services.AddTransient<QuanLyPhieuMuonService, QuanLyPhieuMuonService>();
 
-//builder.Services.AddTransient<KhoSachService, KhoSachService>();
-//builder.Services.AddTransient<NhapSachService, NhapSachService>();
+builder.Services.AddTransient<KhoSachService, KhoSachService>();
+builder.Services.AddTransient<NhapSachService, NhapSachService>();
 //builder.Services.AddTransient<ThanhLySachService, ThanhLySachService>();
 builder.Services.AddTransient<TheDocGiaService, TheDocGiaService>();
 builder.Services.AddTransient<ThongTinDocGiaService, ThongTinDocGiaService>();
 builder.Services.AddTransient<AccountService, AccountService>();
-//builder.Services.AddTransient<DangKyMuonSachService, DangKyMuonSachService>();
+builder.Services.AddTransient<DangKyMuonSachService, DangKyMuonSachService>();
 
 
 var app = builder.Build();
