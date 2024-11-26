@@ -84,7 +84,7 @@ namespace WebApp.Areas.Admin.Controllers
                     else
                     {
                         // Trả về thông báo lỗi nếu không tìm thấy sách
-                        return Json(new { success = false, message = apiResponse?.Message});
+                        return Json(new { success = false, message = apiResponse?.Message });
                     }
                 }
                 else
@@ -141,6 +141,50 @@ namespace WebApp.Areas.Admin.Controllers
                 return Json(new { success = false, message = "Đã xảy ra lỗi" });
             }
         }
+
+
+        [HttpGet]
+        [Route("GenerateTheDocGiaPDF")]
+        public async Task<IActionResult> GenerateTheDocGiaPDF(int maNV, DateTime ngayDK, string tenDocGia, string soDienThoai, string gioiTinh, DateOnly ngaySinh, string diaChi, int hanThe, int tienDK)
+        {
+            try
+            {
+                DTO_DocGia_TheDocGia tdg = new DTO_DocGia_TheDocGia
+                {
+                    MaNhanVien = maNV,
+                    NgayDangKy = DateOnly.FromDateTime(DateTime.Now),
+                    HoTenDG = tenDocGia,
+                    SDT = soDienThoai,
+                    GioiTinh = gioiTinh,
+                    NgaySinh = ngaySinh,
+                    DiaChi = diaChi,
+                    TienThe = tienDK,
+                    NgayHetHan = DateOnly.FromDateTime(DateTime.Now).AddMonths(hanThe)
+                };
+
+                // Gọi API tạo file PDF
+                HttpResponseMessage generatePDF = await _client.PostAsJsonAsync(_client.BaseAddress + "/GeneratePDF/GenerateTheDocGiaPDF", tdg);
+
+                if (generatePDF.IsSuccessStatusCode)
+                {
+                    // Trả file về client (browser)
+                    var fileContent = await generatePDF.Content.ReadAsByteArrayAsync();
+                    var fileName = "HoaDonTaoThe.pdf";
+                    return File(fileContent, "application/pdf", fileName);
+                }
+                else
+                {
+                    // Trả lỗi nếu không thành công
+                    string errorDetails = await generatePDF.Content.ReadAsStringAsync();
+                    return Json(new { success = false, message = "Tạo file PDF thất bại: " + errorDetails });
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Tạo file PDF thất bại: " + ex.Message });
+            }
+        }
+
 
 
         [HttpPost]
