@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System.Text.RegularExpressions;
 using WebAPI.DTOs.Admin_DTO;
 using WebAPI.Models;
 
@@ -22,7 +23,7 @@ namespace WebAPI.Services.Admin
                  join CHITIETPM in _context.ChiTietPms
                     on PhieuMuon.Mapm equals CHITIETPM.Mapm
                  where PhieuMuon.Tinhtrang == false
-                       && (string.IsNullOrEmpty(req.Keyword) || DocGia.Hotendg.Contains(req.Keyword))
+                       && (string.IsNullOrEmpty(req.Keyword) || DocGia.Hotendg.Contains(req.Keyword) || DocGia.Sdt.Contains(req.Keyword))
                  select new PhieuMuonDTO
                  {
                      MaPM = PhieuMuon.Mapm,
@@ -48,89 +49,93 @@ namespace WebAPI.Services.Admin
         }
 
         public IEnumerable<SachMuonDTO> getSachMuon(int MaPm)
-        {
-            // Lấy danh sách sách đã trả
+        {// Lấy danh sách sách đã trả
             var listSachTra = (
                 from phieuTra in _context.PhieuTras
                 join chiTietPT in _context.ChiTietPts on phieuTra.Mapt equals chiTietPT.Mapt
-                where phieuTra.Mapm == MaPm
-                group chiTietPT by chiTietPT.Masach into g
-                select new SachDaTraDTO
+                join chiTietSachTra in _context.ChiTietSachTras on chiTietPT.Mapt equals chiTietSachTra.Mapt
+                join cuonSach in _context.CuonSaches on chiTietSachTra.Macuonsach equals cuonSach.Macuonsach
+                where phieuTra.Mapm == MaPm && cuonSach.Masach == chiTietPT.Masach
+                group new { chiTietPT.Masach, chiTietSachTra.Macuonsach } by new { chiTietPT.Masach, chiTietSachTra.Macuonsach } into g
+                select new
                 {
-                    MaSach = g.Key,
-                    SoLuongDaTra = g.Sum(a => a.Soluongtra + a.Soluongloi + a.Soluongmat)
+                    MaSach = g.Key.Masach,
+                    MacuonSach = g.Key.Macuonsach
                 }
             ).ToList();
+
             // Lấy danh sách sách mượn
             var sachMuonList = (
                 from chiTietPM in _context.ChiTietPms
+                join chiTietSachMuon in _context.ChiTietSachMuons on chiTietPM.Mapm equals chiTietSachMuon.Mapm
                 join sach in _context.Saches on chiTietPM.Masach equals sach.Masach
-                join CHITIETPN in _context.Chitietpns on chiTietPM.Masach equals CHITIETPN.Masach
-                where chiTietPM.Mapm == MaPm
-                select new SachMuonDTO
+                join chitietPN in _context.Chitietpns on chiTietPM.Masach equals chitietPN.Masach
+                join cuonSach in _context.CuonSaches on chiTietSachMuon.Macuonsach equals cuonSach.Macuonsach
+                where chiTietPM.Mapm == MaPm && cuonSach.Masach == chiTietPM.Masach
+                group new { sach, chitietPN, cuonSach, chiTietSachMuon } by new { sach.Masach, sach.Tensach, chiTietSachMuon.Macuonsach } into g
+                select new
                 {
-                    MaSach = sach.Masach,
-                    TenSach = sach.Tensach,
-                    SoLuongMuon = chiTietPM.Soluongmuon,
-                    giasach = CHITIETPN.Giasach.Value
-                })
-                .GroupBy(group => new { group.MaSach, group.TenSach, group.SoLuongMuon })
-                .AsEnumerable()
-                .Select(x =>
+                    MaSach = g.Key.Masach,
+                    TenSach = g.Key.Tensach,
+                    MacuonSach = g.Key.Macuonsach,
+                    Giasach = g.Max(x => x.chitietPN.Giasach)
+                }
+            ).AsEnumerable()
+            .Select(x =>
+            {
+                // Kiểm tra nếu cuốn sách này đã trả
+                bool daTra = listSachTra.Any(s => s.MaSach == x.MaSach && s.MacuonSach == x.MacuonSach);
+
+                // Loại bỏ sách đã trả
+                if (!daTra)
                 {
-                    // Tìm kiếm thông tin sách đã trả tương ứng
-                    var sachDaTra = listSachTra.FirstOrDefault(s => s.MaSach == x.Key.MaSach);
-
-                    // Nếu không tìm thấy, sử dụng giá trị mặc định là 0
-                    int soLuongDaTra = sachDaTra?.SoLuongDaTra ?? 0;
-
-                    // Tính toán số lượng còn lại của sách mượn
-                    int? soLuongMuonConLaiNullable = x.Key.SoLuongMuon - soLuongDaTra;
-
-                    // Chuyển đổi kiểu dữ liệu từ int? sang int
-                    int soLuongMuonConLai = soLuongMuonConLaiNullable ?? 0;
-
-
-                    // Tạo đối tượng SachMuonDTO mới
                     return new SachMuonDTO
                     {
-                        MaSach = x.Key.MaSach,
-                        TenSach = x.Key.TenSach,
-                        SoLuongMuon = soLuongMuonConLai,
-                        giasach = x.OrderByDescending(item => item.giasach).First().giasach
+                        MaSach = x.MaSach,
+                        TenSach = x.TenSach,
+                        MACUONSACH = x.MacuonSach,
+                        giasach = x.Giasach ?? 0 // Giá mặc định nếu null
                     };
-                })
-                .Where(x => x.SoLuongMuon > 0)
-                .ToList();
+                }
+                return null;
+            })
+            .Where(x => x != null)
+            .ToList();
 
             // Trả về danh sách sách mượn còn lại
             return sachMuonList;
+
+
         }
 
         public bool Insert(DTO_Tao_Phieu_Tra x)
         {
-            if (x.ListSachTra.Any(sach => sach.SoLuongLoi > 0 || sach.SoLuongTra > 0 || sach.SoLuongMat > 0) == false)
+            // Kiểm tra điều kiện để thêm phiếu trả
+            if (x.ListSachTra.Any(sach => sach.SoLuongLoi > 0 || sach.SoLuongTra > 0 || sach.SoLuongMat > 0) == false
+                && x.ListCTSachTra.Any(ct => ct.Tinhtrang > 0) == false)
             {
                 return false;
             }
+
             using (var transaction = _context.Database.BeginTransaction())
             {
                 try
                 {
-                    // Kiểm tra xem MaNV có tồn tại trong bảng NhanVien không
+                    // Kiểm tra MaNhanVien có tồn tại không
                     var nhanVien = _context.NhanViens.Find(x.MaNhanVien);
                     if (nhanVien == null)
                     {
                         throw new Exception($"NhanVien with MaNV = {x.MaNhanVien} does not exist.");
                     }
-                    var phieuMuon = _context.PhieuMuons.FirstOrDefault(p => p.Mapm == x.MaPhieuMuon);
 
+                    // Kiểm tra phiếu mượn có tồn tại không
+                    var phieuMuon = _context.PhieuMuons.FirstOrDefault(p => p.Mapm == x.MaPhieuMuon);
                     if (phieuMuon == null)
                     {
                         return false;
                     }
 
-                    // Tạo đối tượng PhieuTra từ DTO_Tao_Phieu_Tra
+                    // Tạo đối tượng PhieuTra
                     var newPhieuTra = new PhieuTra
                     {
                         Ngaytra = x.NgayTra,
@@ -139,46 +144,68 @@ namespace WebAPI.Services.Admin
                         Mapm = x.MaPhieuMuon,
                     };
 
-                    // Thêm PhieuTra vào Context
+                    // Thêm PhieuTra vào context
                     _context.PhieuTras.Add(newPhieuTra);
-                    _context.SaveChanges(); // Lưu để có thể lấy MaPT của newPhieuTra
+                    _context.SaveChanges(); // Lưu để có thể lấy MaPT từ newPhieuTra
 
-                    // Duyệt qua danh sách sách trả và tạo đối tượng ChiTietPT cho mỗi cuốn sách
-                    foreach (var sachtra in x.ListSachTra)
+                    // Xử lý ListSachTra
+                    foreach (var sachTra in x.ListSachTra)
                     {
-                        if (sachtra.SoLuongTra == 0 && sachtra.SoLuongLoi == 0 && sachtra.SoLuongMat == 0)
+                        if (sachTra.SoLuongTra == 0 && sachTra.SoLuongLoi == 0 && sachTra.SoLuongMat == 0)
                         {
                             continue;
                         }
+
                         var newChiTietPT = new ChiTietPt
                         {
                             Mapt = newPhieuTra.Mapt,
-                            Masach = sachtra.MaSach,
-                            Soluongtra = sachtra.SoLuongTra,
-                            Soluongloi = sachtra.SoLuongLoi,
-                            Soluongmat = sachtra.SoLuongMat,
-                            Phuthu = sachtra.PhuThu,
+                            Masach = sachTra.MaSach,
+                            Soluongtra = sachTra.SoLuongTra,
+                            Soluongloi = sachTra.SoLuongLoi,
+                            Soluongmat = sachTra.SoLuongMat,
+                            Phuthu = sachTra.PhuThu,
                         };
 
-                        // Thêm ChiTietPT vào Context
                         _context.ChiTietPts.Add(newChiTietPT);
                     }
 
-                    // Lưu thay đổi vào cơ sở dữ liệu khi mọi thứ đã thành công
+                    foreach (var ctSachTra in x.ListCTSachTra)
+                    {
+                        // Kiểm tra xem MaCuonSach có tồn tại trong bảng CuonSach hay không
+                        var cuonSach = _context.CuonSaches.FirstOrDefault(cs => cs.Macuonsach == ctSachTra.MaCuonSach);
+                        if (cuonSach == null)
+                        {
+                            throw new Exception($"CuonSach with Macuonsach = {ctSachTra.MaCuonSach} does not exist.");
+                        }
+
+                        var newChiTietCTS = new ChiTietSachTra
+                        {
+                            Mapt = newPhieuTra.Mapt,
+                            Macuonsach = ctSachTra.MaCuonSach, // Khóa ngoại được gán giá trị hợp lệ
+                            Tinhtrang = ctSachTra.Tinhtrang,
+                        };
+
+                        _context.ChiTietSachTras.Add(newChiTietCTS);
+                    }
+
+
+                    // Lưu toàn bộ thay đổi vào cơ sở dữ liệu
                     _context.SaveChanges();
 
+                    // Commit giao dịch
                     transaction.Commit();
 
                     return true;
                 }
                 catch (Exception ex)
                 {
-                    transaction.Rollback(); // Rollback nếu có lỗi
+                    transaction.Rollback(); // Rollback nếu gặp lỗi
                     Console.WriteLine($"Error: {ex.Message}");
-                    // Xử lý lỗi và ghi log
+                    // Xử lý lỗi (ghi log hoặc thông báo)
                     return false;
                 }
             }
         }
+
     }
 }
