@@ -49,6 +49,7 @@
         public int SoLuongMat { get; set; }
         public decimal PhuThu { get; set; }
 
+
     }
 
     public class DTO_CT_Sach_Tra
@@ -56,6 +57,8 @@
         public int MaPT { get; set; }
         public string? MaCuonSach { get; set; }
         public int? Tinhtrang { get; set; }
+
+        public List<DTO_CT_Sach_Tra> ListCTSachTra { get; set; }
 
     }
 

@@ -344,35 +344,12 @@ WHERE
 GROUP BY 
     sach.MaSach, sach.TenSach, chiTietPM.Soluongmuon, CHITIETPN.GiaSach;
 
-
-
-
-
-
-     .AsEnumerable()
-     .Select(x =>
-     {
-         // Tìm kiếm thông tin sách đã trả tương ứng
-         var sachDaTra = listSachTra.FirstOrDefault(s => s.MaSach == x.Key.MaSach);
-
-         // Nếu không tìm thấy, sử dụng giá trị mặc định là 0
-         int soLuongDaTra = sachDaTra?.SoLuongDaTra ?? 0;
-
-         // Tính toán số lượng còn lại của sách mượn
-         int? soLuongMuonConLaiNullable = x.Key.SoLuongMuon - soLuongDaTra;
-
-         // Chuyển đổi kiểu dữ liệu từ int? sang int
-         int soLuongMuonConLai = soLuongMuonConLaiNullable ?? 0;
-
-
-         // Tạo đối tượng SachMuonDTO mới
-         return new SachMuonDTO
-         {
-             MaSach = x.Key.MaSach,
-             TenSach = x.Key.TenSach,
-             SoLuongMuon = soLuongMuonConLai,
-             giasach = x.OrderByDescending(item => item.giasach).First().giasach
-         };
-     })
-     .Where(x => x.SoLuongMuon > 0)
-     .ToList();
+	--//quan ly phieu tra
+select  pt.Mapt, s.Masach, s.Tensach, ctpt.Soluongtra, ctpt.Soluongloi, ctpt.Soluongmat ,ctpt.Phuthu,ctst.Macuonsach, ctst.tinhtrang
+from phieutra pt join chitietpt ctpt on pt.mapt = ctpt.mapt 
+join chitietsachtra ctst on ctpt.mapt = ctst.mapt
+join sach s on ctpt.masach = s.masach
+join cuonsach cs on ctst.macuonsach = cs.macuonsach
+join phieumuon pm on pt.mapm = pm.mapm 
+where  cs.masach =ctpt.masach
+group by  pt.Mapt, s.Masach, s.Tensach, ctpt.Soluongtra, ctpt.Soluongloi, ctpt.Soluongmat ,ctpt.Phuthu,ctst.Macuonsach,ctst.tinhtrang
