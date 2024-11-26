@@ -32,11 +32,11 @@ builder.Services.AddTransient<UserAuthService, UserAuthService>();
 builder.Services.AddTransient<PhieuMuonService, PhieuMuonService>();
 //builder.Services.AddTransient<ThongKeService, ThongKeService>();
 builder.Services.AddTransient<PhieuTraService, PhieuTraService>();
-//builder.Services.AddTransient<QuanLyPhieuTraService, QuanLyPhieuTraService>();
+builder.Services.AddTransient<QuanLyPhieuTraService, QuanLyPhieuTraService>();
 //builder.Services.AddTransient<QuanLyPhieuMuonService, QuanLyPhieuMuonService>();
 
-//builder.Services.AddTransient<KhoSachService, KhoSachService>();
-//builder.Services.AddTransient<NhapSachService, NhapSachService>();
+builder.Services.AddTransient<KhoSachService, KhoSachService>();
+builder.Services.AddTransient<NhapSachService, NhapSachService>();
 //builder.Services.AddTransient<ThanhLySachService, ThanhLySachService>();
 builder.Services.AddTransient<TheDocGiaService, TheDocGiaService>();
 builder.Services.AddTransient<ThongTinDocGiaService, ThongTinDocGiaService>();

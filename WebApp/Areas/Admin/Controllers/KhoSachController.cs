@@ -12,67 +12,54 @@ namespace WebApp.Areas.Admin.Controllers
 
     public class KhoSachController : Controller
     {
-        // Constructor của lớp KhoSachController (không cần HttpClient khi chưa có API)
+
+        Uri baseAddress = new Uri("https://localhost:7028/api/admin");
+        private readonly HttpClient _client;
+
+
         public KhoSachController()
         {
-            // Không cần khởi tạo HttpClient vì chưa có API
+            _client = new HttpClient();
+            _client.BaseAddress = baseAddress;
+
         }
 
-
-
-        // Action để hiển thị trang quản lý kho sách
         [Route("")]
         public IActionResult Index()
         {
-            return View(); // Trả về view Index.cshtml
+            return View();
         }
-        //Uri baseAddress = new Uri("https://localhost:7028/api/admin");
-        //private readonly HttpClient _client;
 
+        [HttpPost]
+        [Route("GetListSachPaging_APP")]
+        public async Task<IActionResult> GetListSachPaging_APP([FromBody] GetListPhieuMuonPaging req)
+        {
+            try
+            {
+                List<SachDTO> sach = new List<SachDTO>();
 
-        //public KhoSachController()
-        //{
-        //    _client = new HttpClient();
-        //    _client.BaseAddress = baseAddress;
+                var reqjson = JsonConvert.SerializeObject(req);
+                var httpContent = new StringContent(reqjson, Encoding.UTF8, "application/json");
+                HttpResponseMessage response = await _client.PostAsync(_client.BaseAddress + "/KhoSach/GetListSachPaging_API", httpContent);
 
-        //}
-
-        //[Route("")]
-        //public IActionResult Index()
-        //{
-        //    return View();
-        //}
-
-        //[HttpPost]
-        //[Route("GetListSachPaging_APP")]
-        //public async Task<IActionResult> GetListSachPaging_APP([FromBody] GetListPhieuMuonPaging req)
-        //{
-        //    try
-        //    {
-        //        List<SachDTO>sach = new List<SachDTO>();
-
-        //        var reqjson = JsonConvert.SerializeObject(req);
-        //        var httpContent = new StringContent(reqjson, Encoding.UTF8, "application/json");
-        //        HttpResponseMessage response = await _client.PostAsync(_client.BaseAddress + "/KhoSach/GetListSachPaging_API", httpContent);
-
-        //        if (response.IsSuccessStatusCode)
-        //        {
-        //            string data = response.Content.ReadAsStringAsync().Result;
-        //            var responseObject = JsonConvert.DeserializeObject<PagingResult<SachDTO>>(data);
-        //            //return Ok(responseObject);
-        //            return Ok(new { success = true, sach = responseObject });
-        //        }
-        //        else
-        //        {
-        //            // Handle unsuccessful status code
-        //            return BadRequest(new { success = false, message = "Failed to retrieve data from API." });
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        // Handle exception
-        //        return StatusCode(500, new { success = false, message = ex.Message });
-        //    }
-        //}
+                if (response.IsSuccessStatusCode)
+                {
+                    string data = response.Content.ReadAsStringAsync().Result;
+                    var responseObject = JsonConvert.DeserializeObject<PagingResult<SachDTO>>(data);
+                    //return Ok(responseObject);
+                    return Ok(new { success = true, sach = responseObject });
+                }
+                else
+                {
+                    // Handle unsuccessful status code
+                    return BadRequest(new { success = false, message = "Failed to retrieve data from API." });
+                }
+            }
+            catch (Exception ex)
+            {
+                // Handle exception
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
     }
 }
