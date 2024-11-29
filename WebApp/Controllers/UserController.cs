@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Authorization;
 using System.Net.Http.Headers;
 using WebApp.Responses;
 using WebApp.Models;
+using WebApp.Admin.Data;
 
 namespace WebApp.Controllers
 {
@@ -51,11 +52,11 @@ namespace WebApp.Controllers
 
                     // Tạo danh sách các claims cho người dùng
                     var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.Name, user.Hoten),
-                new Claim(ClaimTypes.Email, user.Email),
-                new Claim("PhoneNumber", phoneNumber)
-            };
+                    {
+                        new Claim(ClaimTypes.Name, user.Hoten),
+                        new Claim(ClaimTypes.Email, user.Email),
+                        new Claim("PhoneNumber", phoneNumber)
+                    };
 
                     // Tạo ClaimsIdentity và ClaimsPrincipal
                     var claimIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
@@ -79,6 +80,257 @@ namespace WebApp.Controllers
                 return StatusCode(500, new { success = false, message = ex.Message });
             }
         }
+
+        public async Task LoginByGoogle()
+        {
+            await HttpContext.ChallengeAsync(GoogleDefaults.AuthenticationScheme, new AuthenticationProperties
+            {
+                RedirectUri = Url.Action("GoogleResponse")
+            });
+        }
+
+
+        public async Task<IActionResult> GoogleResponse()
+        {
+            var result = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+
+            var claims = result.Principal.Identities.FirstOrDefault().Claims.Select(claim => new
+            {
+                claim.Issuer,
+                claim.OriginalIssuer,
+                claim.Type,
+                claim.Value
+            });
+
+            return RedirectToAction("ConfirmLoginGG", "User");
+        }
+
+        public IActionResult ConfirmLoginGG()
+        {
+            var user = HttpContext.User;
+
+            // Lấy thông tin về người dùng từ claims
+            var userEmail = user.FindFirst(ClaimTypes.Email)?.Value;
+
+            HttpResponseMessage response = _client.GetAsync(_client.BaseAddress + $"/UserAuth/CheckUserLoginByGoogle/{userEmail}").Result;
+
+            if (response.IsSuccessStatusCode)
+            {
+                string dataJson = response.Content.ReadAsStringAsync().Result;
+                var apiResponse = JsonConvert.DeserializeObject<APIResponse<object>>(dataJson);
+
+                if(apiResponse != null && apiResponse.Success)
+                {
+                    // Add sđt vào Claim
+                    HttpResponseMessage responseSdt = _client.GetAsync(_client.BaseAddress + $"/UserAuth/GetSdtByEmail/{userEmail}").Result;
+                    string dataJson2 = responseSdt.Content.ReadAsStringAsync().Result;
+                    var apiResponse2 = JsonConvert.DeserializeObject<APIResponse<object>>(dataJson2);
+
+                    if(apiResponse2 != null && apiResponse2.Success)
+                    {
+                        // Lấy danh sách Claims hiện tại của người dùng
+                        var listClaimsUser = User.Claims.ToList();
+
+                        // Thêm Claim mới
+                        listClaimsUser.Add(new Claim("PhoneNumber", apiResponse2.Message));
+
+                        // Tạo danh sách Claims mới cho người dùng
+                        var newIdentity = new ClaimsIdentity(listClaimsUser, CookieAuthenticationDefaults.AuthenticationScheme);
+
+                        // Cập nhật danh sách Claims cho người dùng
+                        HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(newIdentity));
+
+                        return RedirectToAction("Index", "Home");
+                    }
+                    else
+                    {
+                        return View();
+                    }
+                }
+                else
+                {
+                    return View();
+                }
+            }
+            else
+            {
+                return View();
+            }
+        }
+
+
+        [HttpPost]
+        public IActionResult ConfirmLoginGG(string phoneNumber)
+        {
+
+            try
+            {
+                var user = HttpContext.User;
+
+                var userEmail = user.FindFirst(ClaimTypes.Email)?.Value;
+                var userName = user.FindFirst(ClaimTypes.Name)?.Value;
+
+                LoginDgDTO model = new LoginDgDTO()
+                {
+                    Sdt = phoneNumber,
+                    PasswordDg = "null",
+                    Email = userEmail,
+                    HoTen = userName
+                };
+
+                HttpResponseMessage response = _client.PostAsJsonAsync(_client.BaseAddress + "/UserAuth/Register", model).Result;
+
+                if (response.IsSuccessStatusCode)
+                {
+                    string dataJson = response.Content.ReadAsStringAsync().Result;
+                    var apiResponse = JsonConvert.DeserializeObject<APIResponse<object>>(dataJson);
+
+                    if (apiResponse != null && apiResponse.Success)
+                    {
+                        // Lấy danh sách Claims hiện tại của người dùng
+                        var listClaimsUser = User.Claims.ToList();
+
+                        // Thêm Claim mới
+                        listClaimsUser.Add(new Claim("PhoneNumber", phoneNumber));
+
+                        // Tạo danh sách Claims mới cho người dùng
+                        var newIdentity = new ClaimsIdentity(listClaimsUser, CookieAuthenticationDefaults.AuthenticationScheme);
+
+                        // Cập nhật danh sách Claims cho người dùng
+                        HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(newIdentity));
+
+                        return Json(new { success = true, message = apiResponse.Message });
+                    }
+                    else
+                    {
+                        return Json(new { success = false, message = apiResponse.Message });
+                    }
+                }
+                else
+                {
+                    return Json(new { success = false, message = response.Content.ReadAsStringAsync() });
+                }
+            }
+            catch
+            {
+                return Json(new { success = false });
+            }
+        }
+
+
+        public IActionResult Register()
+        {
+            return View();
+        }
+
+
+        [HttpPost]
+        public IActionResult Register(string phoneNumber, string password, string username, string email)
+        {
+            try
+            {
+                LoginDgDTO model = new LoginDgDTO()
+                {
+                    Sdt = phoneNumber,
+                    PasswordDg = password,
+                    Email = email,
+                    HoTen = username
+                };
+
+                HttpResponseMessage response = _client.PostAsJsonAsync(_client.BaseAddress + "/UserAuth/Register", model).Result;
+
+                if (response.IsSuccessStatusCode)
+                {
+                    string dataJson = response.Content.ReadAsStringAsync().Result;
+                    var apiResponse = JsonConvert.DeserializeObject<APIResponse<object>>(dataJson);
+
+                    if(apiResponse != null && apiResponse.Success)
+                    {
+                        return Json(new { success = true, message = apiResponse.Message });
+                    }
+                    else
+                    {
+                        return Json(new { success = false, message = apiResponse.Message });
+                    }
+                }
+                else
+                {
+                    return Json(new { success = false, message = response.Content.ReadAsStringAsync() });
+                }
+            }
+            catch
+            {
+                return Json(new { success = false, message = "Có lỗi xảy ra" });
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SendEmailRegister(string phoneNumber, string username, string email)
+        {
+            var infoUser = new
+            {
+                phoneNumber = phoneNumber,
+                username = username,
+                userEmail = email,
+            };
+
+            HttpResponseMessage response = _client.PostAsJsonAsync(_client.BaseAddress + "/UserAuth/SendEMmail_Register", infoUser).Result;
+
+            if (response.IsSuccessStatusCode)
+            {
+                string dataJson = response.Content.ReadAsStringAsync().Result;
+                var apiResponse = JsonConvert.DeserializeObject<APIResponse<object>>(dataJson);
+
+                if( apiResponse != null && apiResponse.Success)
+                {
+                    return Json(new { success = true, message = apiResponse.Message });
+                }
+                else
+                {
+                    return Json(new { success = false, message = apiResponse.Message });
+                }
+            }
+            else
+            {
+                var responseContent = await response.Content.ReadAsStringAsync();
+                return Json(new { success = false, message = responseContent });
+            }
+        }
+
+        [HttpGet]
+        public IActionResult CheckEmailRegister(int otp)
+        {
+            HttpResponseMessage response = _client.GetAsync(_client.BaseAddress + $"/UserAuth/CheckEMmail_Register/{otp}").Result;
+
+            if (response.IsSuccessStatusCode)
+            {
+                string dataJson = response.Content.ReadAsStringAsync().Result;
+                var apiResponse = JsonConvert.DeserializeObject<APIResponse<object>>(dataJson);
+
+                if(apiResponse != null && apiResponse.Success)
+                {
+                    return Json(new { success = true, message = apiResponse.Message });
+                }
+                else
+                {
+                    return Json(new { success = false, message = apiResponse.Message });
+                }
+            }
+            else
+            {
+                return Json(new { success = false, message = response.Content.ReadAsStringAsync() });
+            }
+        }
+
+
+        [Authorize]
+        public async Task<IActionResult> Logout()
+        {
+            ListSachMuon.listSachMuon.Clear();
+            await HttpContext.SignOutAsync();
+            return RedirectToAction("Index", "User");
+        }
+
 
         [Authorize]
         public IActionResult HistoryOfBorrowingBooks()
@@ -113,7 +365,6 @@ namespace WebApp.Controllers
             {
                 return BadRequest(e.Message);
             }
-
         }
 
         public async Task<IActionResult> CancelOrderBooks(int maDK)
