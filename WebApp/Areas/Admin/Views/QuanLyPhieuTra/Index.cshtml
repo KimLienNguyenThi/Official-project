@@ -3,7 +3,42 @@
     Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
 }
 <style>
+    /* Căn lề chung cho hàng chi tiết */
+    .ctsachtra-row td {
+        padding: 8px;
+        text-align: left; /* Căn trái nội dung */
+        white-space: nowrap; /* Ngăn nội dung bị xuống dòng */
+    }
 
+        /* Chỉnh chiều rộng cho cột "Mã cuốn sách" và "Tình trạng" */
+        .ctsachtra-row td:nth-child(4) {
+            text-align: center; /* Căn giữa "Mã cuốn sách" */
+            width: 20%; /* Đặt chiều rộng tùy ý */
+        }
+
+        .ctsachtra-row td:nth-child(6) {
+            text-align: center; /* Căn giữa "Tình trạng" */
+            width: 15%; /* Điều chỉnh để vừa với nội dung */
+        }
+
+    /* Tùy chỉnh màu nền cho hàng chi tiết */
+    .ctsachtra-row {
+        background-color: #f9f9f9;
+        font-style: italic;
+    }
+
+    /* Chỉnh toàn bảng để không bị co lại */
+    #danhSachSachTrabyPM {
+        table-layout: fixed; /* Cố định layout bảng */
+        width: 100%; /* Đặt bảng rộng 100% */
+    }
+
+        #danhSachSachTrabyPM td {
+            word-wrap: break-word; /* Bọc chữ nếu quá dài */
+        }
+
+
+    
 
     /* Khi một hàng có lớp row-clicked */
     #tblDanhSachDG_PhieuMuon tr.row-clicked {
@@ -170,6 +205,7 @@
                                 <th>S/Lượng trả</th>
                                 <th>S/Lượng Lỗi</th>
                                 <th>S/Lượng Mất</th>
+
                             </tr>
                         </thead>
                         <tbody id="danhSachSachTrabyPM">
@@ -202,8 +238,6 @@
             var formattedDate = new Date(dateString).toLocaleDateString(undefined, options);
             return formattedDate;
         }
-      
-       
 
         //Gọi hàm init để khởi tạo DataTable khi trang được tải
         $(document).ready(function () {
@@ -365,6 +399,7 @@
         });
 
         // Hàm format cho child row
+        //hiển thị  pt của 1 mã pm 
         function format(d) {
             let render = "";
             $.each(d.dataPhieuTras, function (i, item) {
@@ -417,7 +452,7 @@
             getCTPT(maPT, maThe, e);
         });
 
-
+        //hiển thị  chi tiết tất cả pt của 1 mã pm
         // Hàm xử lý sự kiện "See All" với mã PM
         function handleSeeAllClick(maPM, maThe, event) {
             console.log("Sending request with maPM:", maPM);
@@ -433,17 +468,32 @@
                         danhSachSachTrabyPM.empty();
 
                         $.each(ctptData, function (index, item) {
-                            var newRow = $(
-                                `<tr class="sachtra-row" data-ma-sach="${item.maSach}">
+                            var newRow = $(`
+                                <tr class="sachtra-row" data-ma-sach="${item.maSach}">
                                     <td>${item.maPT}</td>
                                     <td>${item.maSach}</td>
                                     <td>${item.tenSach}</td>
                                     <td>${item.soLuongTra}</td>
                                     <td>${item.soLuongLoi}</td>
                                     <td>${item.soLuongMat}</td>
-                                </tr>`
-                            );
-                            danhSachSachTrabyPM.append(newRow);
+                                </tr>
+                            `);
+
+                                    danhSachSachTrabyPM.append(newRow);
+
+                            // Thêm hàng con cho từng mã cuốn sách
+                            if (item.listCTSachTra && item.listCTSachTra.length > 0) {
+                                $.each(item.listCTSachTra, function (subIndex, subItem) {
+                                    var childRow = $(`
+                                        <tr class="ctsachtra-row" style="background-color: #f9f9f9;">
+                                            <td colspan="3" style="text-align: right;">Mã cuốn sách:</td>
+                                            <td colspan="2">${subItem.maCuonSach}</td>
+                                            <td>Tình trạng: ${subItem.tinhtrang === 1 ? 'Bình Thường' : (subItem.tinhtrang === 2 ? 'Lỗi' : 'Mất')}</td>
+                                        </tr>
+                                    `);
+                                    danhSachSachTrabyPM.append(childRow);
+                                });
+                            }
                         });
 
                         // Mở modal
@@ -464,8 +514,7 @@
             });
         }
 
-        
-
+        //hiển thị  chi tiết 1 pt click vào
         function getCTPT(maPT, maThe, event) { 
             $.ajax({
                 url: "/admin/quanlyphieutra/Get_ChiTietPT_ByMaPT_APP/" + maPT,
@@ -476,7 +525,7 @@
                         var ctptData = data;
                         var danhSachSachTra = $("#danhSachSachTra");
                         danhSachSachTra.empty();
-
+                       
                         $.each(ctptData, function (index, item) {
                             var newRow = $(
                                 `<tr class="sachtra-row" data-ma-sach="${item.maSach}">
@@ -489,6 +538,19 @@
                                         </tr>`
                             );
                             danhSachSachTra.append(newRow);
+                            // Thêm hàng con cho từng mã cuốn sách
+                            if (item.listCTSachTra && item.listCTSachTra.length > 0) {
+                                $.each(item.listCTSachTra, function (subIndex, subItem) {
+                                    var childRow = $(`
+                                                <tr class="ctsachtra-row" style="background-color: #f9f9f9;">
+                                                    <td colspan="3" style="text-align: right;">Mã cuốn sách:</td>
+                                                    <td colspan="2">${subItem.maCuonSach}</td>
+                                                    <td>Tình trạng: ${subItem.tinhtrang === 1 ? 'Bình Thường' : (subItem.tinhtrang === 2 ? 'Lỗi' : 'Mất')}</td>
+                                                </tr>
+                                            `);
+                                    danhSachSachTra.append(childRow);
+                                });
+                            }
                         });
 
                         // Mở modal
