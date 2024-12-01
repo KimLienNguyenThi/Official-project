@@ -11,6 +11,7 @@ using WebAPI.Content;
 using WebAPI.Helper;
 using Microsoft.AspNetCore.Http.HttpResults;
 using WebAPI.DTOs.Admin_DTO;
+using WebAPI.Models;
 
 namespace WebAPI.Controllers.Client
 {
@@ -33,14 +34,61 @@ namespace WebAPI.Controllers.Client
         {
             try
             {
-                var result = await _userAuthService.CheckUserLogin(phoneNumber, password);
-                return result;
+                if (string.IsNullOrEmpty(phoneNumber))
+                {
+                    return Ok(new APIResponse<LoginDg>()
+                    {
+                        Success = false,
+                        Message = "Tài khoản không được để trống!",
+                        Data = null
+                    });
+                }
+                else if (string.IsNullOrEmpty(password)) 
+                {
+                    return Ok(new APIResponse<LoginDg>()
+                    {
+                        Success = false,
+                        Message = "Mật khẩu không được để trống!",
+                        Data = null
+                    });
+                }
+                else
+                {
+                    var result = await _userAuthService.CheckUserLogin(phoneNumber, password);
+
+                    if (result == null)
+                    {
+                        return Ok(new APIResponse<LoginDg>()
+                        {
+                            Success = false,
+                            Message = "Tài khoản không tồn tại!",
+                            Data = null
+                        });
+                    }
+                    else if(result.PasswordDg != password)
+                    {
+                        return Ok(new APIResponse<LoginDg>()
+                        {
+                            Success = false,
+                            Message = "Mật khẩu không đúng!",
+                            Data = null
+                        });
+                    }else
+                    {
+                        return Ok(new APIResponse<LoginDg>()
+                        {
+                            Success = true,
+                            Message = "Đăng nhập thành công!",
+                            Data = result
+                        });
+                    }
+                }
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error occurred: {ex.Message}");
 
-                return StatusCode(500, "Đã xảy ra lỗi khi xử lý yêu cầu.");
+                return BadRequest("Đã xảy ra lỗi khi xử lý yêu cầu.");
             }
         }
 

@@ -38,6 +38,13 @@ namespace WebApp.Controllers
         {
             try
             {
+                if (string.IsNullOrEmpty(phoneNumber)) 
+                {
+                    return Json(new { success = false, message = "Tài khoản không được để trống!" });
+                }else if(string.IsNullOrEmpty(password))
+                {
+                    return Json(new { success = false, message = "Mật khẩu không được để trống!" });
+                }
 
                 // Gửi yêu cầu GET và truyền dữ liệu
                 HttpResponseMessage response = _client.GetAsync(_client.BaseAddress + $"/UserAuth/CheckUserLogin/{phoneNumber}/{password}").Result;
@@ -47,31 +54,37 @@ namespace WebApp.Controllers
                 if (response.IsSuccessStatusCode)
                 {
                     // Deserialize dữ liệu trả về từ API
-                    string data = await response.Content.ReadAsStringAsync();
-                    LoginDG user = JsonConvert.DeserializeObject<LoginDG>(data);
+                    string dataJson = response.Content.ReadAsStringAsync().Result;
+                    var apiResponse = JsonConvert.DeserializeObject<APIResponse<LoginDG>>(dataJson);
 
-                    // Tạo danh sách các claims cho người dùng
-                    var claims = new List<Claim>
+                    if (apiResponse != null && apiResponse.Success)
                     {
-                        new Claim(ClaimTypes.Name, user.Hoten),
-                        new Claim(ClaimTypes.Email, user.Email),
-                        new Claim("PhoneNumber", phoneNumber)
-                    };
+                        // Tạo danh sách các claims cho người dùng
+                        var claims = new List<Claim>
+                        {
+                            new Claim(ClaimTypes.Name, apiResponse.Data.Hoten),
+                            new Claim(ClaimTypes.Email, apiResponse.Data.Email),
+                            new Claim("PhoneNumber", phoneNumber)
+                        };
 
-                    // Tạo ClaimsIdentity và ClaimsPrincipal
-                    var claimIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-                    var claimsPrincipal = new ClaimsPrincipal(claimIdentity);
+                        // Tạo ClaimsIdentity và ClaimsPrincipal
+                        var claimIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                        var claimsPrincipal = new ClaimsPrincipal(claimIdentity);
 
-                    // Đăng nhập người dùng và tạo phiên làm việc
-                    await HttpContext.SignInAsync(claimsPrincipal);
+                        // Đăng nhập người dùng và tạo phiên làm việc
+                        await HttpContext.SignInAsync(claimsPrincipal);
 
-                    return Json(new { success = true });
+                        return Json(new { success = true, message = apiResponse.Message });
+                    }
+                    else
+                    {
+                        return Json(new { success = false, message = apiResponse.Message });
+                    }
                 }
                 else
                 {
                     // Nếu API trả về lỗi, trả về thông báo chi tiết
-                    string errorMessage = await response.Content.ReadAsStringAsync();
-                    return Json(new { success = false, message = $"API Error: {errorMessage}" });
+                    return Json(new { success = false, message = await response.Content.ReadAsStringAsync() });
                 }
             }
             catch (Exception ex)
@@ -119,14 +132,14 @@ namespace WebApp.Controllers
                 string dataJson = response.Content.ReadAsStringAsync().Result;
                 var apiResponse = JsonConvert.DeserializeObject<APIResponse<object>>(dataJson);
 
-                if(apiResponse != null && apiResponse.Success)
+                if (apiResponse != null && apiResponse.Success)
                 {
                     // Add sđt vào Claim
                     HttpResponseMessage responseSdt = _client.GetAsync(_client.BaseAddress + $"/UserAuth/GetSdtByEmail/{userEmail}").Result;
                     string dataJson2 = responseSdt.Content.ReadAsStringAsync().Result;
                     var apiResponse2 = JsonConvert.DeserializeObject<APIResponse<object>>(dataJson2);
 
-                    if(apiResponse2 != null && apiResponse2.Success)
+                    if (apiResponse2 != null && apiResponse2.Success)
                     {
                         // Lấy danh sách Claims hiện tại của người dùng
                         var listClaimsUser = User.Claims.ToList();
@@ -244,7 +257,7 @@ namespace WebApp.Controllers
                     string dataJson = response.Content.ReadAsStringAsync().Result;
                     var apiResponse = JsonConvert.DeserializeObject<APIResponse<object>>(dataJson);
 
-                    if(apiResponse != null && apiResponse.Success)
+                    if (apiResponse != null && apiResponse.Success)
                     {
                         return Json(new { success = true, message = apiResponse.Message });
                     }
@@ -281,7 +294,7 @@ namespace WebApp.Controllers
                 string dataJson = response.Content.ReadAsStringAsync().Result;
                 var apiResponse = JsonConvert.DeserializeObject<APIResponse<object>>(dataJson);
 
-                if( apiResponse != null && apiResponse.Success)
+                if (apiResponse != null && apiResponse.Success)
                 {
                     return Json(new { success = true, message = apiResponse.Message });
                 }
@@ -307,7 +320,7 @@ namespace WebApp.Controllers
                 string dataJson = response.Content.ReadAsStringAsync().Result;
                 var apiResponse = JsonConvert.DeserializeObject<APIResponse<object>>(dataJson);
 
-                if(apiResponse != null && apiResponse.Success)
+                if (apiResponse != null && apiResponse.Success)
                 {
                     return Json(new { success = true, message = apiResponse.Message });
                 }
