@@ -46,6 +46,7 @@ builder.Services.AddTransient<ThongTinDocGiaService, ThongTinDocGiaService>();
 builder.Services.AddTransient<AccountService, AccountService>();
 builder.Services.AddTransient<DangKyMuonSachService, DangKyMuonSachService>();
 
+builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
 

@@ -66,6 +66,7 @@
     {
         public int MaNhanVien { get; set; }
         public int MaTheDocGia { get; set; }
+        public string TenDG { get; set; }
         public DateOnly? NgayMuon { get; set; }
         public DateOnly? HanTra { get; set; }
         public DateOnly? NgayTra { get; set; }

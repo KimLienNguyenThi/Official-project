@@ -70,8 +70,6 @@ namespace WebAPI.Services.Admin
             };
         }
 
-
-
         public List<DTO_Sach_Tra> Get_ChiTietPT_ByMaPM(int maPM)
         {
             // Lấy thông tin cơ bản từ phiếu trả và chi tiết phiếu trả
@@ -134,9 +132,6 @@ namespace WebAPI.Services.Admin
 
             return listPhieutra_All;
         }
-
-
-
         public List<DTO_Sach_Tra> Get_CTPT_ByMaPT(int maPT)
         {
             // Lấy thông tin cơ bản từ phiếu trả và chi tiết phiếu trả
