@@ -145,12 +145,13 @@ namespace WebApp.Areas.Admin.Controllers
 
         [HttpGet]
         [Route("GenerateTheDocGiaPDF")]
-        public async Task<IActionResult> GenerateTheDocGiaPDF(int maNV, DateTime ngayDK, string tenDocGia, string soDienThoai, string gioiTinh, DateOnly ngaySinh, string diaChi, int hanThe, int tienDK)
+        public async Task<IActionResult> GenerateTheDocGiaPDF(int maNV, int maThe, DateTime ngayDK, string tenDocGia, string soDienThoai, string gioiTinh, DateOnly ngaySinh, string diaChi, int hanThe, int tienDK)
         {
             try
             {
                 DTO_DocGia_TheDocGia tdg = new DTO_DocGia_TheDocGia
                 {
+                    MaThe = maThe,
                     MaNhanVien = maNV,
                     NgayDangKy = DateOnly.FromDateTime(DateTime.Now),
                     HoTenDG = tenDocGia,
@@ -211,11 +212,11 @@ namespace WebApp.Areas.Admin.Controllers
                 if (response.IsSuccessStatusCode)
                 {
                     string dataJson = await response.Content.ReadAsStringAsync();
-                    var apiResponse = JsonConvert.DeserializeObject<APIResponse<object>>(dataJson);
+                    var apiResponse = JsonConvert.DeserializeObject<APIResponse<DTO_DocGia_TheDocGia>>(dataJson);
 
-                    if (apiResponse != null && apiResponse.Success)
+                    if (apiResponse != null && apiResponse.Success) 
                     {
-                        return Json(new { success = true, data = tdg });
+                        return Json(new { success = true, data = apiResponse.Data });
                     }
                     else
                     {

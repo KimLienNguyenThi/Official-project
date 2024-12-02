@@ -1,45 +1,160 @@
 ﻿using AutoMapper;
+using AutoMapper.Internal;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
+using WebAPI.Content;
 using WebAPI.DTOs;
+using WebAPI.Helper;
 using WebAPI.Models;
+using WebAPI.Service;
 
 namespace WebAPI.Services.Client
 {
     public class UserAuthService
     {
         private readonly QuanLyThuVienContext _context;
-
+        private readonly IEmailService _emailService;
         private readonly IMapper _mapper;
-        public UserAuthService(IMapper mapper, QuanLyThuVienContext context)
+        private static int OTP_email;
+
+        public UserAuthService(IMapper mapper, QuanLyThuVienContext context, IEmailService emailService)
         {
             _context = context;
             _mapper = mapper;
+            _emailService = emailService;
         }
-        public async Task<IActionResult> CheckUserLogin(string phoneNumber, string password)
+
+        public async Task<LoginDg> CheckUserLogin(string phoneNumber, string password)
         {
             try
             {
-                var loginDg = await _context.LoginDgs
-                .FirstOrDefaultAsync(u => u.Sdt == phoneNumber);
-
-                if (loginDg == null || loginDg.PasswordDg != password)
-                {
-                    return (IActionResult)Results.NotFound("Thông tin đăng nhập không hợp lệ.");
-                }
-
-                return new OkObjectResult(loginDg);
+                return await _context.LoginDgs.FirstOrDefaultAsync(u => u.Sdt == phoneNumber);
             }
             catch (Exception ex)
             {
                 // Ghi log lỗi nếu cần
                 Console.WriteLine($"Error: {ex.Message}");
+                return null;
+            }
+        }
 
-                // Trả về mã lỗi cho phía client
-                return new StatusCodeResult(500);
+
+        public async Task<bool> Register(UserAuthentication newRegister)
+        {
+            try
+            {
+                LoginDg register = new LoginDg()
+                {
+                    Sdt = newRegister.Sdt,
+                    PasswordDg = newRegister.PasswordDg,
+                    Email = newRegister.Email,
+                    Hoten = newRegister.HoTen,
+                };
+
+                _context.LoginDgs.Add(register);
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
+        public bool CheckEMmail_Register(int otp)
+        {
+            try
+            {
+                if (otp == OTP_email)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            catch (Exception)
+            {
+                return false;
             }
 
+        }
+
+
+        [HttpPost]
+        public async Task<string> SendEMmail_Register(JsonElement infoUser)
+        {
+            try
+            {
+                if (_context.LoginDgs.Any(e => e.Sdt == infoUser.GetProperty("phoneNumber").GetString()))
+                {
+                    return "Số điện thoại đã tồn tại!";
+                }
+                else if (_context.LoginDgs.Any(e => e.Email == infoUser.GetProperty("userEmail").GetString()))
+                {
+                    return "Email đã tồn tại!";
+                }
+
+                // Truy cập thông tin email và các thông tin khác
+                string userEmail = infoUser.GetProperty("userEmail").GetString(); // Đảm bảo tên thuộc tính đúng
+                string username = infoUser.GetProperty("username").GetString(); // Truy cập tên người dùng
+
+                // tạo các đối tượng sendEmail
+                var email = new SendEmailRegister();
+                Random rd = new Random();
+                int random = rd.Next(100000, 1000000);
+                OTP_email = random;
+
+                MailRequest mailRequest = new MailRequest();
+                mailRequest.ToEmail = userEmail;
+                mailRequest.Subject = "Xác thực đăng ký tài khoản";
+                mailRequest.Body = email.SendEmail_Register(random, username);
+                await _emailService.SendEmailAsync(mailRequest);
+
+                return "Ok";
+            }
+            catch (Exception e)
+            {
+                return e.Message;
+            }
+        }
+
+
+        public bool CheckUserLoginByGoogle(string email)
+        {
+            if (_context.LoginDgs.Any(e => e.Email == email))
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+
+        public string GetSdtByEmail(string userEmail)
+        {
+            try
+            {
+                LoginDg user = _context.LoginDgs.FirstOrDefault(s => s.Email == userEmail);
+
+                if (user == null)
+                {
+                    return "Không tìm thấy số điện thoại tương ứng";
+                }
+                else
+                {
+                    return user.Sdt;
+                }
+            }
+            catch
+            {
+                return "Đã xảy ra lỗi ở phía server";
+            }
         }
 
         public List<DkiMuonSach> GetHistoryOfBorrowingBooks(string sdt)

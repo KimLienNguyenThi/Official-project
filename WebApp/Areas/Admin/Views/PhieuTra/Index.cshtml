@@ -16,7 +16,6 @@
         padding-left: 0 !important;
     }
  
-   
 </style>
 <!-- Hiển thị danh sách NhanViens -->
 <section class="content">
@@ -180,6 +179,20 @@
     </div>
 </div>
 
+<!-- Modal hiển thị PDF -->
+<div class="modal fade" id="ModalPDF" tabindex="-1" aria-labelledby="ModalPDFLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="ModalPDFLabel">Phieu Tra PDF</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <iframe id="pdfIframe" src="" width="100%" height="600px"></iframe>
+            </div>
+        </div>
+    </div>
+</div>
  @section scripts
 {
     <script>
@@ -193,7 +206,7 @@
             document.getElementById("tongTienPhuThu").value = "";
             let tableBody = document.getElementById("tableBody");
             tableBody.innerHTML = "";
-            loadPhieuMuons('');
+            //loadPhieuMuons('');
         }
 
         $(document).ready(function () {
@@ -277,7 +290,6 @@
                 },
                columns: [
                     { data: "maPM", width: "7%" },
-                    // { data: "maThe", width: "10%" },
                     { data: "hoTenDG", width: "15%" },
                     { data: "sdt", width: "15%" },
                     { data: "ngayMuon", width: "15%" },
@@ -375,15 +387,6 @@
 
                              // Các radio buttons cho hành động trả, lỗi, mất
                              const actions = ['tra', 'loi', 'mat'];
-
-                            // actions.forEach(action => {
-                            //     render += `<td style="text-align: center;">
-                            //         <input type="radio" name="action${maCuonSach}" value="${action}"
-                            //                data-gia-sach="${value.giasach}" data-ma-cuon-sach="${maCuonSach}"
-                            //                        onchange="handleCheckboxClick('${maCuonSach}', ${value.maSach}, ${value.giasach});" />
-                            //     </td>`;
-                            // });
-
 
                             actions.forEach(action => {
                                 render += `<td style="text-align: center;">
@@ -567,7 +570,7 @@
 
         function createSachTraPostData() {
             var sachTraList = [];
-            var ctSachTraList = [];
+           // var ctSachTraList = [];
 
             // Lưu trữ trạng thái của từng mã sách
             var sachGroupMap = {};
@@ -582,14 +585,7 @@
                 var tenSach = "";
                 var maCuonSach = "";
 
-                // code cũ
-                // maSach = row.querySelector('td:nth-child(1)').textContent.trim();
-                // tenSach = row.querySelector('td:nth-child(2)').textContent.trim();
-                // maCuonSach = row.querySelector('td:nth-child(4)').textContent.trim();
-                // ==>  đều mặc định lấy theo thứ tự này
-                // nhưng với row child 3 colum đầu tiên bị merge với thằng index === 0
-                
-
+               
                 // ở đây check nếu dòng parent (dòng đầu tiên merge colum)
                 if (idRow.includes('parent_'))
                 {
@@ -633,7 +629,8 @@
                         SoLuongTra: 0,
                         SoLuongLoi: 0,
                         SoLuongMat: 0,
-                        MaSach: maSach
+                        MaSach: maSach,
+                        ListCTSachTra: [] // Thêm danh sách chi tiết vào đây
                     };
                 }
 
@@ -644,8 +641,7 @@
 
                 // Thêm chi tiết sách vào danh sách CT_Sach_Tra
                 var tinhTrang = radioTra ? 1 : radioLoi ? 2 : radioMat ? 3 : 0;
-                ctSachTraList.push({
-                    MaPT: 0, // Cập nhật sau nếu cần
+                sachGroupMap[maSach].ListCTSachTra.push({
                     MaCuonSach: maCuonSach,
                     Tinhtrang: tinhTrang
                 });
@@ -662,11 +658,12 @@
             var data = {
                 MaNhanVien: parseInt(document.getElementById("selectedMaNhanVien").value),
                 MaTheDocGia: parseInt(document.getElementById("selectedMaThe").value),
+                TenDG: document.getElementById("selectedName").value,
                 NgayMuon: null, // Cần bổ sung nếu có
                 HanTra: null, // Cần bổ sung nếu có
                 NgayTra: document.getElementById("return_datetra").value,  // Đảm bảo có giá trị ngày trả
                 ListSachTra: sachTraList,
-                ListCTSachTra: ctSachTraList,
+               // ListCTSachTra: ctSachTraList,
                 MaPhieuMuon: parseInt($('#hdfMaPM').val()),
                 PhuThu: sachTraList.reduce((sum, s) => sum + s.PhuThu, 0) // Giữ lại phụ thu đã tính trước
             };
@@ -702,6 +699,30 @@
                             $('#tablephieuMuon').DataTable().ajax.reload();  // Làm mới bảng dữ liệu
                             $("#ModalSuccess").modal("show");  // Hiển thị modal thành công
                             lamMoi();  // Làm mới lại nếu cần
+                            // Lấy dữ liệu PDF Base64 từ phản hồi
+                            var pdfBase64 = response.pdfBase64;
+
+                            if (pdfBase64) {
+                                // Chuyển Base64 thành Blob
+                                var byteCharacters = atob(pdfBase64);
+                                var byteNumbers = new Array(byteCharacters.length).fill(null).map((_, i) => byteCharacters.charCodeAt(i));
+                                var byteArray = new Uint8Array(byteNumbers);
+                                var blob = new Blob([byteArray], { type: 'application/pdf' });
+
+                                // Tạo URL Blob
+                                var url = URL.createObjectURL(blob);
+
+                                // Cập nhật nội dung iframe trong modal
+                                var iframe = document.getElementById("pdfIframe"); // Đảm bảo HTML có iframe với id="pdfIframe"
+                                iframe.src = url; // Đặt URL file PDF vào iframe
+
+                                // Hiển thị modal chứa PDF
+                                $('#ModalPDF').modal('show'); // Hiển thị modal chứa iframe với PDF
+                            } else {
+                                // Nếu không có dữ liệu Base64
+                                document.getElementById("contentModalError").innerHTML = "Không có file PDF được trả về!";
+                                $("#ModalError").modal("show");
+                            }
                         } else {
                             // Hiển thị thông báo lỗi nếu không thành công
                             document.getElementById("contentModalError").innerHTML = response.message || "Có lỗi xảy ra khi tạo phiếu trả!";
@@ -735,3 +756,37 @@
 
     </script>
 } 
+ @*// // Sau khi tạo phiếu trả thành công, gọi hàm GeneratePhieuTraAPP để tải file PDF
+                            // $.ajax({
+                            //     url: "/Admin/PhieuTra/GeneratePhieuTraAPP",  // Đảm bảo URL đúng
+                            //     type: 'GET',
+                            //     data: { mapt: mapt },  // Gửi mapt vào URL query parameters
+                            //     xhrFields: {
+                            //         responseType: 'blob' // Để nhận phản hồi là file Blob
+                            //     },
+                            //     success: function (data, status, xhr) {
+                            //         // Lấy tên file từ header Content-Disposition
+                            //         var disposition = xhr.getResponseHeader('Content-Disposition');
+                            //         var fileName = "HoaDonPhieuTra.pdf"; // Tên mặc định
+                            //         if (disposition && disposition.indexOf('attachment') !== -1) {
+                            //             var matches = /filename="([^"]*)"/.exec(disposition);
+                            //             if (matches != null && matches[1]) {
+                            //                 fileName = matches[1];
+                            //             }
+                            //         }
+
+                            //         // Tải file về trình duyệt
+                            //         var blob = new Blob([data], { type: 'application/pdf' });
+                            //         var url = window.URL.createObjectURL(blob);
+                            //         var a = document.createElement('a');
+                            //         a.style.display = 'none';
+                            //         a.href = url;
+                            //         a.download = fileName;
+                            //         document.body.appendChild(a);
+                            //         a.click();
+                            //         window.URL.revokeObjectURL(url);
+                            //     },
+                            //     error: function (xhr, status, error) {
+                            //         console.log("Lỗi tải file: ", error);
+                            //     }
+                            // });*@

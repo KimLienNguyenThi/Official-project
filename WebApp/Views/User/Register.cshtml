@@ -1,13 +1,14 @@
-﻿
+﻿@model WebApp.DTOs.LoginDgDTO
+
 @{
     ViewData["Title"] = "Register";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <h1>Đăng ký tài khoản</h1>
-@* 
+
 <hr />
-<div class="row justify-content-center" >
+<div class="row justify-content-center">
     <div class="col-md-4">
         <form style="max-width: 400px; margin: 5px auto; border: 1px solid #009999; background-color: #CCFFFF; padding: 20px; border-radius: 5px;">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
@@ -24,7 +25,6 @@
             <div class="form-group">
                 <label asp-for="HoTen" class="control-label"></label>
                 <input id="username" asp-for="HoTen" class="form-control" />
-
                 <span asp-validation-for="HoTen" class="text-danger"></span>
             </div>
             <div class="form-group">
@@ -33,7 +33,7 @@
                 <span asp-validation-for="Email" class="text-danger"></span>
             </div>
             <div>
-                <button onclick="Register()" type="button" class="btn btn-primary">Đăng ký</button>
+                <button onclick="callModalSendEmail()" type="button" class="btn btn-primary">Đăng ký</button>
             </div>
             <div>
                 <a asp-action="Index">Quay về</a>
@@ -41,12 +41,25 @@
         </form>
     </div>
 
-   
-
-</div> *@
+</div>
 
 
-
+<div class="modal fade" id="sendEmailModal" tabindex="-1" aria-labelledby="sendEmailModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="failModalLabel">Vui lòng nhập mã OTP được gửi đến Email đăng ký:</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input id="otpEmail" type="number" />
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="checkEmail()">Gửi</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- Modal -->
 <div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
@@ -57,7 +70,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                Đăng ký thành công.
+                <span class="" id="contentModalSuccess"></span>
             </div>
             <div class="modal-footer">
                 <button id="buttonCloseModal" type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
@@ -70,11 +83,11 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="failModalLabel">Đăng ký thất bại</h5>
+                <h5 class="modal-title" id="failModalLabel">Thất bại</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                Tài khoản đã tồn tại!
+                <span class="" id="contentModalError"></span>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
@@ -84,43 +97,112 @@
 </div>
 
 
-    <script>
+<script>
 
-        document.getElementById("buttonCloseModal").addEventListener("click", function () {
-            window.location.href = '/Home/Index';
-        });
+    document.getElementById("buttonCloseModal").addEventListener("click", function () {
+        window.location.href = '/User/Index';
+    });
 
-        function Register() {
-            console.log("Function Login called");
-            // Lấy giá trị từ ô input
-            var phoneNumber = $("#phoneNumber").val();
-            console.log("dữ liệu nhận vào: ", phoneNumber);
-            var password = $("#password").val();
-            console.log("dữ liệu nhận vào: ", password);
-            var username = $("#username").val();
-            console.log("dữ liệu nhận vào: ", username);
-            var email = $("#email").val();
-            console.log("dữ liệu nhận vào: ", email);
+    function callModalSendEmail() {
+        console.log("callModalSendEmail start")
+        var username = $("#username").val();
+        var email = $("#email").val();
+        var phoneNumber = $("#phoneNumber").val();
 
-            $.ajax({
-                url: "/User/Register",
-                type: "POST",
-                data:
-                {
-                    phoneNumber: phoneNumber,
-                    password: password,
-                    username: username,
-                    email: email
-                },
-                success: function (result) {
-
-                    if (result.success) {
-                        $('#successModal').modal('show');
-                    }
-                },
-                error: function (result) {
+        $.ajax({
+            url: "/User/SendEmailRegister",
+            type: "POST",
+            data:
+            {
+                phoneNumber: phoneNumber,
+                username: username,
+                email: email
+            },
+            success: function (result) {
+                if (result.success) {
+                    $('#sendEmailModal').modal('show');
+                } else {
+                    document.getElementById("contentModalError").innerHTML = result.message;
                     $('#failModal').modal('show');
                 }
-            });
-        }
-    </script>
+            },
+            error: function (result) {
+                document.getElementById("contentModalError").innerHTML = "Có lỗi xảy ra!";
+                $('#failModal').modal('show');
+            }
+        });
+    }
+
+    function checkEmail() {
+        var otp = $('#otpEmail').val();
+        console.log("otp nhận vào: ", otp);
+
+        $.ajax({
+            url: "/User/CheckEmailRegister",
+            type: "GET",
+            data:
+            {
+                otp: otp
+            },
+            success: function (result) {
+
+                if (result.success) {
+                    Register();
+                } else {
+                    document.getElementById("contentModalError").innerHTML = result.message;
+                    $('#failModal').modal('show');
+
+                    document.getElementById('failModal').addEventListener('hidden.bs.modal', function () {
+                        console.log('Modal đã được đóng.');
+                        // Thực hiện hành động sau khi failModal được đóng
+                        $('#sendEmailModal').modal('show');
+                    });
+
+                }
+            },
+            error: function (result) {
+                document.getElementById("contentModalError").innerHTML = "Có lỗi xảy ra";
+                $('#failModal').modal('show');
+            }
+        });
+
+    }
+
+    function Register() {
+        // Lấy giá trị từ ô input
+        var phoneNumber = $("#phoneNumber").val();
+        console.log("dữ liệu nhận vào: ", phoneNumber);
+        var password = $("#password").val();
+        console.log("dữ liệu nhận vào: ", password);
+        var username = $("#username").val();
+        console.log("dữ liệu nhận vào: ", username);
+        var email = $("#email").val();
+        console.log("dữ liệu nhận vào: ", email);
+
+        $.ajax({
+            url: "/User/Register",
+            type: "POST",
+            data:
+            {
+                phoneNumber: phoneNumber,
+                password: password,
+                username: username,
+                email: email
+            },
+            success: function (result) {
+
+                if (result.success) {
+                    document.getElementById("contentModalSuccess").innerHTML = result.message;
+                    $('#successModal').modal('show');
+                } else {
+                    document.getElementById("contentModalError").innerHTML = result.message;
+                    $('#failModal').modal('show');
+                }
+            },
+            error: function (result) {
+                document.getElementById("contentModalError").innerHTML = "Có lỗi xảy ra!";
+                $('#failModal').modal('show');
+            }
+        });
+    }
+</script>

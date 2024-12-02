@@ -9,8 +9,15 @@
         <form>
             <div class="mb-3 mt-3">
                 <label for="phoneNumber" class="form-label">Số điện thoại:</label>
-                <input type="tel" class="form-control" id="phoneNumber" placeholder="Nhập số điện thoại" name="phoneNumber">
+                <input type="text"
+                       class="form-control"
+                       id="phoneNumber"
+                       placeholder="Nhập số điện thoại"
+                       name="phoneNumber"
+                       onkeydown="return isNumberKey(event)"
+                       title="Chỉ được nhập số">
             </div>
+
             <div class="mb-3">
                 <label for="password" class="form-label">Mật khẩu:</label>
                 <input type="password" class="form-control" id="password" placeholder="Nhập mật khẩu" name="password">
@@ -60,7 +67,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                Sai tên đăng nhập hoặc mật khẩu.
+                <span class="" id="contentModalError"></span>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
@@ -96,6 +103,23 @@
 
     <script>
 
+        function isNumberKey(evt) {
+            const keyCode = evt.keyCode;
+            // Cho phép: phím số (0-9), Backspace, Delete, Tab, và các phím điều hướng
+            if (
+                (keyCode >= 48 && keyCode <= 57) || // Phím số từ 0-9
+                (keyCode >= 96 && keyCode <= 105) || // Số trên bàn phím số (numpad)
+                keyCode === 8 || // Backspace
+                keyCode === 46 || // Delete
+                keyCode === 9 || // Tab
+                (keyCode >= 37 && keyCode <= 40) // Các phím điều hướng (mũi tên)
+            ) {
+                return true;
+            }
+            // Ngăn các phím không hợp lệ
+            return false;
+        }
+
         document.getElementById("buttonCloseModal").addEventListener("click", function () {
             window.location.href = '/Home/Index';
         });
@@ -120,7 +144,10 @@
 
                     if (result.success) {
                         $('#successModal').modal('show');
-                    } else if (!result.success) {
+                    } 
+                    else 
+                    {
+                        document.getElementById("contentModalError").innerHTML = result.message;
                         $('#failModal').modal('show');
                     }
                 },

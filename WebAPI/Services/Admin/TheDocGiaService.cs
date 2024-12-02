@@ -56,7 +56,7 @@ namespace WebAPI.Services.Admin
         }
 
 
-        public bool DangKyTheDocGia(DTO_DocGia_TheDocGia obj)
+        public DTO_DocGia_TheDocGia DangKyTheDocGia(DTO_DocGia_TheDocGia obj)
         {
             try
             {
@@ -64,7 +64,7 @@ namespace WebAPI.Services.Admin
 
                 if (existingDocGia != null)
                 {
-                    return false;
+                    return null;
                 }
                 else
                 {
@@ -96,7 +96,12 @@ namespace WebAPI.Services.Admin
                     _context.TheDocGia.Add(newTheDocGia);
                     _context.SaveChanges(); // Lưu các thay đổi vào cơ sở dữ liệu
 
-                    return true;
+                    DTO_DocGia_TheDocGia tdg = new DTO_DocGia_TheDocGia()
+                    {
+                        MaThe = newTheDocGia.Mathe,
+                    };
+
+                    return tdg;
                 }
             }
             catch (Exception ex)

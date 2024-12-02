@@ -65,16 +65,19 @@
     {
         public int MaNhanVien { get; set; }
         public int MaTheDocGia { get; set; }
+        public string TenDG { get; set; }
+
         public DateOnly? NgayMuon { get; set; }
         public DateOnly? HanTra { get; set; }
         public DateOnly? NgayTra { get; set; }
 
         public List<DTO_Sach_Tra> ListSachTra { get; set; }
-        public List<DTO_CT_Sach_Tra> ListCTSachTra { get; set; }
+      
 
         public int MaPhieuMuon { get; set; }
-        public decimal PhuThu { get; set; } // Sử dụng decimal cho giá trị tiền tệ
+       
     }
+    //public List<DTO_CT_Sach_Tra> ListCTSachTra { get; set; }
     public class PhieuTra_GroupMaPM_DTO
     {
         public PhieuTra_GroupKey PhieuTra_GroupKey { get; set; }

@@ -37,8 +37,16 @@
             word-wrap: break-word; /* Bọc chữ nếu quá dài */
         }
 
+    .taohoadonbymapt {
+        display: inline-block !important; /* Đảm bảo hiển thị nút */
+    }
 
-    
+    .taohoadonbymapt {
+        background-color: blue;
+        color: white;
+        display: block !important;
+    }
+
 
     /* Khi một hàng có lớp row-clicked */
     #tblDanhSachDG_PhieuMuon tr.row-clicked {
@@ -111,7 +119,16 @@
     </div>
 </section>
 
-
+<!-- Modal error-->
+<div class="modal fade" id="ModalError" tabindex="-1" role="dialog" aria-labelledby="ModalError" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-body text-center bg-danger">
+                <span class="" id="contentModalError"></span>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- Modal 1 phieu trả-->
 <div class="modal fade bd-example-modal-lg" id="ModaldanhSachsach_byPT" tabindex="-1" role="dialog" aria-labelledby="exampleModalScrollableTitle" aria-hidden="true">
@@ -146,9 +163,11 @@
                             <tr>
                                 <th>Mã sách</th>
                                 <th>Tên sách</th>
+                                <th>S/Lượng mượn</th>
                                 <th>S/Lượng trả</th>
                                 <th>S/Lượng Lỗi</th>
                                 <th>S/Lượng Mất</th>
+                                <th>Phụ thu</th>
                             </tr>
                         </thead>
                         <tbody id="danhSachSachTra">
@@ -158,10 +177,11 @@
                 </div>
             </form>
 
-            <!-- Footer -->
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal"> Đóng </button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-primary taohoadonbymapt">Tạo hóa đơn</button>
             </div>
+
 
         </div>
     </div>
@@ -202,9 +222,11 @@
                                 <th>Mã PT</th>
                                 <th>Mã sách</th>
                                 <th>Tên sách</th>
+                                <th>S/Lượng mượn</th>
                                 <th>S/Lượng trả</th>
                                 <th>S/Lượng Lỗi</th>
                                 <th>S/Lượng Mất</th>
+                                <th>Phụ thu</th>
 
                             </tr>
                         </thead>
@@ -218,12 +240,26 @@
             <!-- Footer -->
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal"> Đóng </button>
+
             </div>
 
         </div>
     </div>
 </div>
-
+<!-- Modal hiển thị PDF -->
+<div class="modal fade" id="ModalPDF" tabindex="-1" aria-labelledby="ModalPDFLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="ModalPDFLabel">Phieu Tra PDF</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <iframe id="pdfIframe" src="" width="100%" height="650px"></iframe>
+            </div>
+        </div>
+    </div>
+</div>
 @section scripts
 {
     <script>   
@@ -358,15 +394,11 @@
                 },
             });
 
-
-          
-            
         }
 
         function sendSearchRequest(Keyword) {
             $('#tblDanhSachPhieuTra').DataTable().ajax.reload(null, false);
         }
-
 
         let currentOpenRowIndex = null;
 
@@ -473,9 +505,11 @@
                                     <td>${item.maPT}</td>
                                     <td>${item.maSach}</td>
                                     <td>${item.tenSach}</td>
+                                    <td>${item.soLuongMuon}</td>
                                     <td>${item.soLuongTra}</td>
                                     <td>${item.soLuongLoi}</td>
                                     <td>${item.soLuongMat}</td>
+                                    <td>${item.phuThu}</td>
                                 </tr>
                             `);
 
@@ -529,12 +563,13 @@
                         $.each(ctptData, function (index, item) {
                             var newRow = $(
                                 `<tr class="sachtra-row" data-ma-sach="${item.maSach}">
-                                          
                                             <td>${item.maSach}</td>
                                             <td>${item.tenSach}</td>
+                                            <td>${item.soLuongMuon}</td>
                                             <td>${item.soLuongTra}</td>
                                             <td>${item.soLuongLoi}</td>
                                             <td>${item.soLuongMat}</td>
+                                            <td>${item.phuThu}</td>
                                         </tr>`
                             );
                             danhSachSachTra.append(newRow);
@@ -570,7 +605,73 @@
                 }
             });
         }
-      
+
+        $(document).on("click", ".taohoadonbymapt", function () {
+            // Lấy giá trị từ các input trong modal
+            let maPT = $("#maPhieutraModal").val();
+            let maThe = $("#maTheModal").val();
+
+            if (maPT && maThe) {
+                console.log("Tạo hóa đơn với mã phiếu trả:", maPT, "và mã thẻ:", maThe);
+
+                // Gọi hàm hoặc API tạo hóa đơn tại đây
+                taoHoaDon(maPT, maThe);
+            } else {
+                alert("Dữ liệu mã phiếu trả hoặc mã thẻ không hợp lệ!");
+            }
+        });
+
+        function taoHoaDon(maPT, maThe) {
+            $.ajax({
+                type: "POST",
+                url: `/admin/quanlyphieutra/TaoHoaDon_APP/${maPT}/${maThe}`, // API endpoint
+                contentType: "application/json; charset=utf-8",  // Content-Type JSON
+                dataType: "json",  // Định dạng phản hồi
+                success: function (response) {
+                    if (response.success) {
+                        // Lấy chuỗi Base64 từ phản hồi
+                        const base64Pdf = response.pdfBase64;
+
+                        if (base64Pdf) {
+                            // Chuyển Base64 thành Blob
+                            const binary = atob(base64Pdf);
+                            const array = new Uint8Array(binary.length);
+                            for (let i = 0; i < binary.length; i++) {
+                                array[i] = binary.charCodeAt(i);
+                            }
+                            const blob = new Blob([array], { type: "application/pdf" });
+
+                            // Tạo URL từ Blob
+                            const url = URL.createObjectURL(blob);
+
+                            // Đặt URL vào iframe
+                            const iframe = document.getElementById("pdfIframe");
+                            if (iframe) {
+                                iframe.src = url;
+                                // Hiển thị modal
+                                $("#ModalPDF").modal("show");
+                                $("#ModaldanhSachsach_byPT").modal("hide")
+                            } else {
+                                console.error("Không tìm thấy iframe để hiển thị PDF.");
+                            }
+                        } else {
+                            console.error("PDF không hợp lệ.");
+                            $("#contentModalError").text("Không nhận được dữ liệu PDF hợp lệ!");
+                            $("#ModalError").modal("show");
+                        }
+                    } else {
+                        console.error("Lỗi API:", response.message);
+                        $("#contentModalError").text(response.message || "Không thể tạo phiếu trả.");
+                        $("#ModalError").modal("show");
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error("Lỗi khi tạo hóa đơn:", status, error);
+                    $("#contentModalError").text(`Lỗi khi tạo hóa đơn: ${status} - ${error}`);
+                    $("#ModalError").modal("show");
+                },
+            });
+        }
 
       
     </script>

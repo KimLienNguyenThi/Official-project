@@ -99,30 +99,124 @@ namespace WebApp.Areas.Admin.Controllers
         {
             try
             {
+                // Kiểm tra dữ liệu đầu vào
                 if (dto == null)
                 {
-                    return BadRequest("Invalid data.");
+                    return BadRequest(new { success = false, message = "Dữ liệu không hợp lệ." });
                 }
 
+                // Chuyển đổi DTO thành chuỗi JSON
                 var jsonContent = JsonConvert.SerializeObject(dto);
                 var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+                // Gửi yêu cầu POST tới API TaoPhieuTra_API
                 HttpResponseMessage response = await _client.PostAsync(_client.BaseAddress + "/PhieuTra/TaoPhieuTra_API", httpContent);
 
+                // Kiểm tra phản hồi từ API
                 if (response.IsSuccessStatusCode)
                 {
-                    var result = await response.Content.ReadAsStringAsync();
-                    return Json(new { success = true });
+                    // Đọc nội dung PDF từ phản hồi
+                    var pdfData = await response.Content.ReadAsByteArrayAsync();
+
+                    if (pdfData != null && pdfData.Length > 0)
+                    {
+                        // Chuyển file PDF sang dạng Base64 để gửi về JavaScript
+                        string base64Pdf = Convert.ToBase64String(pdfData);
+                        return Json(new { success = true, pdfBase64 = base64Pdf });
+                    }
+
+                    return Json(new { success = false, message = "Không nhận được file PDF từ API." });
                 }
-                else
-                {
-                    return Json(new { success = false });
-                }
+
+                // Xử lý nếu API trả về lỗi
+                return Json(new { success = false, message = "Yêu cầu API không thành công. Mã lỗi: " + response.StatusCode });
             }
             catch (Exception ex)
             {
-                return BadRequest($"API call failed    {ex.Message}");
-
+                // Bắt lỗi và trả về thông báo lỗi
+                return Json(new { success = false, message = "Lỗi khi gọi API: " + ex.Message });
             }
         }
+
+
+
+        //[HttpPost]
+        //[Route("TaoPhieuTra_APP")]
+
+
+        //public async Task<IActionResult> TaoPhieuTra_APP([FromBody] DTO_Tao_Phieu_Tra dto)
+        //{
+        //    try
+        //    {
+        //        // Kiểm tra dữ liệu đầu vào
+        //        if (dto == null)
+        //        {
+        //            return BadRequest("Invalid data.");
+        //        }
+
+        //        // Chuyển đổi DTO thành chuỗi JSON
+        //        var jsonContent = JsonConvert.SerializeObject(dto);
+        //        var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+        //        // Gửi yêu cầu POST tới API TaoPhieuTra_API
+        //        HttpResponseMessage response = await _client.PostAsync(_client.BaseAddress + "/PhieuTra/TaoPhieuTra_API", httpContent);
+
+        //        // Kiểm tra phản hồi của API
+        //        if (response.IsSuccessStatusCode)
+        //        {
+        //            // Đọc dữ liệu file PDF từ phản hồi
+        //            var pdfData = await response.Content.ReadAsByteArrayAsync();
+
+        //            // Kiểm tra nếu không có dữ liệu PDF trả về
+        //            if (pdfData == null || pdfData.Length == 0)
+        //            {
+        //                return Json(new { success = false, message = "Không nhận được dữ liệu PDF từ API." });
+        //            }
+
+        //            // Trả về file PDF cho client
+        //            return File(pdfData, "application/pdf", "PhieuTra.pdf");
+        //        }
+        //        else
+        //        {
+        //            // Trả về thông báo nếu API không thành công
+        //            return Json(new { success = false, message = "Yêu cầu API không thành công. Mã lỗi: " + response.StatusCode });
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        // Xử lý lỗi và trả về thông báo lỗi
+        //        return Json(new { success = false, message = "Lỗi khi gọi API: " + ex.Message });
+        //    }
+        //}
+
+
+        //[HttpGet]
+        //[Route("GeneratePhieuTra_APP")]
+        //public async Task<IActionResult> GeneratePhieuTra_APP(int mapt)
+        //{
+        //    try
+        //    {
+        //        if (mapt == 0) // Kiểm tra nếu mapt không hợp lệ
+        //        {
+        //            return BadRequest("Invalid data.");
+        //        }
+        //        HttpResponseMessage response = _client.GetAsync(_client.BaseAddress + $"/GeneratePDF/GeneratePhieuTraPDF/{mapt}").Result;
+
+        //        if (response.IsSuccessStatusCode)
+        //        {
+        //            var result = await response.Content.ReadAsStringAsync();
+        //            return Json(new { success = true });
+        //        }
+        //        else
+        //        {
+        //            return Json(new { success = false });
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return BadRequest($"API call failed: {ex.Message}");
+        //    }
+        //}
+
     }
 }

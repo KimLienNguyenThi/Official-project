@@ -54,15 +54,71 @@ namespace WebAPI.Controllers.Admin
             }
         }
 
+        
         [HttpPost]
         public IActionResult TaoPhieuTra_API([FromBody] DTO_Tao_Phieu_Tra data)
         {
-            var result = _phieuTraService.Insert(data);
-            if (result)
+            try
             {
-                return Ok(new { success = true, message = "Tạo phiếu trả thành công." });
+                // Gọi service để tạo phiếu trả và nhận về file PDF dưới dạng byte[]
+                var pdfData = _phieuTraService.InsertAndGeneratePDF(data);
+
+                if (pdfData != null && pdfData.Length > 0) // Kiểm tra dữ liệu PDF
+                {
+                    // Tạo tên file PDF
+                    string fileName = $"PhieuTra_{Guid.NewGuid()}.pdf";
+
+                    // Thiết lập response để trả về file PDF
+                    return File(pdfData, "application/pdf", fileName);
+                }
+
+                // Nếu không thành công, trả về lỗi
+                return BadRequest(new { success = false, message = "Tạo phiếu trả thất bại." });
             }
-            return BadRequest(new { success = false, message = "Tạo phiếu trả thất bại." });
+            catch (Exception ex)
+            {
+                // Bắt lỗi và trả về thông báo lỗi
+                return StatusCode(500, new { success = false, message = "Có lỗi xảy ra khi tạo phiếu trả.", error = ex.Message });
+            }
         }
+
+
+
     }
 }
+//[HttpPost]
+//public IActionResult TaoPhieuTra_API([FromBody] DTO_Tao_Phieu_Tra data)
+//{
+//    var result = _phieuTraService.Insert(data);
+
+//    if (result.HasValue) // Kiểm tra xem Mapt có được trả về không (không phải null)
+//    {
+//        return Ok(new { success = true, message = "Tạo phiếu trả thành công.", mapt = result.Value });
+//    }
+
+//    return BadRequest(new { success = false, message = "Tạo phiếu trả thất bại." });
+//}
+
+
+//[HttpPost]
+//public IActionResult TaoPhieuTra_API([FromBody] DTO_Tao_Phieu_Tra data)
+//{
+//    try
+//    {
+//        // Gọi service để tạo phiếu trả và tạo file PDF
+//        var pdfData = _phieuTraService.InsertAndGeneratePDF(data);
+
+//        if (pdfData != null) // Nếu file PDF được tạo thành công
+//        {
+//            return File(pdfData, "application/pdf", "PhieuTra.pdf");
+//        }
+
+//        // Nếu không thành công, trả về lỗi
+//        return BadRequest(new { success = false, message = "Tạo phiếu trả thất bại." });
+//    }
+//    catch (Exception ex)
+//    {
+//        // Bắt lỗi và trả về thông báo lỗi
+//        return StatusCode(500, new { success = false, message = "Có lỗi xảy ra khi tạo phiếu trả.", error = ex.Message });
+//    }
+//}
