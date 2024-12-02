@@ -1,8 +1,10 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
+using QuestPDF.Helpers;
 using WebAPI.DTOs.Admin_DTO;
 using WebAPI.Models;
 using WebAPI.Services.Admin;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace WebAPI.Controllers.Admin
 {
@@ -76,6 +78,32 @@ namespace WebAPI.Controllers.Admin
             }
         }
 
+        [HttpGet("{maPT}/{maThe}")]
+        public async Task<IActionResult> TaoHoaDon_API(int maPT, int maThe)
+        {
+            try
+            {
+                // Gọi service để tạo hóa đơn và nhận về file PDF dưới dạng byte[]
+                var pdfData = _qlphieuTraService.TaoHoaDonbyMapt(maPT, maThe);
 
+                if (pdfData != null && pdfData.Length > 0) // Kiểm tra dữ liệu PDF
+                {
+                    // Tạo tên file PDF
+                    string fileName = $"PhieuTra_{Guid.NewGuid()}.pdf";
+
+                    // Thiết lập response để trả về file PDF
+                    return File(pdfData, "application/pdf", fileName);
+                }
+
+                // Nếu không thành công, trả về lỗi
+                return BadRequest(new { success = false, message = "Tạo phiếu trả thất bại." });
+            }
+            catch (Exception ex)
+            {
+                // Bắt lỗi và trả về thông báo lỗi
+                return StatusCode(500, new { success = false, message = "Có lỗi xảy ra khi tạo phiếu trả.", error = ex.Message });
+            }
+        }
+       
     }
 }

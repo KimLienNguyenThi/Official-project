@@ -8,10 +8,13 @@ namespace WebAPI.Services.Admin
     public class PhieuTraService
     {
         private readonly QuanLyThuVienContext _context;
-
-        public PhieuTraService(QuanLyThuVienContext context)
+        private readonly GeneratePDFService _GeneratePDFService;
+        //private readonly IHttpContextAccessor _httpContextAccessor;
+        public PhieuTraService(QuanLyThuVienContext context, GeneratePDFService generatePDFService)
         {
             _context = context;
+            _GeneratePDFService = generatePDFService;
+           // _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<PagingResult<PhieuMuonDTO>> GetAllPhieuMuonPaging(GetListPhieuMuonPaging req)
@@ -108,13 +111,13 @@ namespace WebAPI.Services.Admin
 
         }
 
-        public bool Insert(DTO_Tao_Phieu_Tra x)
+        public byte[] InsertAndGeneratePDF(DTO_Tao_Phieu_Tra x)
         {
             // Kiểm tra điều kiện để thêm phiếu trả
-            if (x.ListSachTra.Any(sach => sach.SoLuongLoi > 0 || sach.SoLuongTra > 0 || sach.SoLuongMat > 0) == false
-                && x.ListCTSachTra.Any(ct => ct.Tinhtrang > 0) == false)
+            if (x.ListSachTra == null || x.ListSachTra.Count == 0 ||
+                !x.ListSachTra.Any(sach => sach.SoLuongLoi > 0 || sach.SoLuongTra > 0 || sach.SoLuongMat > 0))
             {
-                return false;
+                return null;
             }
 
             using (var transaction = _context.Database.BeginTransaction())
@@ -132,7 +135,7 @@ namespace WebAPI.Services.Admin
                     var phieuMuon = _context.PhieuMuons.FirstOrDefault(p => p.Mapm == x.MaPhieuMuon);
                     if (phieuMuon == null)
                     {
-                        return false;
+                        return null;
                     }
 
                     // Tạo đối tượng PhieuTra
@@ -167,27 +170,30 @@ namespace WebAPI.Services.Admin
                         };
 
                         _context.ChiTietPts.Add(newChiTietPT);
-                    }
 
-                    foreach (var ctSachTra in x.ListCTSachTra)
-                    {
-                        // Kiểm tra xem MaCuonSach có tồn tại trong bảng CuonSach hay không
-                        var cuonSach = _context.CuonSaches.FirstOrDefault(cs => cs.Macuonsach == ctSachTra.MaCuonSach);
-                        if (cuonSach == null)
+                        // Xử lý ListCTSachTra của mỗi sách (nếu có)
+                        if (sachTra.ListCTSachTra != null)
                         {
-                            throw new Exception($"CuonSach with Macuonsach = {ctSachTra.MaCuonSach} does not exist.");
+                            foreach (var ctSachTra in sachTra.ListCTSachTra)
+                            {
+                                // Kiểm tra xem MaCuonSach có tồn tại không
+                                var cuonSach = _context.CuonSaches.FirstOrDefault(cs => cs.Macuonsach == ctSachTra.MaCuonSach);
+                                if (cuonSach == null)
+                                {
+                                    throw new Exception($"CuonSach with Macuonsach = {ctSachTra.MaCuonSach} does not exist.");
+                                }
+
+                                var newChiTietCTS = new ChiTietSachTra
+                                {
+                                    Mapt = newPhieuTra.Mapt,
+                                    Macuonsach = ctSachTra.MaCuonSach,
+                                    Tinhtrang = ctSachTra.Tinhtrang,
+                                };
+
+                                _context.ChiTietSachTras.Add(newChiTietCTS);
+                            }
                         }
-
-                        var newChiTietCTS = new ChiTietSachTra
-                        {
-                            Mapt = newPhieuTra.Mapt,
-                            Macuonsach = ctSachTra.MaCuonSach, // Khóa ngoại được gán giá trị hợp lệ
-                            Tinhtrang = ctSachTra.Tinhtrang,
-                        };
-
-                        _context.ChiTietSachTras.Add(newChiTietCTS);
                     }
-
 
                     // Lưu toàn bộ thay đổi vào cơ sở dữ liệu
                     _context.SaveChanges();
@@ -195,17 +201,130 @@ namespace WebAPI.Services.Admin
                     // Commit giao dịch
                     transaction.Commit();
 
-                    return true;
+                    // Kết hợp DTO hiện tại với MaPT để tạo PDF
+                    int MaPhieuTra = newPhieuTra.Mapt;
+                    var pdfData = _GeneratePDFService.GeneratePhieuTraPDF(x, MaPhieuTra);
+
+                    // Trả về dữ liệu PDF dưới dạng byte[]
+                    return pdfData;
                 }
                 catch (Exception ex)
                 {
                     transaction.Rollback(); // Rollback nếu gặp lỗi
                     Console.WriteLine($"Error: {ex.Message}");
                     // Xử lý lỗi (ghi log hoặc thông báo)
-                    return false;
+                    return null; // Trả về null nếu lỗi
                 }
             }
         }
+
+
+
+
+        //public int? Insert(DTO_Tao_Phieu_Tra x)
+        //{
+        //    // Kiểm tra điều kiện để thêm phiếu trả
+        //    if (x.ListSachTra == null || x.ListSachTra.Count == 0 ||
+        //        !x.ListSachTra.Any(sach => sach.SoLuongLoi > 0 || sach.SoLuongTra > 0 || sach.SoLuongMat > 0))
+        //    {
+        //        return null;
+        //    }
+
+        //    using (var transaction = _context.Database.BeginTransaction())
+        //    {
+        //        try
+        //        {
+        //            // Kiểm tra MaNhanVien có tồn tại không
+        //            var nhanVien = _context.NhanViens.Find(x.MaNhanVien);
+        //            if (nhanVien == null)
+        //            {
+        //                throw new Exception($"NhanVien with MaNV = {x.MaNhanVien} does not exist.");
+        //            }
+
+        //            // Kiểm tra phiếu mượn có tồn tại không
+        //            var phieuMuon = _context.PhieuMuons.FirstOrDefault(p => p.Mapm == x.MaPhieuMuon);
+        //            if (phieuMuon == null)
+        //            {
+        //                return null;
+        //            }
+
+        //            // Tạo đối tượng PhieuTra
+        //            var newPhieuTra = new PhieuTra
+        //            {
+        //                Ngaytra = x.NgayTra,
+        //                Mathe = phieuMuon.Mathe,
+        //                Manv = x.MaNhanVien,
+        //                Mapm = x.MaPhieuMuon,
+        //            };
+
+        //            // Thêm PhieuTra vào context
+        //            _context.PhieuTras.Add(newPhieuTra);
+        //            _context.SaveChanges(); // Lưu để có thể lấy MaPT từ newPhieuTra
+
+        //            // Xử lý ListSachTra
+        //            foreach (var sachTra in x.ListSachTra)
+        //            {
+        //                if (sachTra.SoLuongTra == 0 && sachTra.SoLuongLoi == 0 && sachTra.SoLuongMat == 0)
+        //                {
+        //                    continue;
+        //                }
+
+        //                var newChiTietPT = new ChiTietPt
+        //                {
+        //                    Mapt = newPhieuTra.Mapt,
+        //                    Masach = sachTra.MaSach,
+        //                    Soluongtra = sachTra.SoLuongTra,
+        //                    Soluongloi = sachTra.SoLuongLoi,
+        //                    Soluongmat = sachTra.SoLuongMat,
+        //                    Phuthu = sachTra.PhuThu,
+        //                };
+
+        //                _context.ChiTietPts.Add(newChiTietPT);
+
+        //                // Xử lý ListCTSachTra của mỗi sách (nếu có)
+        //                if (sachTra.ListCTSachTra != null)
+        //                {
+        //                    foreach (var ctSachTra in sachTra.ListCTSachTra)
+        //                    {
+        //                        // Kiểm tra xem MaCuonSach có tồn tại không
+        //                        var cuonSach = _context.CuonSaches.FirstOrDefault(cs => cs.Macuonsach == ctSachTra.MaCuonSach);
+        //                        if (cuonSach == null)
+        //                        {
+        //                            throw new Exception($"CuonSach with Macuonsach = {ctSachTra.MaCuonSach} does not exist.");
+        //                        }
+
+        //                        var newChiTietCTS = new ChiTietSachTra
+        //                        {
+        //                            Mapt = newPhieuTra.Mapt,
+        //                            Macuonsach = ctSachTra.MaCuonSach, // Khóa ngoại được gán giá trị hợp lệ
+        //                            Tinhtrang = ctSachTra.Tinhtrang,
+        //                        };
+
+        //                        _context.ChiTietSachTras.Add(newChiTietCTS);
+        //                    }
+        //                }
+        //            }
+
+        //            // Lưu toàn bộ thay đổi vào cơ sở dữ liệu
+        //            _context.SaveChanges();
+
+        //            // Commit giao dịch
+        //            transaction.Commit();
+
+        //            return newPhieuTra.Mapt; // Trả về Mapt vừa được thêm
+
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            transaction.Rollback(); // Rollback nếu gặp lỗi
+        //            Console.WriteLine($"Error: {ex.Message}");
+        //            // Xử lý lỗi (ghi log hoặc thông báo)
+        //            return null; // Trả về null nếu lỗi
+        //        }
+        //    }
+        //}
+
+
 
     }
 }

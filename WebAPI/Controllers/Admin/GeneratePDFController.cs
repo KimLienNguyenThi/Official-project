@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using WebAPI.Areas.Admin.Data;
+using WebAPI.DTOs.Admin_DTO;
 using WebAPI.Models;
 using WebAPI.Services.Admin;
 
@@ -23,5 +24,12 @@ namespace WebAPI.Controllers.Admin
             var document = _generatePDFService.GenerateTheDocGiaPDF(tdg);
             return File(document, "application/pdf", "Hóa đơn tạo thẻ.pdf");
         }
+
+        //[HttpPost]
+        //public IActionResult GeneratePhieuTraPDF(int mapt)
+        //{
+        //    var document = _generatePDFService.GeneratePhieuTraPDF(mapt);
+        //    return File(document, "application/pdf", "Hóa đơn sách trả.pdf");
+        //}
     }
 }

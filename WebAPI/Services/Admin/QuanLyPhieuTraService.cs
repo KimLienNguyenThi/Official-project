@@ -7,10 +7,12 @@ namespace WebAPI.Services.Admin
     public class QuanLyPhieuTraService
     {
         private readonly QuanLyThuVienContext _context;
+        private readonly GeneratePDFService _GeneratePDFService;
 
-        public QuanLyPhieuTraService(QuanLyThuVienContext context)
+        public QuanLyPhieuTraService(QuanLyThuVienContext context, GeneratePDFService generatePDFService)
         {
             _context = context;
+            _GeneratePDFService = generatePDFService;
         }
 
         public async Task<PagingResult<PhieuTra_GroupMaPM_DTO>> GetAllPhieuTraPaging(GetListPhieuTraPaging req)
@@ -69,8 +71,6 @@ namespace WebAPI.Services.Admin
                 PageSize = req.PageSize
             };
         }
-
-
 
         public List<DTO_Sach_Tra> Get_ChiTietPT_ByMaPM(int maPM)
         {
@@ -134,9 +134,6 @@ namespace WebAPI.Services.Admin
 
             return listPhieutra_All;
         }
-
-
-
         public List<DTO_Sach_Tra> Get_CTPT_ByMaPT(int maPT)
         {
             // Lấy thông tin cơ bản từ phiếu trả và chi tiết phiếu trả
@@ -199,6 +196,106 @@ namespace WebAPI.Services.Admin
 
             return listPhieutra_All;
         }
+
+        public byte[] TaoHoaDonbyMapt(int maPT, int maThe)
+        {
+            using var transaction = _context.Database.BeginTransaction(); // Tạo transaction để đảm bảo tính nhất quán dữ liệu
+            try
+            {
+                // Lấy thông tin cơ bản từ phiếu trả
+                var listPhieutra_All =
+                    (from pt in _context.PhieuTras
+                     join ctpt in _context.ChiTietPts on pt.Mapt equals ctpt.Mapt
+                     join s in _context.Saches on ctpt.Masach equals s.Masach
+                     join pm in _context.PhieuMuons on pt.Mapm equals pm.Mapm
+                     join ctpm in _context.ChiTietPms on pm.Mapm equals ctpm.Mapm
+                     where pt.Mapt == maPT
+                     group new { pt, ctpt, s, ctpm } by new
+                     {
+                         pt.Mapt,
+                         s.Masach,
+                         s.Tensach,
+                         ctpm.Soluongmuon,
+                         ctpt.Soluongtra,
+                         ctpt.Soluongloi,
+                         ctpt.Soluongmat,
+                         ctpt.Phuthu
+                     } into groupedData
+                     select new DTO_Sach_Tra
+                     {
+                         MaPT = groupedData.Key.Mapt,
+                         MaSach = groupedData.Key.Masach,
+                         TenSach = groupedData.Key.Tensach,
+                         SoLuongMuon = groupedData.Key.Soluongmuon ?? 0,
+                         SoLuongTra = groupedData.Key.Soluongtra ?? 0,
+                         SoLuongLoi = groupedData.Key.Soluongloi ?? 0,
+                         SoLuongMat = groupedData.Key.Soluongmat ?? 0,
+                         PhuThu = groupedData.Key.Phuthu ?? 0
+                     }).ToList();
+
+                // Gán chi tiết sách trả (ListCTSachTra) cho từng sách
+                foreach (var dto in listPhieutra_All)
+                {
+                    dto.ListCTSachTra = _context.ChiTietSachTras
+                        .Where(ctst => ctst.Mapt == dto.MaPT)
+                        .Join(_context.CuonSaches,
+                              ctst => ctst.Macuonsach,
+                              cs => cs.Macuonsach,
+                              (ctst, cs) => new { ctst, cs })
+                        .Where(joined => joined.cs.Masach == dto.MaSach)
+                        .Select(joined => new DTO_CT_Sach_Tra
+                        {
+                            MaPT = joined.ctst.Mapt,
+                            MaCuonSach = joined.ctst.Macuonsach,
+                            Tinhtrang = joined.ctst.Tinhtrang ?? 0
+                        })
+                        .Distinct()
+                        .ToList();
+                }
+
+                // Loại bỏ trùng lặp trong danh sách sách trả
+                listPhieutra_All = listPhieutra_All
+                    .GroupBy(x => new { x.MaPT, x.MaSach })
+                    .Select(g => g.First())
+                    .ToList();
+
+                // Tạo đối tượng DTO_Tao_Phieu_Tra
+                var phieuTra = (from pt in _context.PhieuTras
+                                join pm in _context.PhieuMuons on pt.Mapm equals pm.Mapm
+                                join tdg in _context.TheDocGia on pm.Mathe equals tdg.Mathe
+                                join dg in _context.DocGia on tdg.Madg equals dg.Madg   
+                                where pt.Mapt == maPT
+                                select new DTO_Tao_Phieu_Tra
+                                {
+                                    MaNhanVien = pt.Manv ?? 0,
+                                    MaTheDocGia = pm.Mathe ?? 0,
+                                    TenDG = dg.Hotendg,
+                                    NgayMuon = pm.Ngaymuon,
+                                    HanTra = pm.Hantra,
+                                    NgayTra = pt.Ngaytra,
+                                    ListSachTra = listPhieutra_All,
+                                    MaPhieuMuon = pm.Mapm
+                                }).FirstOrDefault();
+
+                if (phieuTra == null)
+                {
+                    throw new Exception("Không tìm thấy thông tin phiếu trả hoặc thẻ độc giả.");
+                }
+
+                // Gọi service tạo PDF và trả về dưới dạng byte[]
+                var pdfData = _GeneratePDFService.GeneratePhieuTraPDF(phieuTra, maPT);
+
+                transaction.Commit(); // Commit transaction nếu thành công
+                return pdfData;
+            }
+            catch (Exception ex)
+            {
+                transaction.Rollback(); // Rollback nếu gặp lỗi
+                Console.WriteLine($"Error: {ex.Message}");
+                return null; // Trả về null nếu lỗi
+            }
+        }
+
     }
 }
 

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Humanizer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System.Text;
@@ -109,6 +110,48 @@ namespace WebApp.Areas.Admin.Controllers
             //return Json(new { success = true, sachList = bookList });
         }
 
+
+        [HttpPost]
+        [Route("TaoHoaDon_APP/{maPT}/{maThe}")]
+        public async Task<IActionResult> TaoHoaDon_APP(int maPT, int maThe)
+        {
+            try
+            {
+                // Gửi yêu cầu tới API
+                HttpResponseMessage response = _client.GetAsync(_client.BaseAddress + $"/QuanLyPhieuTra/TaoHoaDon_API/{maPT}/{maThe}").Result;
+
+                // Kiểm tra phản hồi
+                if (response.IsSuccessStatusCode)
+                {
+                    var pdfData = await response.Content.ReadAsByteArrayAsync();
+
+                    if (pdfData?.Length > 0)
+                    {
+                        // Mã hóa PDF thành Base64
+                        string base64Pdf = Convert.ToBase64String(pdfData);
+
+                        // Trả về kết quả
+                        return Json(new { success = true, pdfBase64 = base64Pdf });
+                    }
+
+                    return Json(new { success = false, message = "API không trả về dữ liệu PDF." });
+                }
+
+                return Json(new
+                {
+                    success = false,
+                    message = $"Yêu cầu API thất bại. Mã lỗi: {(int)response.StatusCode} ({response.StatusCode})"
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = "Lỗi khi gọi API: " + ex.Message
+                });
+            }
+        }
 
 
     }
