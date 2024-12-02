@@ -103,13 +103,15 @@ namespace WebAPI.Services.Admin
 
             return document.GeneratePdf();
         }
-
         public byte[] GeneratePhieuTraPDF(DTO_Tao_Phieu_Tra tpt, int mapt)
         {
             if (tpt == null || tpt.ListSachTra == null || !tpt.ListSachTra.Any())
             {
                 throw new Exception($"Không tìm thấy dữ liệu cho phiếu trả: {tpt.MaPhieuMuon}");
             }
+
+            // Tính tổng tiền
+            decimal tongTien = tpt.ListSachTra.Sum(sach => sach.PhuThu);
 
             // Tạo file PDF
             var document = Document.Create(container =>
@@ -132,7 +134,7 @@ namespace WebAPI.Services.Admin
                     });
 
                     // Content
-                    page.Content().PaddingVertical(10).Column(column =>
+                    page.Content().PaddingTop(20).Column(column =>
                     {
                         // Thông tin phiếu trả
                         column.Item().Row(row =>
@@ -140,14 +142,14 @@ namespace WebAPI.Services.Admin
                             row.RelativeItem().Column(column2 =>
                             {
                                 column2.Item().Text("Thông tin phiếu trả").Bold();
-                                column2.Item().Text($"Mã phiếu trả: {mapt}").FontSize(12);
-                                column2.Item().Text($"Tên độc giả: {tpt.TenDG}").FontSize(12);
-                                column2.Item().Text($"Ngày trả: {tpt.NgayTra?.ToString("dd/MM/yyyy") ?? "Chưa xác định"}").FontSize(12);
+                                column2.Item().Text($"Mã phiếu trả: {mapt}").FontSize(15);
+                                column2.Item().Text($"Tên độc giả: {tpt.TenDG}").FontSize(15);
+                                column2.Item().Text($"Ngày trả: {tpt.NgayTra?.ToString("dd/MM/yyyy") ?? "Chưa xác định"}").FontSize(15);
                             });
                         });
 
                         // Bảng chi tiết sách trả
-                        column.Item().PaddingTop(10).Table(table =>
+                        column.Item().PaddingTop(30).Table(table =>
                         {
                             // Định nghĩa cột
                             table.ColumnsDefinition(columns =>
@@ -164,36 +166,43 @@ namespace WebAPI.Services.Admin
                             // Header bảng
                             table.Header(header =>
                             {
-                                header.Cell().Text("Mã sách").FontSize(12).Bold();
-                                header.Cell().Text("Tên sách").FontSize(12).Bold();
-                                header.Cell().Text("S/Lượng mượn").FontSize(12).Bold().AlignCenter();
-                                header.Cell().Text("S/Lượng trả").FontSize(12).Bold().AlignCenter();
-                                header.Cell().Text("S/Lượng lỗi").FontSize(12).Bold().AlignCenter();
-                                header.Cell().Text("S/Lượng mất").FontSize(12).Bold().AlignCenter();
-                                header.Cell().Text("Phụ thu").FontSize(12).Bold().AlignCenter();
+                                header.Cell().Text("Mã sách").Bold();
+                                header.Cell().Text("Tên sách").Bold();
+                                header.Cell().Text("S/Lượng mượn").Bold().AlignCenter();
+                                header.Cell().Text("S/Lượng trả").Bold().AlignCenter();
+                                header.Cell().Text("S/Lượng lỗi").Bold().AlignCenter();
+                                header.Cell().Text("S/Lượng mất").Bold().AlignCenter();
+                                header.Cell().Text("Phụ thu").Bold().AlignCenter();
 
-                                header.Cell().ColumnSpan(7).BorderBottom(1).BorderColor(Colors.Black);
+                                header.Cell().ColumnSpan(7).PaddingVertical(6).BorderBottom(1).BorderColor(Colors.Black);
                             });
 
                             // Dữ liệu bảng
                             foreach (var sachTra in tpt.ListSachTra)
                             {
-                                table.Cell().Text(sachTra.MaSach.ToString());
-                                table.Cell().Text(sachTra.TenSach);
-                                table.Cell().Text(sachTra.SoLuongMuon.ToString()).AlignCenter();
-                                table.Cell().Text(sachTra.SoLuongTra.ToString()).AlignCenter();
-                                table.Cell().Text(sachTra.SoLuongLoi.ToString()).AlignCenter();
-                                table.Cell().Text(sachTra.SoLuongMat.ToString()).AlignCenter();
-                                table.Cell().Text(sachTra.PhuThu.ToString("N2")).AlignRight();
+
+                                table.Cell().Padding(4).Text(sachTra.MaSach.ToString());
+                                table.Cell().Padding(4).Text(sachTra.TenSach);
+                                table.Cell().Padding(4).Text(sachTra.SoLuongMuon.ToString()).AlignCenter();
+                                table.Cell().Padding(4).Text(sachTra.SoLuongTra.ToString()).AlignCenter();
+                                table.Cell().Padding(4).Text(sachTra.SoLuongLoi.ToString()).AlignCenter();
+                                table.Cell().Padding(4).Text(sachTra.SoLuongMat.ToString()).AlignCenter();
+                                table.Cell().Padding(4).Text(sachTra.PhuThu.ToString("#,##0")).AlignRight(); // Định dạng bỏ .00
 
                                 // Chi tiết cuốn sách
                                 foreach (var ctSachTra in sachTra.ListCTSachTra)
                                 {
-                                    table.Cell().ColumnSpan(7).PaddingLeft(10).Text(
-                                        $"Mã cuốn sách: {ctSachTra.MaCuonSach}, Tình trạng: {(ctSachTra.Tinhtrang == 1 ? "Bình Thường" : (ctSachTra.Tinhtrang == 2 ? "Lỗi" : "Mất"))}")
-                                        .FontSize(10).Italic();
+                                    table.Cell().ColumnSpan(7).PaddingLeft(20).Text(
+                                        $"      Mã cuốn sách: {ctSachTra.MaCuonSach}           Tình trạng: {(ctSachTra.Tinhtrang == 1 ? "Bình Thường" : (ctSachTra.Tinhtrang == 2 ? "Lỗi" : "Mất"))}")
+                                        .FontSize(13).Bold();
                                 }
                             }
+
+                            // Thêm dòng tổng tiền
+                            table.Cell().ColumnSpan(6).Text("Tổng tiền").Bold().AlignRight();
+                            table.Cell().Text(tongTien.ToString("#,##0")).Bold().AlignRight(); // Định dạng bỏ .00
+
+                            table.Cell().ColumnSpan(7).PaddingVertical(6).BorderBottom(1).BorderColor(Colors.Black);
                         });
 
                         column.Item().PaddingTop(30).Text("Vui lòng kiểm tra lại thông tin trước khi rời khỏi quầy")
@@ -210,7 +219,7 @@ namespace WebAPI.Services.Admin
 
             return document.GeneratePdf();
         }
-
+        
 
     }
 }

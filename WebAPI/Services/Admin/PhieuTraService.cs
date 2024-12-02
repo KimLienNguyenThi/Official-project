@@ -9,15 +9,12 @@ namespace WebAPI.Services.Admin
     {
         private readonly QuanLyThuVienContext _context;
         private readonly GeneratePDFService _GeneratePDFService;
-        private readonly IHttpContextAccessor _httpContextAccessor;
-
-        
-
-        public PhieuTraService(QuanLyThuVienContext context, GeneratePDFService generatePDFService, IHttpContextAccessor httpContextAccessor)
+        //private readonly IHttpContextAccessor _httpContextAccessor;
+        public PhieuTraService(QuanLyThuVienContext context, GeneratePDFService generatePDFService)
         {
             _context = context;
             _GeneratePDFService = generatePDFService;
-            _httpContextAccessor = httpContextAccessor;
+           // _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<PagingResult<PhieuMuonDTO>> GetAllPhieuMuonPaging(GetListPhieuMuonPaging req)

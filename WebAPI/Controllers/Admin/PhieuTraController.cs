@@ -54,43 +54,7 @@ namespace WebAPI.Controllers.Admin
             }
         }
 
-        //[HttpPost]
-        //public IActionResult TaoPhieuTra_API([FromBody] DTO_Tao_Phieu_Tra data)
-        //{
-        //    var result = _phieuTraService.Insert(data);
-
-        //    if (result.HasValue) // Kiểm tra xem Mapt có được trả về không (không phải null)
-        //    {
-        //        return Ok(new { success = true, message = "Tạo phiếu trả thành công.", mapt = result.Value });
-        //    }
-
-        //    return BadRequest(new { success = false, message = "Tạo phiếu trả thất bại." });
-        //}
-
-
-        //[HttpPost]
-        //public IActionResult TaoPhieuTra_API([FromBody] DTO_Tao_Phieu_Tra data)
-        //{
-        //    try
-        //    {
-        //        // Gọi service để tạo phiếu trả và tạo file PDF
-        //        var pdfData = _phieuTraService.InsertAndGeneratePDF(data);
-
-        //        if (pdfData != null) // Nếu file PDF được tạo thành công
-        //        {
-        //            return File(pdfData, "application/pdf", "PhieuTra.pdf");
-        //        }
-
-        //        // Nếu không thành công, trả về lỗi
-        //        return BadRequest(new { success = false, message = "Tạo phiếu trả thất bại." });
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        // Bắt lỗi và trả về thông báo lỗi
-        //        return StatusCode(500, new { success = false, message = "Có lỗi xảy ra khi tạo phiếu trả.", error = ex.Message });
-        //    }
-        //}
-
+        
         [HttpPost]
         public IActionResult TaoPhieuTra_API([FromBody] DTO_Tao_Phieu_Tra data)
         {
@@ -122,3 +86,39 @@ namespace WebAPI.Controllers.Admin
 
     }
 }
+//[HttpPost]
+//public IActionResult TaoPhieuTra_API([FromBody] DTO_Tao_Phieu_Tra data)
+//{
+//    var result = _phieuTraService.Insert(data);
+
+//    if (result.HasValue) // Kiểm tra xem Mapt có được trả về không (không phải null)
+//    {
+//        return Ok(new { success = true, message = "Tạo phiếu trả thành công.", mapt = result.Value });
+//    }
+
+//    return BadRequest(new { success = false, message = "Tạo phiếu trả thất bại." });
+//}
+
+
+//[HttpPost]
+//public IActionResult TaoPhieuTra_API([FromBody] DTO_Tao_Phieu_Tra data)
+//{
+//    try
+//    {
+//        // Gọi service để tạo phiếu trả và tạo file PDF
+//        var pdfData = _phieuTraService.InsertAndGeneratePDF(data);
+
+//        if (pdfData != null) // Nếu file PDF được tạo thành công
+//        {
+//            return File(pdfData, "application/pdf", "PhieuTra.pdf");
+//        }
+
+//        // Nếu không thành công, trả về lỗi
+//        return BadRequest(new { success = false, message = "Tạo phiếu trả thất bại." });
+//    }
+//    catch (Exception ex)
+//    {
+//        // Bắt lỗi và trả về thông báo lỗi
+//        return StatusCode(500, new { success = false, message = "Có lỗi xảy ra khi tạo phiếu trả.", error = ex.Message });
+//    }
+//}
