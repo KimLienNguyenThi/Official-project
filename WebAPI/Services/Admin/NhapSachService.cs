@@ -9,10 +9,11 @@ namespace WebAPI.Services.Admin
     public class NhapSachService
     {
         private readonly QuanLyThuVienContext _context;
-
-        public NhapSachService(QuanLyThuVienContext context)
+        private readonly GeneratePDFService _GeneratePDFService;
+        public NhapSachService(QuanLyThuVienContext context,GeneratePDFService generatePDFService)
         {
             _context = context;
+            _GeneratePDFService = generatePDFService;
         }
 
         public async Task<PagingResult<NhaCungCap>> GetAllNCCPaging(GetListPhieuMuonPaging req)
@@ -40,7 +41,6 @@ namespace WebAPI.Services.Admin
                 PageSize = req.PageSize
             };
         }
-
         public async Task<PagingResult<Sach>> GetAllSachPaging(GetListPhieuMuonPaging req)
         {
             var query =
@@ -133,13 +133,11 @@ namespace WebAPI.Services.Admin
             }
 
         }
-
-        
-        public bool InsertPhieuNhap(DTO_Tao_Phieu_Nhap obj, List<string> imageUrls)
+        public byte[] InsertPhieuNhap(DTO_Tao_Phieu_Nhap obj, List<string> imageUrls)
         {
             if (obj.listSachNhap.Any(sach => sach.SoLuong > 0) == false)
             {
-                return false;
+                return null;
             }
 
             using (var transaction = _context.Database.BeginTransaction())
@@ -163,13 +161,17 @@ namespace WebAPI.Services.Admin
                     _context.PhieuNhapSaches.Add(newPhieuNhap);
                     _context.SaveChanges(); // Save to get the generated MaPn
 
+                    // Khai báo currentYear ngay trước khi sử dụng
+                    int currentYear = DateTime.Now.Year;
+
                     for (int i = 0; i < obj.listSachNhap.Count; i++)
                     {
                         var sachNhap = obj.listSachNhap[i];
 
-                        if (sachNhap.NamXB > namXBMax)
+                        // Sửa điều kiện kiểm tra năm xuất bản
+                        if ((currentYear - sachNhap.NamXB) > namXBMax)
                         {
-                            throw new Exception($"Năm xuất bản của sách '{sachNhap.TenSach}' vượt quá quy định ({namXBMax}).");
+                            throw new Exception($"Sách '{sachNhap.TenSach}' có năm xuất bản quá cũ so với quy định ({namXBMax} năm trở lại).");
                         }
 
                         if (sachNhap.MaSach > 0)
@@ -223,14 +225,20 @@ namespace WebAPI.Services.Admin
                     _context.SaveChanges(); // Save all changes
 
                     transaction.Commit();
-                    return true;
+
+                    // Kết hợp DTO hiện tại với MaPN để tạo PDF
+                    int MaPhieuNhap = newPhieuNhap.Mapn;
+                    var pdfData = _GeneratePDFService.GeneratePhieuNhapPDF(obj, MaPhieuNhap);
+
+                    // Trả về dữ liệu PDF dưới dạng byte[]
+                    return pdfData;
                 }
-                catch (Exception ex)
+                catch(Exception ex)
                 {
-                    transaction.Rollback(); // Rollback if any error occurs
+                    transaction.Rollback(); // Rollback nếu gặp lỗi
                     Console.WriteLine($"Error: {ex.Message}");
-                    // Log error
-                    return false;
+                    // Xử lý lỗi (ghi log hoặc thông báo)
+                    return null; // Trả về null nếu lỗi
                 }
             }
         }

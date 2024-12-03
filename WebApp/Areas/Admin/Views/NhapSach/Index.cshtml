@@ -375,6 +375,20 @@
     </div>
 </div>
 
+<!-- Modal hiển thị PDF -->
+<div class="modal fade" id="ModalPDF" tabindex="-1" aria-labelledby="ModalPDFLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="ModalPDFLabel">Phieu Tra PDF</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <iframe id="pdfIframe" src="" width="100%" height="650px"></iframe>
+            </div>
+        </div>
+    </div>
+</div>
 <!-- Modal nhập số lượng và giá để thêm sách có sẵn-->
 <div class="modal fade" id="ThemSachCoSanModal" tabindex="-1" role="dialog" aria-labelledby="ThemSachCoSanModal" aria-hidden="true">
     <div class="modal-dialog" role="document">
@@ -504,7 +518,7 @@
 
             // Mặc định chọn nút "Thông tin đơn vị"
             changeTableShow(thongTinNCCTable, thongTinSachTable);
-            createYearDropdown();
+           // createYearDropdown();
         }
         $(document).ready(function () {
             init();
@@ -1007,13 +1021,19 @@
             }
         }
 
-        //===================== Hàm tạo phiếu nhập =====================
         function taoPhieuNhap() {
             var maNCC = document.getElementById("MaNCC").value;
+            var tenNCC = document.getElementById("TenNCC").value.trim();
             var maNhanVien = document.getElementById("MaNhanVien").value;
             var ngayNhap = document.getElementById("NgayNhap").value;
-            if (maNCC == "" || maNCC == 'undefined') {
+            console.log(document.getElementById("TenNCC").value);
+
+            if (!maNCC) {
                 alert("Vui lòng chọn nhà cung cấp.");
+                return;
+            }
+            if (!tenNCC) {
+                alert("Không thể lấy tên nhà cung cấp. Vui lòng kiểm tra lại.");
                 return;
             }
             if (listSachNhap == null || listSachNhap.length == 0) {
@@ -1021,62 +1041,51 @@
                 return;
             }
 
-            // var dataPost = {
-            //     MaNhanVien: maNhanVien,
-            //     NgayNhap: ngayNhap,
-            //     MaNhaCungCap: maNCC,
-            //     listSachNhap: listSachNhap,
-            // };
-
             var formData = new FormData();
             formData.append('MaNhaCungCap', maNCC);
+            formData.append('TenNhaCungCap', tenNCC);
             formData.append('MaNhanVien', maNhanVien);
             formData.append('NgayNhap', ngayNhap);
 
             listSachNhap.forEach((item, index) => {
-
-                formData.append('listSachNhap[' + index + '].maSach', item.maSach);
-                formData.append('listSachNhap[' + index + '].tenSach', item.tenSach);
-                formData.append('listSachNhap[' + index + '].theLoai', item.theLoai);
-                formData.append('listSachNhap[' + index + '].ngonNgu', item.ngonNgu);
-                formData.append('listSachNhap[' + index + '].tacGia', item.tacGia);
-                formData.append('listSachNhap[' + index + '].nhaXB', item.nhaXB);
-                formData.append('listSachNhap[' + index + '].soLuong', item.soLuong);
-                formData.append('listSachNhap[' + index + '].namXB', item.namXB);
-                formData.append('listSachNhap[' + index + '].giaSach', item.giaSach);
-                formData.append('listSachNhap[' + index + '].fileImage', item.fileImage);
-                formData.append('listSachNhap[' + index + '].moTa', item.moTa);
-                console.log(index + JSON.stringify(item));
-
+                formData.append(`listSachNhap[${index}].maSach`, item.maSach);
+                formData.append(`listSachNhap[${index}].tenSach`, item.tenSach);
+                formData.append(`listSachNhap[${index}].theLoai`, item.theLoai);
+                formData.append(`listSachNhap[${index}].ngonNgu`, item.ngonNgu);
+                formData.append(`listSachNhap[${index}].tacGia`, item.tacGia);
+                formData.append(`listSachNhap[${index}].nhaXB`, item.nhaXB);
+                formData.append(`listSachNhap[${index}].soLuong`, item.soLuong);
+                formData.append(`listSachNhap[${index}].namXB`, item.namXB);
+                formData.append(`listSachNhap[${index}].giaSach`, item.giaSach);
+                formData.append(`listSachNhap[${index}].fileImage`, item.fileImage);
+                formData.append(`listSachNhap[${index}].moTa`, item.moTa);
             });
-
 
             var confirmed = confirm("Bạn có chắc muốn tạo phiếu nhập không?");
             if (confirmed) {
                 $.ajax({
                     type: "POST",
                     url: "/admin/nhapsach/PhieuNhap_APP",
-                   // data: JSON.stringify(dataPost),
-                    contentType: 'multipart/form-data',
-                    processData: false,
                     contentType: false,
+                    processData: false,
                     data: formData,
-                    //contentType: "application/json; charset=utf-8",
-                    //dataType: "json",
-                    success: function (response) {
-                        if (response.success) {
-                            document.getElementById("contentModalSuccess").innerHTML = "Thêm phiếu nhập thành công!";
-                            $('#danhSachNCC').DataTable().ajax.reload();
-                            $("#ModalSuccess").modal("show");
+                    success: function (response, status, xhr) {
+                        if (xhr.getResponseHeader('Content-Type') === 'application/pdf') {
+                            var pdfBlob = new Blob([response], { type: 'application/pdf' });
+                            var pdfUrl = URL.createObjectURL(pdfBlob);
+                            document.getElementById('pdfIframe').src = pdfUrl;
+                            $("#ModalPDF").modal("show");
+
                             listSachNhap = [];
                             lamMoi();
-
-                            console.log('Tạo phiếu nhập: ', response);
                         } else {
-                            document.getElementById("contentModalError").innerHTML = "Vui lòng nhập đầy đủ thông tin!";
+                            var errorResponse = JSON.parse(response);
+                            document.getElementById("contentModalError").innerHTML = errorResponse.message || "Có lỗi xảy ra!";
                             $("#ModalError").modal("show");
-                            console.log('Tạo phiếu nhập: ', response);
                         }
+                    },
+                    xhrFields: {
+                        responseType: 'blob'
                     },
                     error: function () {
                         alert("Lỗi khi gửi yêu cầu đến máy chủ.");
@@ -1084,6 +1093,7 @@
                 });
             }
         }
+
         function updateTongTien() {
             var tongTienPhuThu = 0;
 

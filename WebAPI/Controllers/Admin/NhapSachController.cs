@@ -53,33 +53,50 @@ namespace WebAPI.Controllers.Admin
         [HttpPost]
         public IActionResult PhieuNhap_API([FromForm] string data)
         {
-            if (string.IsNullOrEmpty(data))
+            try
             {
-                return BadRequest(new { success = false, message = "Dữ liệu không hợp lệ." });
+                if (string.IsNullOrEmpty(data))
+                {
+                    return BadRequest(new { success = false, message = "Dữ liệu không hợp lệ." });
+                }
+
+                // Deserialize the data to DTO_Tao_Phieu_Nhap
+                DTO_Tao_Phieu_Nhap dto;
+                try
+                {
+                    dto = JsonConvert.DeserializeObject<DTO_Tao_Phieu_Nhap>(data);
+                }
+                catch (JsonException ex)
+                {
+                    return BadRequest(new { success = false, message = "Dữ liệu không đúng định dạng.", error = ex.Message });
+                }
+
+                // Create a list to store image URLs
+                var imageUrls = new List<string>();
+                foreach (var sach in dto.listSachNhap)
+                {
+                    if (!string.IsNullOrEmpty(sach.FileImage))
+                    {
+                        imageUrls.Add(sach.FileImage);
+                    }
+                }
+
+                // Call the service to insert data into the database and generate PDF
+                var pdfData = _nhapSachService.InsertPhieuNhap(dto, imageUrls);
+                if (pdfData == null || pdfData.Length == 0)
+                {
+                    return StatusCode(500, new { success = false, message = "Không thể tạo file PDF." });
+                }
+
+                // Generate PDF file name
+                string fileName = $"PhieuNhap_{DateTime.Now:yyyyMMddHHmmss}.pdf";
+
+                // Return the PDF file as response
+                return File(pdfData, "application/pdf", fileName);
             }
-
-            // Deserialize the data to DTO_Tao_Phieu_Nhap
-            DTO_Tao_Phieu_Nhap dto = JsonConvert.DeserializeObject<DTO_Tao_Phieu_Nhap>(data);
-
-            // Create a list to store image URLs
-            var imageUrls = new List<string>();
-
-            // Loop through the DTO list to get image URLs
-            foreach (var sach in dto.listSachNhap)
+            catch (Exception ex)
             {
-                // Get the image URL from the DTO object
-                imageUrls.Add(sach.FileImage);
-            }
-
-            // Call the service to insert data into the database
-            var success = _nhapSachService.InsertPhieuNhap(dto, imageUrls);
-            if (success)
-            {
-                return Ok(new { success = true, message = "Tạo phiếu nhập thành công." });
-            }
-            else
-            {
-                return BadRequest(new { success = false, message = "Tạo phiếu nhập thất bại." });
+                return StatusCode(500, new { success = false, message = "Có lỗi xảy ra khi tạo phiếu nhập.", error = ex.Message });
             }
         }
 

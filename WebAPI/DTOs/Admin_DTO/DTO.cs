@@ -96,13 +96,11 @@ namespace WebAPI.Areas.Admin.Data
     {
         public int MaNhanVien { get; set; }
         public int MaNhaCungCap { get; set; }
-        public DateOnly NgayNhap { get; set; }
+        public string TenNhaCungCap { get; set; }
+
+        public DateOnly? NgayNhap { get; set; }
         public List<DTO_Sach_Nhap> listSachNhap { get; set; }
 
-        //public DTO_Tao_Phieu_Nhap()
-        //{
-        //    listSachNhap = new List<DTO_Sach_Nhap>();
-        //}
     }
     public class DTO_DangKyMuonSach
     {

@@ -197,6 +197,7 @@ namespace WebApp.Areas.Admin.Controllers
                 var convertData = new DTO_Tao_Phieu_Nhap_Json()
                 {
                     MaNhaCungCap = dto.MaNhaCungCap,
+                    TenNhaCungCap = dto.TenNhaCungCap,
                     MaNhanVien = dto.MaNhanVien,
                     NgayNhap = dto.NgayNhap,
                     listSachNhap = lstSachNhap
@@ -208,12 +209,18 @@ namespace WebApp.Areas.Admin.Controllers
                 var response = await _client.PostAsync($"{_client.BaseAddress}/NhapSach/PhieuNhap_API", multipartContent);
                 if (response.IsSuccessStatusCode)
                 {
-                    var result = await response.Content.ReadAsStringAsync();
-                    return Ok(new { success = true });
+                    // Lấy file PDF từ response content
+                    var pdfBytes = await response.Content.ReadAsByteArrayAsync();
+                    var fileName = $"PhieuNhap_{DateTime.Now:yyyyMMddHHmmss}.pdf";
+
+                    // Trả về file PDF cho client
+                    return File(pdfBytes, "application/pdf", fileName);
                 }
                 else
                 {
-                    return BadRequest(new { success = false, message = "Tạo phiếu nhập thất bại." });
+                    // Xử lý lỗi khi API trả về trạng thái không thành công
+                    var errorMessage = await response.Content.ReadAsStringAsync();
+                    return BadRequest(new { success = false, message = $"Tạo phiếu nhập thất bại: {errorMessage}" });
                 }
             }
             catch (Exception ex)
