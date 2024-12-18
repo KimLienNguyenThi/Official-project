@@ -20,7 +20,7 @@ namespace WebAPI.Services.Admin
         {
             var query =
                  (from NhaCungCap in _context.NhaCungCaps
-                  where string.IsNullOrEmpty(req.Keyword) || NhaCungCap.Tenncc.Contains(req.Keyword)
+                  where string.IsNullOrEmpty(req.Keyword) || NhaCungCap.Tenncc.Contains(req.Keyword)  || NhaCungCap.Mancc.ToString().Contains(req.Keyword)
                   select new NhaCungCap
                   {
                       Mancc = NhaCungCap.Mancc,
@@ -262,5 +262,21 @@ namespace WebAPI.Services.Admin
             }
         }
 
+        public async Task<NhaCungCap> GetAllNCC(int mancc)
+        {
+            // Truy vấn để lấy nhà cung cấp với mancc cụ thể
+            var ncc = await _context.NhaCungCaps
+                                    .Where(n => n.Mancc == mancc)
+                                    .Select(n => new NhaCungCap
+                                    {
+                                        Mancc = n.Mancc,
+                                        Tenncc = n.Tenncc,
+                                        Diachincc = n.Diachincc,
+                                        Sdtncc = n.Sdtncc,
+                                    })
+                                    .FirstOrDefaultAsync(); // Lấy nhà cung cấp đầu tiên hoặc null nếu không tìm thấy
+
+            return ncc;
+        }
     }
 }

@@ -266,6 +266,42 @@ namespace WebApp.Areas.Admin.Controllers
             }
         }
 
+        [HttpPost]
+        [Route("GetNCC_APP")]
+        public async Task<IActionResult> GetNCC_APP(int mancc)
+        {
+            try
+            {
+                // Gọi API GetListNCC_API thông qua HttpClient
+                var requestData = new { mancc = mancc }; // Đóng gói tham số mancc vào một đối tượng
+
+                var reqjson = JsonConvert.SerializeObject(requestData);
+                var httpContent = new StringContent(reqjson, Encoding.UTF8, "application/json");
+
+                // Gọi API GetListNCC_API từ controller khác
+                HttpResponseMessage response = await _client.PostAsync(_client.BaseAddress + "/NhapSach/GetListNCC_API", httpContent);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    string data = await response.Content.ReadAsStringAsync();
+                    var result = JsonConvert.DeserializeObject<NhaCungCap>(data);
+
+                    // Nếu gọi API thành công và có dữ liệu, trả về thông tin nhà cung cấp
+                    return Ok(new { success = true, ncc = result });
+                }
+                else
+                {
+                    // Nếu API trả về lỗi
+                    return BadRequest(new { success = false, message = "Failed to retrieve data from API." });
+                }
+            }
+            catch (Exception ex)
+            {
+                // Xử lý lỗi trong quá trình gọi API
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
     }
 
 }

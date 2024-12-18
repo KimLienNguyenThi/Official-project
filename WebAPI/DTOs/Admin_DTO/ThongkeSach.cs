@@ -4,6 +4,8 @@
     {
         public int MaSach { get; set; }
         public string TenSach { get; set; }
+
+        public string TheLoai { get; set; }
         public int? SoLuong { get; set; }
     }
     public class ThongKePhieu
@@ -16,7 +18,7 @@
         public int MaThe { get; set; }
         public DateOnly? NgayMuon { get; set; }
 
-        public bool Tinhtrang { get; set; }
+        public bool? Tinhtrang { get; set; }
     }
     public class ThongKePT
     {

@@ -106,5 +106,12 @@ namespace WebAPI.Controllers.Admin
             var result = _nhapSachService.GetNamXBMax();
             return Ok(result);
         }
+
+        [HttpPost]
+        public async Task<ActionResult<NhaCungCap>> GetListNCC_API(int mancc)
+        {
+            var result = await _nhapSachService.GetAllNCC(mancc);
+            return Ok(result);
+        }
     }
 }
