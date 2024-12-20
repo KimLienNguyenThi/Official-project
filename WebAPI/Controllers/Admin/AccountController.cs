@@ -4,6 +4,7 @@ using WebAPI.Areas.Admin.Data;
 using WebAPI.DTOs.Admin_DTO;
 using WebAPI.Models;
 using WebAPI.Service_Admin;
+using WebAPI.Services;
 
 namespace WebAPI.Controllers.Admin
 {
@@ -12,10 +13,12 @@ namespace WebAPI.Controllers.Admin
     public class AccountController : ControllerBase
     {
         private readonly AccountService _accountService;
+        private readonly JwtService _jwtService;
 
-        public AccountController(AccountService accountService)
+        public AccountController(AccountService accountService, JwtService jwtService)
         {
             _accountService = accountService;
+            _jwtService = jwtService;
         }
 
         [HttpGet]
@@ -35,7 +38,7 @@ namespace WebAPI.Controllers.Admin
                     });
                 }
                 else
-                {           
+                {
                     return Ok(new APIResponse<object>()
                     {
                         Success = false,
@@ -120,7 +123,7 @@ namespace WebAPI.Controllers.Admin
 
 
         [HttpGet("{username}/{password}")]
-        public IActionResult Login(string username, string password)
+        public async Task<IActionResult> Login(string username, string password)
         {
             try
             {
@@ -128,10 +131,12 @@ namespace WebAPI.Controllers.Admin
 
                 if (nhanViens != null)
                 {
+                    var token = await _jwtService.CreateTokenAdmin(nhanViens.HoTenNV);
+
                     return Ok(new APIResponse<DTO_NhanVien_LoginNV>()
                     {
                         Success = true,
-                        Message = "Đăng nhập thành công",
+                        Message = token!.AccessToken!,
                         Data = nhanViens
                     });
                 }

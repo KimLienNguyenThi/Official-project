@@ -14,7 +14,7 @@
     <table class="table table-striped" style="text-align:center">
         <thead>
             <tr>
-                <th> 
+                <th>
                     <h6>Mã đăng ký</h6>
                 </th>
                 <th>
@@ -156,7 +156,7 @@
     </div>
 </div>
 @* Modal thông báo lỗi *@
- <div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
+<div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
@@ -184,10 +184,11 @@
         // Gắn sự kiện xác nhận vào nút trong modal
         $("#confirmCancelButton").off("click").on("click", function () {
             $("#confirmModal").modal('hide'); // Ẩn modal xác nhận
+            const token = localStorage.getItem("accessToken");
             $.ajax({
                 url: "/User/CancelOrderBooks",
                 type: "PUT",
-                data: { maDK: maDK },
+                data: { maDK: maDK, token: token },
                 success: function (data) {
                     // Hiển thị modal thông báo kết quả
                     $("#notificationMessage").text(data.message);
@@ -231,10 +232,10 @@
                     document.getElementById("maDangKyModal").value = item.chiTietDk.madk;
 
                     var newRow = $(` <tr class="sachdk-row" data-ma-sach="${item.chiTietDk.masach}">
-                                        <td>${item.chiTietDk.masach}</td>
-                                            <td>${item.tenSach}</td>
-                                        <td>${item.chiTietDk.soluongmuon}</td>
-                                        </tr> `);
+                                            <td>${item.chiTietDk.masach}</td>
+                                                <td>${item.tenSach}</td>
+                                            <td>${item.chiTietDk.soluongmuon}</td>
+                                            </tr> `);
 
                     danhSachSachDK.append(newRow);
                     $("#ModaldanhSachDkiMuon").modal("show");

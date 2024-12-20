@@ -56,7 +56,7 @@ namespace WebApp.Areas.Admin.Controllers
                 {
                     var claims = new List<Claim>()
                     {
-                        new Claim(ClaimTypes.Name, apiResponse.Data.HoTenNV),
+                        new Claim(ClaimTypes.Name, apiResponse.Data!.HoTenNV),
                         new Claim(ClaimTypes.Role, apiResponse.Data.ChucVu),
                         new Claim("chucvu", apiResponse.Data.ChucVu),
                         new Claim("MaNV", apiResponse.Data.MaNV.ToString()),
@@ -68,11 +68,11 @@ namespace WebApp.Areas.Admin.Controllers
 
                     await HttpContext.SignInAsync("AdminCookie", claimsPrincial);
 
-                    return RedirectToAction("Index", "Home");
+                    return View(model: apiResponse.Message);
                 }
                 else
                 {
-                    TempData["error"] = apiResponse.Message;
+                    TempData["error"] = apiResponse!.Message;
                     return View();
                 }
 

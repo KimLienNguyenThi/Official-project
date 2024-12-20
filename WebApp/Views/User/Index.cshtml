@@ -101,109 +101,109 @@
 </div>
 
 
-    <script>
+<script>
 
-        function isNumberKey(evt) {
-            const keyCode = evt.keyCode;
-            // Cho phép: phím số (0-9), Backspace, Delete, Tab, và các phím điều hướng
-            if (
-                (keyCode >= 48 && keyCode <= 57) || // Phím số từ 0-9
-                (keyCode >= 96 && keyCode <= 105) || // Số trên bàn phím số (numpad)
-                keyCode === 8 || // Backspace
-                keyCode === 46 || // Delete
-                keyCode === 9 || // Tab
-                (keyCode >= 37 && keyCode <= 40) // Các phím điều hướng (mũi tên)
-            ) {
-                return true;
-            }
-            // Ngăn các phím không hợp lệ
-            return false;
+    function isNumberKey(evt) {
+        const keyCode = evt.keyCode;
+        // Cho phép: phím số (0-9), Backspace, Delete, Tab, và các phím điều hướng
+        if (
+            (keyCode >= 48 && keyCode <= 57) || // Phím số từ 0-9
+            (keyCode >= 96 && keyCode <= 105) || // Số trên bàn phím số (numpad)
+            keyCode === 8 || // Backspace
+            keyCode === 46 || // Delete
+            keyCode === 9 || // Tab
+            (keyCode >= 37 && keyCode <= 40) // Các phím điều hướng (mũi tên)
+        ) {
+            return true;
         }
+        // Ngăn các phím không hợp lệ
+        return false;
+    }
 
-        document.getElementById("buttonCloseModal").addEventListener("click", function () {
-            window.location.href = '/Home/Index';
-        });
+    document.getElementById("buttonCloseModal").addEventListener("click", function () {
+        window.location.href = '/Home/Index';
+    });
 
-        function Login() {
-            console.log("Function Login called");
-            // Lấy giá trị từ ô input
-            var phoneNumber = $("#phoneNumber").val();
-            console.log("dữ liệu nhận vào: ", phoneNumber);
-            var password = $("#password").val();
-            console.log("dữ liệu nhận vào: ", password);
+    function Login() {
+        console.log("Function Login called");
+        // Lấy giá trị từ ô input
+        var phoneNumber = $("#phoneNumber").val();
+        console.log("dữ liệu nhận vào: ", phoneNumber);
+        var password = $("#password").val();
+        console.log("dữ liệu nhận vào: ", password);
 
-            $.ajax({
-                url: "/User/Login",
-                type: "GET",
-                data: 
-                { 
-                    phoneNumber: phoneNumber,
-                    password: password
-                },
-                success: function (result) {
+        $.ajax({
+            url: "/User/Login",
+            type: "GET",
+            data:
+            {
+                phoneNumber: phoneNumber,
+                password: password
+            },
+            success: function (result) {
 
-                    if (result.success) {
-                        $('#successModal').modal('show');
-                    } 
-                    else 
-                    {
-                        document.getElementById("contentModalError").innerHTML = result.message;
-                        $('#failModal').modal('show');
-                    }
-                },
-                error: function (result) {
+                if (result.success) {
+                    // lưu token vào localStorage
+                    localStorage.setItem("accessToken", result.data);
+                    $('#successModal').modal('show');
+                }
+                else {
+                    document.getElementById("contentModalError").innerHTML = result.message;
                     $('#failModal').modal('show');
                 }
-            });
-        }
+            },
+            error: function (result) {
+                $('#failModal').modal('show');
+            }
+        });
+    }
 
-        function LoginByGoogle() {
+    function LoginByGoogle() {
 
-            $.ajax({
-                url: "/User/LoginByGoogle",
-                success: function (result) {
+        $.ajax({
+            url: "/User/LoginByGoogle",
+            success: function (result) {
 
-                    if (result.success && result.trangThai == 1) {
-                        $('#successModal').modal('show');
-                    } else if (result.success && result.trangThai == 0) {
-                        $('#RequiredSdtModal').modal('show');
-                        RequiredSdt();
-                    }
-                },
-                error: function (xhr, ajaxOptions, thrownError) {
-                    alert(xhr.status); // Hiển thị mã lỗi
-                    alert(thrownError); // Hiển thị thông báo lỗi
+                if (result.success && result.trangThai == 1) {
+                    $('#successModal').modal('show');
+                } else if (result.success && result.trangThai == 0) {
+                    $('#RequiredSdtModal').modal('show');
+                    RequiredSdt();
                 }
-            });
-        }
+            },
+            error: function (xhr, ajaxOptions, thrownError) {
+                alert(xhr.status); // Hiển thị mã lỗi
+                alert(thrownError); // Hiển thị thông báo lỗi
+            }
+        });
+    }
 
-        function RequiredSdt() {
-            var sdt = $("#inputSdt").val();
+    function RequiredSdt() {
+        var sdt = $("#inputSdt").val();
 
-            $.ajax({
-                url: "/User/Register",
-                type: "POST",
-                data:
-                {
-                    phoneNumber: sdt,
-                    password: "null",
-                    username: username,
-                    email: email
-                },
-                success: function (result) {
+        $.ajax({
+            url: "/User/Register",
+            type: "POST",
+            data:
+            {
+                phoneNumber: sdt,
+                password: "null",
+                username: username,
+                email: email
+            },
+            success: function (result) {
 
-                    if (result.success && result.trangThai == 1) {
-                        $('#successModal').modal('show');
-                    } else if (result.success && result.trangThai == 0) {
-                        $('#RequiredSdtModal').modal('show');
-                        RequiredSdt();
-                    }
-                },
-                error: function (result) {
-                    alert("ERROR");
+                if (result.success && result.trangThai == 1) {
+                    $('#successModal').modal('show');
+                } else if (result.success && result.trangThai == 0) {
+                    $('#RequiredSdtModal').modal('show');
+                    RequiredSdt();
                 }
-            });
-        }
+            },
+            error: function (result) {
+                alert("ERROR");
+            }
+        });
+    }
 
-    </script>
-    
+</script>

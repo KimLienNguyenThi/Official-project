@@ -6,9 +6,7 @@ namespace WebApp.Areas.Admin.Controllers
 
     [Area("admin")]
     [Route("admin/homeadmin")]
-   // [Authorize(AuthenticationSchemes = "AdminCookie")]
-
-
+    [Authorize(AuthenticationSchemes = "AdminCookie")]
 
     public class HomeController : Controller
     {

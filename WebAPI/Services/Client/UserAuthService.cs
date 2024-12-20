@@ -40,6 +40,19 @@ namespace WebAPI.Services.Client
             }
         }
 
+        public async Task<LoginDg> GetInfoLogin(string phoneNumber)
+        {
+            try
+            {
+                return await _context.LoginDgs.FirstOrDefaultAsync(u => u.Sdt == phoneNumber);
+            }
+            catch (Exception ex)
+            {
+                // Ghi log lỗi nếu cần
+                Console.WriteLine($"Error: {ex.Message}");
+                return null;
+            }
+        }
 
         public async Task<bool> Register(UserAuthentication newRegister)
         {

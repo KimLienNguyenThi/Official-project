@@ -12,8 +12,7 @@ namespace WebApp.Areas.Admin.Controllers
 {
     [Area("admin")]
     [Route("admin/thedocgia")]
-
-    //[Authorize(AuthenticationSchemes = "AdminCookie")]
+    [Authorize(AuthenticationSchemes = "AdminCookie")]
 
     public class TheDocGiaController : Controller
     {
@@ -214,7 +213,7 @@ namespace WebApp.Areas.Admin.Controllers
                     string dataJson = await response.Content.ReadAsStringAsync();
                     var apiResponse = JsonConvert.DeserializeObject<APIResponse<DTO_DocGia_TheDocGia>>(dataJson);
 
-                    if (apiResponse != null && apiResponse.Success) 
+                    if (apiResponse != null && apiResponse.Success)
                     {
                         return Json(new { success = true, data = apiResponse.Data });
                     }

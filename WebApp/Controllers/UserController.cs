@@ -3,15 +3,17 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using WebApp.DTOs;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 using System.Security.Claims;
-using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
 using Newtonsoft.Json;
 using Microsoft.AspNetCore.Authorization;
 using System.Net.Http.Headers;
 using WebApp.Responses;
 using WebApp.Models;
 using WebApp.Admin.Data;
+using Newtonsoft.Json.Linq;
+using NuGet.Common;
+using Azure.Core;
+using System.Net;
 
 namespace WebApp.Controllers
 {
@@ -38,10 +40,11 @@ namespace WebApp.Controllers
         {
             try
             {
-                if (string.IsNullOrEmpty(phoneNumber)) 
+                if (string.IsNullOrEmpty(phoneNumber))
                 {
                     return Json(new { success = false, message = "Tài khoản không được để trống!" });
-                }else if(string.IsNullOrEmpty(password))
+                }
+                else if (string.IsNullOrEmpty(password))
                 {
                     return Json(new { success = false, message = "Mật khẩu không được để trống!" });
                 }
@@ -55,26 +58,46 @@ namespace WebApp.Controllers
                 {
                     // Deserialize dữ liệu trả về từ API
                     string dataJson = response.Content.ReadAsStringAsync().Result;
-                    var apiResponse = JsonConvert.DeserializeObject<APIResponse<LoginDG>>(dataJson);
+                    var apiResponse = JsonConvert.DeserializeObject<APIResponse<LoginResponseModel>>(dataJson);
 
                     if (apiResponse != null && apiResponse.Success)
                     {
-                        // Tạo danh sách các claims cho người dùng
-                        var claims = new List<Claim>
+                        // gọi API lấy thông tin độc giả sau khi đăng nhập để lưu trữ
+                        HttpResponseMessage getInfo = _client.GetAsync(_client.BaseAddress + $"/UserAuth/GetInfoLogin/{phoneNumber}").Result;
+
+                        if (getInfo.IsSuccessStatusCode)
                         {
-                            new Claim(ClaimTypes.Name, apiResponse.Data.Hoten),
-                            new Claim(ClaimTypes.Email, apiResponse.Data.Email),
-                            new Claim("PhoneNumber", phoneNumber)
-                        };
+                            string dataJsonGetInfo = getInfo.Content.ReadAsStringAsync().Result;
+                            var apiResponseGetInfo = JsonConvert.DeserializeObject<APIResponse<LoginDg>>(dataJsonGetInfo);
 
-                        // Tạo ClaimsIdentity và ClaimsPrincipal
-                        var claimIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-                        var claimsPrincipal = new ClaimsPrincipal(claimIdentity);
+                            if (apiResponseGetInfo != null && apiResponseGetInfo.Success)
+                            {
+                                // Tạo danh sách các claims cho người dùng
+                                var claims = new List<Claim>
+                                {
+                                    new Claim(ClaimTypes.Name, apiResponseGetInfo.Data.Hoten),
+                                    new Claim(ClaimTypes.Email, apiResponseGetInfo.Data.Email),
+                                    new Claim("PhoneNumber", phoneNumber)
+                                };
 
-                        // Đăng nhập người dùng và tạo phiên làm việc
-                        await HttpContext.SignInAsync(claimsPrincipal);
+                                // Tạo ClaimsIdentity và ClaimsPrincipal
+                                var claimIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                                var claimsPrincipal = new ClaimsPrincipal(claimIdentity);
 
-                        return Json(new { success = true, message = apiResponse.Message });
+                                // Đăng nhập người dùng và tạo phiên làm việc
+                                await HttpContext.SignInAsync(claimsPrincipal);
+
+                                return Json(new { success = true, message = apiResponseGetInfo.Message, data = apiResponse.Data.AccessToken });
+                            }
+                            else
+                            {
+                                return Json(new { success = false, message = apiResponseGetInfo.Message });
+                            }
+                        }
+                        else
+                        {
+                            return Json(new { success = false, message = await getInfo.Content.ReadAsStringAsync() });
+                        }
                     }
                     else
                     {
@@ -130,7 +153,7 @@ namespace WebApp.Controllers
             if (response.IsSuccessStatusCode)
             {
                 string dataJson = response.Content.ReadAsStringAsync().Result;
-                var apiResponse = JsonConvert.DeserializeObject<APIResponse<object>>(dataJson);
+                var apiResponse = JsonConvert.DeserializeObject<APIResponse<LoginResponseModel>>(dataJson);
 
                 if (apiResponse != null && apiResponse.Success)
                 {
@@ -153,7 +176,7 @@ namespace WebApp.Controllers
                         // Cập nhật danh sách Claims cho người dùng
                         HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(newIdentity));
 
-                        return RedirectToAction("Index", "Home");
+                        return View(model: apiResponse.Data.AccessToken); // Truyền token dưới dạng Model
                     }
                     else
                     {
@@ -212,7 +235,29 @@ namespace WebApp.Controllers
                         // Cập nhật danh sách Claims cho người dùng
                         HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(newIdentity));
 
-                        return Json(new { success = true, message = apiResponse.Message });
+
+                        // gọi API lấy token
+                        HttpResponseMessage getToken = _client.PostAsJsonAsync(_client.BaseAddress + "/UserAuth/GetTokenJWT", model).Result;
+
+                        if (response.IsSuccessStatusCode)
+                        {
+                            string dataJsonGetToken = getToken.Content.ReadAsStringAsync().Result;
+                            var apiGetTokenResponse = JsonConvert.DeserializeObject<APIResponse<LoginResponseModel>>(dataJsonGetToken);
+
+                            if (apiGetTokenResponse != null && apiGetTokenResponse.Success)
+                            {
+                                return Json(new { success = true, message = apiResponse.Message, token = apiGetTokenResponse.Data.AccessToken });
+                            }
+                            else
+                            {
+                                return Json(new { success = false, message = apiGetTokenResponse.Message });
+
+                            }
+                        }
+                        else
+                        {
+                            return Json(new { success = false, message = getToken.Content.ReadAsStringAsync() });
+                        }
                     }
                     else
                     {
@@ -352,7 +397,6 @@ namespace WebApp.Controllers
             {
                 List<DkiMuonSach> bookList = new List<DkiMuonSach>();
                 var user = HttpContext.User;
-
                 var sdt = user.FindFirst("PhoneNumber")?.Value;
 
                 // gọi API lấy ra dữ liệu từ bảng DkiMuonSaches với sđt = sdt của user
@@ -362,6 +406,11 @@ namespace WebApp.Controllers
                 {
                     string data = response.Content.ReadAsStringAsync().Result;
                     bookList = JsonConvert.DeserializeObject<List<DkiMuonSach>>(data);
+                }
+                else if (response.StatusCode == HttpStatusCode.Unauthorized)
+                {
+                    ViewBag.MessageData = "Không thể truy cập dữ liệu vì lỗi API Key";
+                    return View(bookList);
                 }
                 // Kiểm tra nếu user có dữ liệu ở bảng DkiMuonSaches thì trả dữ liệu ra view
                 if (bookList.Count > 0)
@@ -380,10 +429,14 @@ namespace WebApp.Controllers
             }
         }
 
-        public async Task<IActionResult> CancelOrderBooks(int maDK)
+        [Authorize]
+        public async Task<IActionResult> CancelOrderBooks(int maDK, string token)
         {
             try
             {
+                // đính kèm token khi gọi API
+                _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
                 // Tạo request URL
                 string requestUrl = _client.BaseAddress + $"/UserAuth/CancelOrderBooks/{maDK}";
 

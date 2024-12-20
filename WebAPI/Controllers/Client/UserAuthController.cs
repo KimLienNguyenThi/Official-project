@@ -1,17 +1,12 @@
-﻿using AutoMapper.Internal;
-using Microsoft.AspNetCore.Identity.Data;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Data.SqlClient;
-using Microsoft.EntityFrameworkCore;
-using System.Net.Http;
+﻿using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 using WebAPI.DTOs;
 using WebAPI.Services.Client;
-using WebAPI.Content;
-using WebAPI.Helper;
-using Microsoft.AspNetCore.Http.HttpResults;
 using WebAPI.DTOs.Admin_DTO;
 using WebAPI.Models;
+using WebAPI.Services;
+using WebAPI.Responses;
+using Microsoft.AspNetCore.Authorization;
 
 namespace WebAPI.Controllers.Client
 {
@@ -20,14 +15,38 @@ namespace WebAPI.Controllers.Client
     public class UserAuthController : Controller
     {
         private readonly UserAuthService _userAuthService;
+        private readonly JwtService _jwtService;
         private static int OTP_email;
 
 
-        public UserAuthController(UserAuthService userAuthService)
+        public UserAuthController(UserAuthService userAuthService, JwtService jwtService)
         {
             _userAuthService = userAuthService;
+            _jwtService = jwtService;
         }
 
+        [HttpPost()]
+        public async Task<IActionResult> GetTokenJWT(LoginDg model)
+        {
+            if (model == null)
+            {
+                return Ok(new APIResponse<LoginResponseModel>()
+                {
+                    Success = false,
+                    Message = "Thông tin rỗng!",
+                    Data = null
+                });
+            }
+            else
+            {
+                return Ok(new APIResponse<LoginResponseModel>()
+                {
+                    Success = true,
+                    Message = "Cấp Token thành công!",
+                    Data = await _jwtService.CreateTokenUser(model)
+                });
+            }
+        }
 
         [HttpGet("{phoneNumber}/{password}")]
         public async Task<IActionResult> CheckUserLogin(string phoneNumber, string password)
@@ -36,16 +55,16 @@ namespace WebAPI.Controllers.Client
             {
                 if (string.IsNullOrEmpty(phoneNumber))
                 {
-                    return Ok(new APIResponse<LoginDg>()
+                    return Ok(new APIResponse<LoginResponseModel>()
                     {
                         Success = false,
                         Message = "Tài khoản không được để trống!",
                         Data = null
                     });
                 }
-                else if (string.IsNullOrEmpty(password)) 
+                else if (string.IsNullOrEmpty(password))
                 {
-                    return Ok(new APIResponse<LoginDg>()
+                    return Ok(new APIResponse<LoginResponseModel>()
                     {
                         Success = false,
                         Message = "Mật khẩu không được để trống!",
@@ -58,28 +77,29 @@ namespace WebAPI.Controllers.Client
 
                     if (result == null)
                     {
-                        return Ok(new APIResponse<LoginDg>()
+                        return Ok(new APIResponse<LoginResponseModel>()
                         {
                             Success = false,
                             Message = "Tài khoản không tồn tại!",
                             Data = null
                         });
                     }
-                    else if(result.PasswordDg != password)
+                    else if (result.PasswordDg != password)
                     {
-                        return Ok(new APIResponse<LoginDg>()
+                        return Ok(new APIResponse<LoginResponseModel>()
                         {
                             Success = false,
                             Message = "Mật khẩu không đúng!",
                             Data = null
                         });
-                    }else
+                    }
+                    else
                     {
-                        return Ok(new APIResponse<LoginDg>()
+                        return Ok(new APIResponse<LoginResponseModel>()
                         {
                             Success = true,
-                            Message = "Đăng nhập thành công!",
-                            Data = result
+                            Message = "Xác thực thành công!",
+                            Data = await _jwtService.CreateTokenUser(result)
                         });
                     }
                 }
@@ -91,6 +111,49 @@ namespace WebAPI.Controllers.Client
                 return BadRequest("Đã xảy ra lỗi khi xử lý yêu cầu.");
             }
         }
+
+        [HttpGet("{phoneNumber}")]
+        public async Task<IActionResult> GetInfoLogin(string phoneNumber)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(phoneNumber))
+                    return Ok(new APIResponse<LoginDg>()
+                    {
+                        Success = false,
+                        Message = "Số điện thoại trống!!!",
+                        Data = null,
+                    });
+                else
+                {
+                    var result = await _userAuthService.GetInfoLogin(phoneNumber);
+
+                    if (result == null)
+                    {
+                        return Ok(new APIResponse<LoginDg>()
+                        {
+                            Success = true,
+                            Message = "Không tìm thấy tài khoản!",
+                            Data = null,
+                        });
+                    }
+                    else
+                    {
+                        return Ok(new APIResponse<LoginDg>()
+                        {
+                            Success = true,
+                            Message = "Đăng nhập thành công!",
+                            Data = result,
+                        });
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
 
         [HttpPost]
         public async Task<IActionResult> Register([FromBody] UserAuthentication newRegister)
@@ -140,7 +203,7 @@ namespace WebAPI.Controllers.Client
             {
                 if (infoUser.ValueKind == JsonValueKind.Object)
                 {
-                    if(await _userAuthService.SendEMmail_Register(infoUser) == "Ok")
+                    if (await _userAuthService.SendEMmail_Register(infoUser) == "Ok")
                     {
                         return Ok(new APIResponse<object>()
                         {
@@ -179,7 +242,7 @@ namespace WebAPI.Controllers.Client
         {
             try
             {
-                if(otp != 0)
+                if (otp != 0)
                 {
                     if (_userAuthService.CheckEMmail_Register(otp))
                     {
@@ -215,25 +278,28 @@ namespace WebAPI.Controllers.Client
                 return BadRequest(e.Message);
             }
 
-        }   
+        }
 
         [HttpGet("{email}")]
-        public IActionResult CheckUserLoginByGoogle(string email)
+        public async Task<IActionResult> CheckUserLoginByGoogle(string email)
         {
             if (email != null)
             {
                 if (_userAuthService.CheckUserLoginByGoogle(email))
                 {
-                    return Ok(new APIResponse<object>()
+                    var phoneNumber = _userAuthService.GetSdtByEmail(email);
+                    var loginDG = _userAuthService.GetInfoLogin(phoneNumber);
+
+                    return Ok(new APIResponse<LoginResponseModel>()
                     {
                         Success = true,
                         Message = "Email đã tồn tại trong hệ thống",
-                        Data = null
+                        Data = await _jwtService.CreateTokenUser(await loginDG)
                     });
                 }
                 else
                 {
-                    return Ok(new APIResponse<object>()
+                    return Ok(new APIResponse<LoginResponseModel>()
                     {
                         Success = false,
                         Message = "Không tìm thấy email trong hệ thống",
@@ -244,7 +310,7 @@ namespace WebAPI.Controllers.Client
             }
             else
             {
-                return Ok(new APIResponse<object>()
+                return Ok(new APIResponse<LoginResponseModel>()
                 {
                     Success = false,
                     Message = "Email không hợp lệ",
@@ -277,7 +343,6 @@ namespace WebAPI.Controllers.Client
             }
         }
 
-
         [HttpGet("{sdt}")]
         public IActionResult HistoryOfBorrowingBooks(string sdt)
         {
@@ -296,6 +361,7 @@ namespace WebAPI.Controllers.Client
             }
         }
 
+        [Authorize(Policy = "UserPolicy")]
         [HttpPut("{maDK}")]
         public async Task<IActionResult> CancelOrderBooks(int maDK)
         {

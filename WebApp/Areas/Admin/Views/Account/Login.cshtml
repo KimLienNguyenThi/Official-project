@@ -51,4 +51,14 @@
 </div>
 
 
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        var token = '@Model';
 
+        if (token) {
+            localStorage.setItem("accessToken", token);
+            window.location.href = '/Home/Index';
+        }
+    });
+
+</script>

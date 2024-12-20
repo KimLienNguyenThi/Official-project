@@ -1,5 +1,4 @@
-﻿
-@{
+﻿@{
     ViewData["Title"] = "ConfirmLoginGG";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
@@ -47,33 +46,45 @@
     </div>
 </div>
 
-    <script>
-        document.getElementById("buttonCloseModal").addEventListener("click", function () {
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        var token = '@Model';
+
+        if (token) {
+            localStorage.setItem("accessToken", token);
             window.location.href = '/Home/Index';
-        });
-
-        function ConfirmSdt() {
-            var sdt = $("#inputSdt").val();
-
-            $.ajax({
-                url: "/User/ConfirmLoginGG",
-                type: "POST",
-                data:
-                {
-                    phoneNumber: sdt,
-                },
-                success: function (result) {
-
-                    if (result.success) {
-                        $('#successModal').modal('show');
-                    } else if(!result.success) {
-                        $('#failModal').modal('show');
-                    }
-                },
-                error: function (result) {
-                    alert("ERROR");
-                }
-            });
         }
+    });
 
-    </script>
+    document.getElementById("buttonCloseModal").addEventListener("click", function () {
+        window.location.href = '/Home/Index';
+    });
+
+    function ConfirmSdt() {
+        var sdt = $("#inputSdt").val();
+
+        $.ajax({
+            url: "/User/ConfirmLoginGG",
+            type: "POST",
+            data:
+            {
+                phoneNumber: sdt,
+            },
+            success: function (result) {
+
+                if (result.success) {
+                    // lưu token vào localStorage
+                    localStorage.setItem("accessToken", result.token);
+                    // console.log(localStorage.getItem("accessToken"));
+                    $('#successModal').modal('show');
+                } else if (!result.success) {
+                    $('#failModal').modal('show');
+                }
+            },
+            error: function (result) {
+                alert("ERROR");
+            }
+        });
+    }
+
+</script>
