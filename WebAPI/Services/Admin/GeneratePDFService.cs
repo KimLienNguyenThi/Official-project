@@ -107,7 +107,7 @@ namespace WebAPI.Services.Admin
         {
             if (tpt == null || tpt.ListSachTra == null || !tpt.ListSachTra.Any())
             {
-                throw new Exception($"Không tìm thấy dữ liệu cho phiếu trả: {tpt.MaPhieuMuon}");
+                throw new Exception($"Không tìm thấy dữ liệu cho phiếu trả: {mapt}");
             }
 
             // Tính tổng tiền
@@ -151,6 +151,7 @@ namespace WebAPI.Services.Admin
                         // Bảng chi tiết sách trả
                         column.Item().PaddingTop(30).Table(table =>
                         {
+
                             // Định nghĩa cột
                             table.ColumnsDefinition(columns =>
                             {
@@ -219,7 +220,114 @@ namespace WebAPI.Services.Admin
 
             return document.GeneratePdf();
         }
-        
 
+        public byte[] GeneratePhieuNhapPDF(DTO_Tao_Phieu_Nhap tpn, int mapn)
+        {
+            if (tpn == null || tpn.listSachNhap == null || !tpn.listSachNhap.Any())
+            {
+                throw new Exception($"Không tìm thấy dữ liệu cho phiếu nhập : {mapn}");
+            }
+
+            // Tính tổng tiền
+            decimal tongTien = tpn.listSachNhap.Sum(sach => sach.GiaSach* sach.SoLuong);
+
+            // Tạo file PDF
+            var document = Document.Create(container =>
+            {
+                container.Page(page =>
+                {
+                    page.Size(PageSizes.A4);
+                    page.Margin(2, QuestPDF.Infrastructure.Unit.Centimetre);
+
+                    // Header
+                    page.Header().Row(row =>
+                    {
+                        row.RelativeItem().Column(column =>
+                        {
+                            column.Item().Text("Thư viện ABC").FontFamily("Arial").FontSize(20).Bold();
+                            column.Item().Text("450 Lê Văn Việt, Thành Phố Thủ Đức").FontFamily("Arial");
+                        });
+
+                        row.RelativeItem().Text("Hóa đơn nhập sách").AlignRight().FontFamily("Arial").FontSize(20).Bold();
+                    });
+
+                    // Content
+                    page.Content().PaddingTop(20).Column(column =>
+                    {
+                        // Thông tin phiếu trả
+                        column.Item().Row(row =>
+                        {
+                            row.RelativeItem().Column(column2 =>
+                            {
+                                column2.Item().Text("Thông tin Phiếu nhập").Bold();
+                                column2.Item().Text($"Mã phiếu nhập: {mapn}").FontSize(15);
+                                column2.Item().Text($"Tên Nhà cung cấp: {tpn.TenNhaCungCap}").FontSize(15);
+                                column2.Item().Text($"Ngày Nhập: {tpn.NgayNhap?.ToString("dd/MM/yyyy") ?? "Chưa xác định"}").FontSize(15);
+                            });
+                        });
+
+                        // Bảng chi tiết sách trả
+                        column.Item().PaddingTop(30).Table(table =>
+                        {
+                            // Định nghĩa cột
+                            table.ColumnsDefinition(columns =>
+                            {
+                                columns.RelativeColumn(1);  // Mã sách
+                                columns.RelativeColumn(3);  // Tên sách
+                                columns.RelativeColumn(1);  // Thể loại
+                                columns.RelativeColumn(1);  // NgonNgu
+                                columns.RelativeColumn(1);  // TacGia
+                                columns.RelativeColumn(1);  // SoLuong
+                                columns.RelativeColumn(1);  // GiaSach
+                            });
+
+                            // Header bảng
+                            table.Header(header =>
+                            {
+                                header.Cell().Text("Mã sách").Bold();
+                                header.Cell().Text("Tên sách").Bold();
+                                header.Cell().Text("Thể loại").Bold().AlignCenter();
+                                header.Cell().Text("NgonNgu").Bold().AlignCenter();
+                                header.Cell().Text("Tác Giả").Bold().AlignCenter();
+                                header.Cell().Text("Số Lượng").Bold().AlignCenter();
+                                header.Cell().Text("Giá Sách").Bold().AlignCenter();
+
+                                header.Cell().ColumnSpan(7).PaddingVertical(6).BorderBottom(1).BorderColor(Colors.Black);
+                            });
+
+                            // Dữ liệu bảng
+                            foreach (var sachNhap in tpn.listSachNhap)
+                            {
+
+                                table.Cell().Padding(4).Text(sachNhap.MaSach.ToString());
+                                table.Cell().Padding(4).Text(sachNhap.TenSach);
+                                table.Cell().Padding(4).Text(sachNhap.TheLoai.ToString()).AlignCenter();
+                                table.Cell().Padding(4).Text(sachNhap.NgonNgu.ToString()).AlignCenter();
+                                table.Cell().Padding(4).Text(sachNhap.TacGia.ToString()).AlignCenter();
+                                table.Cell().Padding(4).Text(sachNhap.SoLuong.ToString()).AlignCenter();
+                                table.Cell().Padding(4).Text(sachNhap.GiaSach.ToString("#,##0")).AlignRight(); // Định dạng bỏ .00
+                            }
+
+                            // Thêm dòng tổng tiền
+                            table.Cell().ColumnSpan(6).Text("Tổng tiền").Bold().AlignRight();
+                            table.Cell().Text(tongTien.ToString("#,##0")).Bold().AlignRight(); // Định dạng bỏ .00
+
+                            table.Cell().ColumnSpan(7).PaddingVertical(6).BorderBottom(1).BorderColor(Colors.Black);
+                        });
+
+                        column.Item().PaddingTop(30).Text("Vui lòng kiểm tra lại thông tin trước khi rời khỏi quầy")
+                              .FontFamily("Arial").FontSize(15).Italic();
+                    });
+
+                    // Footer
+                    page.Footer().Column(column =>
+                    {
+                        column.Item().AlignCenter().Text("Thư viện ABC trân trọng cảm ơn quý khách");
+                    });
+                });
+            });
+
+            return document.GeneratePdf();
+        }
     }
 }

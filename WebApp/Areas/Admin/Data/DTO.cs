@@ -96,6 +96,8 @@ namespace WebApp.Areas.Admin.Data
     {
         public int MaNhanVien { get; set; }
         public int MaNhaCungCap { get; set; }
+
+        public string TenNhaCungCap { get; set; }
         public DateOnly NgayNhap { get; set; }
         public List<DTO_Sach_Nhap> listSachNhap { get; set; }
 
@@ -141,6 +143,8 @@ namespace WebApp.Areas.Admin.Data
     {
         public int MaNhanVien { get; set; }
         public int MaNhaCungCap { get; set; }
+        public string TenNhaCungCap { get; set; }
+
         public DateOnly NgayNhap { get; set; }
         public List<DTO_Sach_Nhap_Json> listSachNhap { get; set; }
     }

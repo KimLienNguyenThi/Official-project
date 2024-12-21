@@ -4,6 +4,8 @@
     {
         public int MaSach { get; set; }
         public string TenSach { get; set; }
+        public string TheLoai { get; set; }
+
         public int? SoLuong { get; set; }
     }
     public class ThongKePhieu

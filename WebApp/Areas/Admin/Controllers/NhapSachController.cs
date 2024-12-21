@@ -197,6 +197,7 @@ namespace WebApp.Areas.Admin.Controllers
                 var convertData = new DTO_Tao_Phieu_Nhap_Json()
                 {
                     MaNhaCungCap = dto.MaNhaCungCap,
+                    TenNhaCungCap = dto.TenNhaCungCap,
                     MaNhanVien = dto.MaNhanVien,
                     NgayNhap = dto.NgayNhap,
                     listSachNhap = lstSachNhap
@@ -208,12 +209,18 @@ namespace WebApp.Areas.Admin.Controllers
                 var response = await _client.PostAsync($"{_client.BaseAddress}/NhapSach/PhieuNhap_API", multipartContent);
                 if (response.IsSuccessStatusCode)
                 {
-                    var result = await response.Content.ReadAsStringAsync();
-                    return Ok(new { success = true });
+                    // Lấy file PDF từ response content
+                    var pdfBytes = await response.Content.ReadAsByteArrayAsync();
+                    var fileName = $"PhieuNhap_{DateTime.Now:yyyyMMddHHmmss}.pdf";
+
+                    // Trả về file PDF cho client
+                    return File(pdfBytes, "application/pdf", fileName);
                 }
                 else
                 {
-                    return BadRequest(new { success = false, message = "Tạo phiếu nhập thất bại." });
+                    // Xử lý lỗi khi API trả về trạng thái không thành công
+                    var errorMessage = await response.Content.ReadAsStringAsync();
+                    return BadRequest(new { success = false, message = $"Tạo phiếu nhập thất bại: {errorMessage}" });
                 }
             }
             catch (Exception ex)
@@ -258,6 +265,111 @@ namespace WebApp.Areas.Admin.Controllers
                 return BadRequest(new { success = false, message = "Error occurred while fetching NamXBMax." });
             }
         }
+
+        [HttpPost]
+        [Route("GetNCC_APP")]
+        public async Task<IActionResult> GetNCC_APP(int mancc)
+        {
+            try
+            {
+                // Gọi API GetListNCC_API thông qua HttpClient
+                var requestData = new { mancc = mancc }; // Đóng gói tham số mancc vào một đối tượng
+
+                var reqjson = JsonConvert.SerializeObject(requestData);
+                var httpContent = new StringContent(reqjson, Encoding.UTF8, "application/json");
+
+                // Gọi API GetListNCC_API từ controller khác
+                HttpResponseMessage response = await _client.PostAsync(_client.BaseAddress + "/NhapSach/GetListNCC_API", httpContent);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    string data = await response.Content.ReadAsStringAsync();
+                    var result = JsonConvert.DeserializeObject<NhaCungCap>(data);
+
+                    // Nếu gọi API thành công và có dữ liệu, trả về thông tin nhà cung cấp
+                    return Ok(new { success = true, ncc = result });
+                }
+                else
+                {
+                    // Nếu API trả về lỗi
+                    return BadRequest(new { success = false, message = "Failed to retrieve data from API." });
+                }
+            }
+            catch (Exception ex)
+            {
+                // Xử lý lỗi trong quá trình gọi API
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+       
+
+        [HttpPost]
+        [Route("ImportExcel")]
+        public async Task<IActionResult> ImportExcel(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+            {
+                return BadRequest("File không hợp lệ hoặc bị trống.");
+            }
+
+            // Kiểm tra định dạng file
+            var allowedExtensions = new[] { ".xlsx", ".xls" };
+            var fileExtension = Path.GetExtension(file.FileName).ToLower();
+
+            if (!allowedExtensions.Contains(fileExtension))
+            {
+                return BadRequest("Chỉ chấp nhận file Excel với định dạng .xlsx hoặc .xls.");
+            }
+
+            try
+            {
+                using (var stream = new MemoryStream())
+                {
+                    await file.CopyToAsync(stream);
+                    stream.Position = 0;
+
+                    // Tạo nội dung gửi qua MultipartFormDataContent
+                    var content = new MultipartFormDataContent();
+                    content.Add(new StreamContent(stream), "file", file.FileName);
+
+                    // Gửi yêu cầu POST tới API
+                    HttpResponseMessage response = await _client.PostAsync(_client.BaseAddress + "/NhapSach/ImportExcel", content);
+
+                    // Kiểm tra phản hồi từ API
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var responseData = await response.Content.ReadAsStringAsync();
+
+                        // Deserialize dữ liệu từ JSON trả về
+                        var result = JsonConvert.DeserializeObject<Dictionary<string, object>>(responseData);
+
+                        // Truy cập các thuộc tính từ JSON
+                        string message = result["Message"].ToString();
+                        var successfulRecords = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(result["SuccessfulRecords"].ToString());
+                        var errorRecords = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(result["ErrorRecords"].ToString());
+
+                        // Trả dữ liệu ra View
+                        return View("Index", new
+                        {
+                            Message = message,
+                            SuccessfulRecords = successfulRecords,
+                            ErrorRecords = errorRecords
+                        });
+                    }
+
+                    // Xử lý lỗi từ API
+                    return StatusCode((int)response.StatusCode, $"Lỗi từ API: {response.ReasonPhrase}");
+                }
+            }
+            catch (Exception ex)
+            {
+                // Xử lý lỗi chung
+                return StatusCode(500, $"Lỗi xử lý file: {ex.Message}");
+            }
+
+        }
+
 
     }
 

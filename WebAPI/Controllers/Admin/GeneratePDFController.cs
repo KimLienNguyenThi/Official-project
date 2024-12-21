@@ -25,11 +25,5 @@ namespace WebAPI.Controllers.Admin
             return File(document, "application/pdf", "Hóa đơn tạo thẻ.pdf");
         }
 
-        //[HttpPost]
-        //public IActionResult GeneratePhieuTraPDF(int mapt)
-        //{
-        //    var document = _generatePDFService.GeneratePhieuTraPDF(mapt);
-        //    return File(document, "application/pdf", "Hóa đơn sách trả.pdf");
-        //}
     }
 }

@@ -53,33 +53,50 @@ namespace WebAPI.Controllers.Admin
         [HttpPost]
         public IActionResult PhieuNhap_API([FromForm] string data)
         {
-            if (string.IsNullOrEmpty(data))
+            try
             {
-                return BadRequest(new { success = false, message = "Dữ liệu không hợp lệ." });
+                if (string.IsNullOrEmpty(data))
+                {
+                    return BadRequest(new { success = false, message = "Dữ liệu không hợp lệ." });
+                }
+
+                // Deserialize the data to DTO_Tao_Phieu_Nhap
+                DTO_Tao_Phieu_Nhap dto;
+                try
+                {
+                    dto = JsonConvert.DeserializeObject<DTO_Tao_Phieu_Nhap>(data);
+                }
+                catch (JsonException ex)
+                {
+                    return BadRequest(new { success = false, message = "Dữ liệu không đúng định dạng.", error = ex.Message });
+                }
+
+                // Create a list to store image URLs
+                var imageUrls = new List<string>();
+                foreach (var sach in dto.listSachNhap)
+                {
+                    if (!string.IsNullOrEmpty(sach.FileImage))
+                    {
+                        imageUrls.Add(sach.FileImage);
+                    }
+                }
+
+                // Call the service to insert data into the database and generate PDF
+                var pdfData = _nhapSachService.InsertPhieuNhap(dto, imageUrls);
+                if (pdfData == null || pdfData.Length == 0)
+                {
+                    return StatusCode(500, new { success = false, message = "Không thể tạo file PDF." });
+                }
+
+                // Generate PDF file name
+                string fileName = $"PhieuNhap_{DateTime.Now:yyyyMMddHHmmss}.pdf";
+
+                // Return the PDF file as response
+                return File(pdfData, "application/pdf", fileName);
             }
-
-            // Deserialize the data to DTO_Tao_Phieu_Nhap
-            DTO_Tao_Phieu_Nhap dto = JsonConvert.DeserializeObject<DTO_Tao_Phieu_Nhap>(data);
-
-            // Create a list to store image URLs
-            var imageUrls = new List<string>();
-
-            // Loop through the DTO list to get image URLs
-            foreach (var sach in dto.listSachNhap)
+            catch (Exception ex)
             {
-                // Get the image URL from the DTO object
-                imageUrls.Add(sach.FileImage);
-            }
-
-            // Call the service to insert data into the database
-            var success = _nhapSachService.InsertPhieuNhap(dto, imageUrls);
-            if (success)
-            {
-                return Ok(new { success = true, message = "Tạo phiếu nhập thành công." });
-            }
-            else
-            {
-                return BadRequest(new { success = false, message = "Tạo phiếu nhập thất bại." });
+                return StatusCode(500, new { success = false, message = "Có lỗi xảy ra khi tạo phiếu nhập.", error = ex.Message });
             }
         }
 
@@ -89,5 +106,61 @@ namespace WebAPI.Controllers.Admin
             var result = _nhapSachService.GetNamXBMax();
             return Ok(result);
         }
+
+        [HttpPost]
+        public async Task<ActionResult<NhaCungCap>> GetListNCC_API(int mancc)
+        {
+            var result = await _nhapSachService.GetAllNCC(mancc);
+            return Ok(result);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ImportExcel(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+            {
+                return BadRequest(new { Message = "File không hợp lệ hoặc bị trống." });
+            }
+
+            // Kiểm tra định dạng tệp
+            var allowedExtensions = new[] { ".xlsx", ".xls" };
+            var fileExtension = Path.GetExtension(file.FileName).ToLower();
+
+            if (!allowedExtensions.Contains(fileExtension))
+            {
+                return BadRequest(new { Message = "Chỉ chấp nhận file Excel với định dạng .xlsx hoặc .xls." });
+            }
+
+            try
+            {
+                using (var stream = new MemoryStream())
+                {
+                    await file.CopyToAsync(stream);
+                    stream.Position = 0;
+
+                    // Gọi service để xử lý file
+                    var result = _nhapSachService.ProcessExcelFile(stream);
+
+                    // Lưu kết quả vào bảng tạm
+                    _nhapSachService.SaveToTempTable(result);
+
+                    // Chuẩn bị dữ liệu trả về
+                    var successfulRecords = result.Where(r => r.TrangThai == "OK").ToList();
+                    var errorRecords = result.Where(r => r.TrangThai != "OK").ToList();
+
+                    return Ok(new
+                    {
+                        Message = "File đã được xử lý thành công.",
+                        SuccessfulRecords = successfulRecords,
+                        ErrorRecords = errorRecords
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Có lỗi xảy ra trong quá trình xử lý file.", Details = ex.Message });
+            }
+        }
+
     }
 }

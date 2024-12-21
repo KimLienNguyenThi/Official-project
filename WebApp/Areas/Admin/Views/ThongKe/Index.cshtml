@@ -76,8 +76,8 @@
                             </div>
                         </div>
 
-                        <div id="sachShow" class="table-responsive" style="margin-top: 20px;">
-                           <div class="row">
+                         <div id="sachShow" class="table-responsive" style="margin-top: 20px;">
+                           @* <div class="row">
                                
                                 <div class="col-md-4">
                                     <table  class="table table-head-fixed table-hover table-bordered">
@@ -114,14 +114,14 @@
                                     </table>
                                 </div>
                                        
-                           </div>
-
+                           </div> *@
+ 
                            
 
-                            <div class="row">
-                                <div class="col-md-6 ">
+                            @*<div class="row">
+                                 <div class="col-md-6 ">
                                     <p>Danh sách sách nhập</p>
-                                    <table id="tablesachnhap" class="table table-head-fixed table-hover table-bordered">
+                                     <table id="tablesachnhap" class="table table-head-fixed table-hover table-bordered">
                                         <thead>
                                             <tr>
                                                 <th style="width:120px">Mã Sách</th>
@@ -132,16 +132,17 @@
                                         <tbody id="tableSachNhap">
                                             <!-- Content for first table -->
                                         </tbody>
-                                    </table>
-                                </div>
-                                <div class="col-md-6 ">
+                                    </table> 
+                                </div> *@
+                                <div @* class="col-md-6 " *@>
                                     <p>Danh sách sách cho mượn</p>
                                     <table id="tablesachmuon" class="table table-head-fixed table-hover table-bordered">
                                         <thead>
                                             <tr>
-                                                <th style="width:120px">Mã Sách</th>
-                                                <th style="width:400px"> Tên Sách</th>
-                                                <th style="width:150px">Số lượng</th>
+                                                <th style="width:160px">Mã Sách</th>
+                                                <th style="width:410px"> Tên Sách</th>
+                                                <th style="width:400px"> Thể loại</th>
+                                                <th style="width:400px">Số lượng</th>
                                             </tr>
                                         </thead>
                                         <tbody id="tableSachHot">
@@ -149,7 +150,7 @@
                                         </tbody>
                                     </table>
                                 </div>
-                            </div>
+                           @*  </div> *@
                         </div>
 
 
@@ -274,11 +275,11 @@
             tableToHide3.style.display = "none";
 
             if (sachShow.style.display == "block" && muontraShow.style.display == "none" && docgiaShow.style.display == 'none' && doanhthuShow.style.display == 'none') {
-                loadSachNhaps();
+                // loadSachNhaps();
                 loadSachMuons();
-                loadTongsachNhap();
-                loadTongsachkhoHT();
-                loadTongsachMuon();
+               // loadTongsachNhap();
+                //loadTongsachkhoHT();
+               // loadTongsachMuon();
                 
             }
             if (muontraShow.style.display == "block" && sachShow.style.display == "none" && docgiaShow.style.display == 'none' && doanhthuShow.style.display == 'none') {
@@ -326,158 +327,158 @@
             changeTableShow(doanhthuShow, sachShow, muontraShow, docgiaShow)
         }
 
-        function loadTongsachNhap() {
+        // function loadTongsachNhap() {
 
-            $.ajax({
-                type: "POST",
-                url: "/admin/thongke/Get_TongSachNhap_APP",
-                dataType: 'json', // Ensure the returned data is JSON
-                success: function (res) {
-                    console.log("ket qua nhập sách: ", res);
+        //     $.ajax({
+        //         type: "POST",
+        //         url: "/admin/thongke/Get_TongSachNhap_APP",
+        //         dataType: 'json', // Ensure the returned data is JSON
+        //         success: function (res) {
+        //             console.log("ket qua nhập sách: ", res);
 
-                    // Check if res contains sachList and it has the expected properties
-                    if (res && res.phieuList && res.phieuList.soLuong !== undefined) {
-                        var render = "";
-                        render += '<tr class="ncc-row" aria-expanded="false" data-widget="expandable-table" data-ma-sach="' + res.phieuList.soLuong + '">';
-                        render += '<td>' + res.phieuList.soLuong + '</td>';
-                        render += '</tr>';
+        //             // Check if res contains sachList and it has the expected properties
+        //             if (res && res.phieuList && res.phieuList.soLuong !== undefined) {
+        //                 var render = "";
+        //                 render += '<tr class="ncc-row" aria-expanded="false" data-widget="expandable-table" data-ma-sach="' + res.phieuList.soLuong + '">';
+        //                 render += '<td>' + res.phieuList.soLuong + '</td>';
+        //                 render += '</tr>';
 
-                        let danhSachsachnhap = document.getElementById("tabletongSachNhap");
-                        danhSachsachnhap.innerHTML = render;
-                    } else {
-                        console.error("Response does not contain expected properties:", res);
-                        alert("Không tìm thấy dữ liệu phù hợp.");
-                    }
-                },
-                error: function (status) {
-                    alert("Không tìm thấy dữ liệu");
-                    console.error("Error status:", status);
-                }
-            });
-        }
+        //                 let danhSachsachnhap = document.getElementById("tabletongSachNhap");
+        //                 danhSachsachnhap.innerHTML = render;
+        //             } else {
+        //                 console.error("Response does not contain expected properties:", res);
+        //                 alert("Không tìm thấy dữ liệu phù hợp.");
+        //             }
+        //         },
+        //         error: function (status) {
+        //             alert("Không tìm thấy dữ liệu");
+        //             console.error("Error status:", status);
+        //         }
+        //     });
+        // }
 
-        function loadTongsachkhoHT() {
+        // function loadTongsachkhoHT() {
 
-            $.ajax({
-                type: "POST",
-                url: "/admin/thongke/Get_TongSach_HienTai_APP",
-                dataType: 'json', // Ensure the returned data is JSON
-                success: function (res) {
-                    console.log("ket qua kho hiên tại: ", res);
+        //     $.ajax({
+        //         type: "POST",
+        //         url: "/admin/thongke/Get_TongSach_HienTai_APP",
+        //         dataType: 'json', // Ensure the returned data is JSON
+        //         success: function (res) {
+        //             console.log("ket qua kho hiên tại: ", res);
 
-                    // Check if res contains sachList and it has the expected properties
-                    if (res && res.phieuList && res.phieuList.soLuong !== undefined) {
-                        var render = "";
-                        render += '<tr class="ncc-row" aria-expanded="false" data-widget="expandable-table" data-ma-sach="' + res.phieuList.soLuong + '">';
-                        render += '<td>' + res.phieuList.soLuong + '</td>';
-                        render += '</tr>';
+        //             // Check if res contains sachList and it has the expected properties
+        //             if (res && res.phieuList && res.phieuList.soLuong !== undefined) {
+        //                 var render = "";
+        //                 render += '<tr class="ncc-row" aria-expanded="false" data-widget="expandable-table" data-ma-sach="' + res.phieuList.soLuong + '">';
+        //                 render += '<td>' + res.phieuList.soLuong + '</td>';
+        //                 render += '</tr>';
 
-                        let danhSachsachnhap = document.getElementById("tabletongSachHT");
-                        danhSachsachnhap.innerHTML = render;
-                    } else {
-                        console.error("Response does not contain expected properties:", res);
-                        alert("Không tìm thấy dữ liệu phù hợp.");
-                    }
-                },
-                error: function (status) {
-                    alert("Không tìm thấy dữ liệu");
-                    console.error("Error status:", status);
-                }
-            });
-        }
-
-
-        function loadTongsachMuon() {
-
-            $.ajax({
-                type: "POST",
-                url: "/admin/thongke/Get_TongSachMuon_APP",
-                dataType: 'json', // Ensure the returned data is JSON
-                success: function (res) {
-                    console.log("ket qua muon: ", res);
-
-                    // Check if res contains sachList and it has the expected properties
-                    if (res && res.phieuList && res.phieuList.soLuong !== undefined) {
-                        var render = "";
-                        render += '<tr class="ncc-row" aria-expanded="false" data-widget="expandable-table" data-ma-sach="' + res.phieuList.soLuong + '">';
-                        render += '<td>' + res.phieuList.soLuong + '</td>';
-                        render += '</tr>';
-
-                        let danhSachsachnhap = document.getElementById("tabletongSachMuon");
-                        danhSachsachnhap.innerHTML = render;
-                    } else {
-                        console.error("Response does not contain expected properties:", res);
-                        alert("Không tìm thấy dữ liệu phù hợp.");
-                    }
-                },
-                error: function (status) {
-                    alert("Không tìm thấy dữ liệu");
-                    console.error("Error status:", status);
-                }
-            });
-        }
+        //                 let danhSachsachnhap = document.getElementById("tabletongSachHT");
+        //                 danhSachsachnhap.innerHTML = render;
+        //             } else {
+        //                 console.error("Response does not contain expected properties:", res);
+        //                 alert("Không tìm thấy dữ liệu phù hợp.");
+        //             }
+        //         },
+        //         error: function (status) {
+        //             alert("Không tìm thấy dữ liệu");
+        //             console.error("Error status:", status);
+        //         }
+        //     });
+        // }
 
 
-        function loadSachNhaps() {
-            var tungayString = document.getElementById("tuNgay").value;
-            var denngayString = document.getElementById("denNgay").value;
+        // function loadTongsachMuon() {
 
-            var tungay = new Date(tungayString);
-            var denngay = new Date(denngayString);
-            var today = new Date();
+        //     $.ajax({
+        //         type: "POST",
+        //         url: "/admin/thongke/Get_TongSachMuon_APP",
+        //         dataType: 'json', // Ensure the returned data is JSON
+        //         success: function (res) {
+        //             console.log("ket qua muon: ", res);
 
-            // Validate dates
-            if (tungayString === "" || denngayString === "") {
-                alert("Vui lòng nhập cả hai ngày.");
-                init();
-                return;
-            }
+        //             // Check if res contains sachList and it has the expected properties
+        //             if (res && res.phieuList && res.phieuList.soLuong !== undefined) {
+        //                 var render = "";
+        //                 render += '<tr class="ncc-row" aria-expanded="false" data-widget="expandable-table" data-ma-sach="' + res.phieuList.soLuong + '">';
+        //                 render += '<td>' + res.phieuList.soLuong + '</td>';
+        //                 render += '</tr>';
 
-            if (tungay > denngay) {
-                alert("Từ ngày phải nhỏ hơn hoặc bằng đến ngày.");
-                init();
-                return;
-            }
-
-            if (denngay > today) {
-                alert("Đến ngày không hợp lệ");
-                init();
-                return;
-            }
-
-            $.ajax({
-                type: "POST",
-                url: `/admin/thongke/Get_SachNhap_APP/${tungayString}/${denngayString}`,
-                dataType: 'json', // Đảm bảo dữ liệu trả về là JSON
-                success: function (res) {
-                    console.log("ketqua sach nhap ", res.sachList);
-                    var render = "";
-                    // Check if sachList exists and has items
-                    if (res.sachList && res.sachList.length > 0) {
-                        $.each(res.sachList, function (i, item) {
-
-                            render += '<tr class="ncc-row" aria-expanded="false" data-widget="expandable-table" data-ma-sach=' + item.MaSach + '>';
-                            render += '<td>' + item.maSach + '</td>';
-                            render += '<td>' + item.tenSach + '</td>';
-                            render += '<td>' + item.soLuong + '</td>';
-
-                            render += '</tr>';
-                        });
-                    } else {
-                        // Display message if no items found
-                        render += '<tr><td colspan="3">Không có nhập sách trong khoảng thời gian này</td></tr>';
-                    }
+        //                 let danhSachsachnhap = document.getElementById("tabletongSachMuon");
+        //                 danhSachsachnhap.innerHTML = render;
+        //             } else {
+        //                 console.error("Response does not contain expected properties:", res);
+        //                 alert("Không tìm thấy dữ liệu phù hợp.");
+        //             }
+        //         },
+        //         error: function (status) {
+        //             alert("Không tìm thấy dữ liệu");
+        //             console.error("Error status:", status);
+        //         }
+        //     });
+        // }
 
 
+        // function loadSachNhaps() {
+        //     var tungayString = document.getElementById("tuNgay").value;
+        //     var denngayString = document.getElementById("denNgay").value;
 
-                    let danhSachsachnhap = document.getElementById("tableSachNhap");
-                    danhSachsachnhap.innerHTML = render;
-                },
-                error: function (status) {
-                    alert("Không tìm thấy dữ liệu");
-                }
-            });
-        }
+        //     var tungay = new Date(tungayString);
+        //     var denngay = new Date(denngayString);
+        //     var today = new Date();
+
+        //     // Validate dates
+        //     if (tungayString === "" || denngayString === "") {
+        //         alert("Vui lòng nhập cả hai ngày.");
+        //         init();
+        //         return;
+        //     }
+
+        //     if (tungay > denngay) {
+        //         alert("Từ ngày phải nhỏ hơn hoặc bằng đến ngày.");
+        //         init();
+        //         return;
+        //     }
+
+        //     if (denngay > today) {
+        //         alert("Đến ngày không hợp lệ");
+        //         init();
+        //         return;
+        //     }
+
+        //     $.ajax({
+        //         type: "POST",
+        //         url: `/admin/thongke/Get_SachNhap_APP/${tungayString}/${denngayString}`,
+        //         dataType: 'json', // Đảm bảo dữ liệu trả về là JSON
+        //         success: function (res) {
+        //             console.log("ketqua sach nhap ", res.sachList);
+        //             var render = "";
+        //             // Check if sachList exists and has items
+        //             if (res.sachList && res.sachList.length > 0) {
+        //                 $.each(res.sachList, function (i, item) {
+
+        //                     render += '<tr class="ncc-row" aria-expanded="false" data-widget="expandable-table" data-ma-sach=' + item.MaSach + '>';
+        //                     render += '<td>' + item.maSach + '</td>';
+        //                     render += '<td>' + item.tenSach + '</td>';
+        //                     render += '<td>' + item.soLuong + '</td>';
+
+        //                     render += '</tr>';
+        //                 });
+        //             } else {
+        //                 // Display message if no items found
+        //                 render += '<tr><td colspan="3">Không có nhập sách trong khoảng thời gian này</td></tr>';
+        //             }
+
+
+
+        //             let danhSachsachnhap = document.getElementById("tableSachNhap");
+        //             danhSachsachnhap.innerHTML = render;
+        //         },
+        //         error: function (status) {
+        //             alert("Không tìm thấy dữ liệu");
+        //         }
+        //     });
+        // }
 
         function loadSachMuons() {
             var tungayString = document.getElementById("tuNgay").value;
@@ -518,6 +519,7 @@
                             render += '<tr class="ncc-row" aria-expanded="false" data-widget="expandable-table" data-ma-sach=' + item.MaSach + '>';
                             render += '<td>' + item.maSach + '</td>';
                             render += '<td>' + item.tenSach + '</td>';
+                            render += '<td>' + item.theLoai + '</td>';
                             render += '<td>' + item.soLuong + '</td>';
 
                             render += '</tr>';

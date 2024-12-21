@@ -90,7 +90,7 @@ builder.Services.AddTransient<BookService, BookService>();
 builder.Services.AddTransient<BorrowBookService, BorrowBookService>();
 builder.Services.AddTransient<UserAuthService, UserAuthService>();
 builder.Services.AddTransient<PhieuMuonService, PhieuMuonService>();
-//builder.Services.AddTransient<ThongKeService, ThongKeService>();
+builder.Services.AddTransient<ThongKeService, ThongKeService>();
 builder.Services.AddTransient<PhieuTraService, PhieuTraService>();
 builder.Services.AddTransient<QuanLyPhieuTraService, QuanLyPhieuTraService>();
 //builder.Services.AddTransient<QuanLyPhieuMuonService, QuanLyPhieuMuonService>();

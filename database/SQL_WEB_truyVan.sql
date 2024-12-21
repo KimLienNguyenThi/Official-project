@@ -353,3 +353,7 @@ join cuonsach cs on ctst.macuonsach = cs.macuonsach
 join phieumuon pm on pt.mapm = pm.mapm 
 where  cs.masach =ctpt.masach
 group by  pt.Mapt, s.Masach, s.Tensach, ctpt.Soluongtra, ctpt.Soluongloi, ctpt.Soluongmat ,ctpt.Phuthu,ctst.Macuonsach,ctst.tinhtrang
+
+
+
+update Sach set namxb = 2000 where masach = 1 
