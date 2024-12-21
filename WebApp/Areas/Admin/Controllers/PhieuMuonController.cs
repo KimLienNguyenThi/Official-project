@@ -11,6 +11,7 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 using WebApp.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using WebApp.Admin.Data;
+using System.Net.Http;
 
 namespace WebApp.Areas.Admin.Controllers
 {
@@ -46,12 +47,13 @@ namespace WebApp.Areas.Admin.Controllers
                 {
                     string dataJson = response.Content.ReadAsStringAsync().Result;
                     var apiResponse = JsonConvert.DeserializeObject<APIResponse<List<DTO_DocGia_TheDocGia>>>(dataJson);
-
+                   
                     if (apiResponse != null && apiResponse.Success)
                     {
                         var data = apiResponse.Data;
                         ViewData["ThongTinDocGia"] = data;
                         return View();
+                        
                     }
                     else
                     {
@@ -65,7 +67,65 @@ namespace WebApp.Areas.Admin.Controllers
             }
 
 
+
+
+
         }
+
+        [HttpPost]
+        public async Task<ActionResult> ValidatePhieuMuon(int maThe)
+        {
+            try
+            {
+                // Xây dựng URL với tham số maThe
+                var requestUri = new Uri($"{_client.BaseAddress}/PhieuMuon/ValidatePhieuMuon/{maThe}");
+
+                // Gọi API từ WebApp controller
+                HttpResponseMessage response = await _client.GetAsync(requestUri);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    // Đọc nội dung phản hồi
+                    var dataJson = await response.Content.ReadAsStringAsync();
+
+                    // Giải mã JSON thành đối tượng
+                    var apiResponse = JsonConvert.DeserializeObject<APIResponse<object>>(dataJson);
+
+                    // Kiểm tra dữ liệu trả về
+                    if (apiResponse?.Success == true)
+                    {
+                        return Json(new { success = true, message = apiResponse.Message });
+                    }
+                    else
+                    {
+                        return Json(new { success = false, message = apiResponse?.Message ?? "Lỗi không xác định từ API." });
+                    }
+                }
+                else
+                {
+                    // Xử lý lỗi HTTP từ API
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    return Json(new { success = false, message = $"API lỗi: {errorContent}" });
+                }
+            }
+            catch (HttpRequestException httpEx)
+            {
+                // Lỗi liên quan đến yêu cầu HTTP
+                return Json(new { success = false, message = $"Lỗi HTTP: {httpEx.Message}" });
+            }
+            catch (JsonException jsonEx)
+            {
+                // Lỗi khi phân tích JSON
+                return Json(new { success = false, message = $"Lỗi phân tích JSON: {jsonEx.Message}" });
+            }
+            catch (Exception ex)
+            {
+                // Lỗi chung
+                return Json(new { success = false, message = $"Lỗi không xác định: {ex.Message}" });
+            }
+        }
+
+
 
 
         [Route("GetAllThongTinDocGia")]
@@ -94,8 +154,65 @@ namespace WebApp.Areas.Admin.Controllers
         }
 
 
+        [HttpGet]
+        [Route("GetByMaCuonSach/{maCuonSach}")]
+        public JsonResult GetByMaCuonSach(string maCuonSach)
+        {
+            try
+            {
+                HttpResponseMessage response = _client.GetAsync(_client.BaseAddress + $"/PhieuMuon/GetByMaCuonSach/{maCuonSach}").Result;
+             
+                if (response.IsSuccessStatusCode)
+                {
+                    // Đọc nội dung phản hồi từ Web API
+                    var dataJson = response.Content.ReadAsStringAsync().Result;
 
+                    // Chuyển đổi JSON phản hồi thành APIResponse
+                    var apiResponse = JsonConvert.DeserializeObject<APIResponse<BookDetailsDTO>>(dataJson);
 
+                    if (apiResponse != null && apiResponse.Success)
+                    {
+                        // Trả về kết quả thành công
+                        return Json(new
+                        {
+                            success = true,
+                            data = apiResponse.Data,
+                            message = apiResponse.Message
+                        });
+                    }
+                    else
+                    {
+                        // Trả về lỗi nếu không tìm thấy sách hoặc API trả về thất bại
+                        return Json(new
+                        {
+                            success = false,
+                            data = (object)null,
+                            message = apiResponse?.Message ?? "Không có thông tin"
+                        });
+                    }
+                }
+                else
+                {
+                    // Xử lý lỗi khi gọi API thất bại
+                    return Json(new
+                    {
+                        success = false,
+                        data = (object)null,
+                        message = $"Không thể kết nối đến API: {response.ReasonPhrase}"
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                // Xử lý lỗi bất ngờ
+                return Json(new
+                {
+                    success = false,
+                    data = (object)null,
+                    message = $"Lỗi hệ thống: {ex.Message}"
+                });
+            }
+        }
 
 
         //[HttpGet]

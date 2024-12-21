@@ -1,4 +1,4 @@
-﻿--CREATE DATABASE QuanLyThuVien;
+﻿CREATE DATABASE QuanLyThuVien;
 GO
 
 USE QuanLyThuVien;
@@ -239,6 +239,22 @@ CREATE TABLE QuyDinh (
 	SosachmuonMax INT,
 	SongayMax INT
 	
+);
+
+CREATE  TABLE ImportSachTemp (
+    ID INT IDENTITY(1,1) PRIMARY KEY,       -- Khoá chính tạm thời cho mỗi dòng import
+    TENSACH NVARCHAR(150),                 -- Tên sách
+    THELOAI NVARCHAR(50),                  -- Thể loại
+    TACGIA NVARCHAR(50),                   -- Tác giả
+    NGONNGU NVARCHAR(50),                  -- Ngôn ngữ
+    NXB NVARCHAR(100),                     -- Nhà xuất bản
+    NAMXB INT,                             -- Năm xuất bản
+    URL_IMAGE TEXT,                        -- Link ảnh
+	GiaSach INT,
+    MOTA NTEXT,                            -- Mô tả
+    SOLUONG INT,                           -- Số lượng (tạm thời)
+    TrangThai NVARCHAR(20),                -- Trạng thái: 'OK' hoặc 'Lỗi'
+    MoTaLoi NVARCHAR(255)                  -- Mô tả lỗi (VD: "Trùng mã sách", "Số lượng không hợp lệ")
 );
 
 ----------------+**************************************************************+----------------
