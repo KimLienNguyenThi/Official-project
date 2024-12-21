@@ -5,6 +5,7 @@ using Newtonsoft.Json;
 using System.Net.Http.Headers;
 using WebApp.Admin.Data;
 using WebApp.Models;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace WebApp.Areas.Admin.Controllers
 {
@@ -43,7 +44,7 @@ namespace WebApp.Areas.Admin.Controllers
 
                         if (apiResponse != null && apiResponse.Success)
                         {
-                            return View();
+                            return View(apiResponse.Data);
                         }
                         else
                         {

@@ -1,6 +1,102 @@
-﻿@{
+﻿@model WebApp.Models.QuyDinh
+
+@{
     ViewBag.Title = "Index";
     Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
 }
 
-ĐÂY LÀ TRANG BẢNG QUY ĐỊNH
+<div class="container-fluid pt-4">
+    <div class="card shadow-lg" style="border-radius: 12px;">
+        <div class="card-header bg-primary text-white text-center" style="border-radius: 12px 12px 0 0;">
+            <h3 class="font-weight-bold mb-0">Bảng quy định</h3>
+        </div>
+
+        <div class="card-body" style="background-color: #f8f9fa;">
+            <form class="mx-auto" style="width: 25%;">
+
+                <div class="form-group mb-4">
+                    <label for="MaNhanVien" class="font-weight-bold">Năm xuất bản tối đa:</label>
+                    <input type="number" class="form-control" id="maxYearOfPublication" name="maxYearOfPublication" value="@Model.NamXbmax">
+                </div>
+
+                <div class="form-group mb-4">
+                    <label for="ngayDangKy" class="font-weight-bold">Số sách mượn tối đa:</label>
+                    <input type="number" class="form-control" id="nunbOfBorrowBooks" name="nunbOfBorrowBooks" value="@Model.SosachmuonMax">
+                </div>
+
+                <div class="form-group mb-4">
+                    <label for="tenDocGia" class="font-weight-bold">Số ngày mượn tối đa:</label>
+                    <input type="number" class="form-control" id="numbOfDays" name="numbOfDays" value="@Model.SongayMax">
+                </div>
+
+                <div class="form-row d-flex justify-content-around">
+                    <!-- Nút bấm -->
+                    <button type="button" class="btn btn-primary px-4 py-2" id="update" onclick="Update()">
+                        <i class="fas fa-save"></i> Cập nhật
+                    </button>
+                    <button type="button" class="btn btn-warning px-4 py-2" id="refresh">
+                        <i class="fas fa-sync-alt"></i> Làm mới
+                    </button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal error-->
+<div class="modal fade" id="ModalError" tabindex="-1" role="dialog" aria-labelledby="ModalError" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-body text-center bg-danger">
+                <span class="" id="contentModalError"></span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal success-->
+<div class="modal fade" id="ModalSuccess" tabindex="-1" role="dialog" aria-labelledby="ModalSuccess" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-body text-center bg-green">
+                <span class="" id="contentModalSuccess"></span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function Update() {
+        var maxYearOfPublication = document.getElementById("maxYearOfPublication").value;
+        var nunbOfBorrowBooks = document.getElementById("nunbOfBorrowBooks").value;
+        var numbOfDays = document.getElementById("numbOfDays").value;
+        const token = localStorage.getItem("accessToken");
+
+        $.ajax({
+            url: '@Url.Action("UpdateRegulation", "BangQuyDinh")',
+            type: 'PUT',
+            data: {
+                nunbOfBorrowBooks: nunbOfBorrowBooks,
+                numbOfDays: numbOfDays,
+                maxYearOfPublication: maxYearOfPublication,
+                token = token
+            },
+            success: function (data) {
+                if (data.success) {
+                    document.getElementById("contentModalSuccess").innerHTML = data.message;
+                    // Mở modal
+                    $("#ModalSuccess").modal("show");
+
+                } else {
+                    document.getElementById("contentModalError").innerHTML = data.message;
+                    $("#ModalError").modal("show");
+                }
+            },
+            error: function (error) {
+                console.error("Error:", error);
+            }
+        });
+    }
+
+</script>

@@ -7,7 +7,7 @@ using WebAPI.Services.Admin;
 
 namespace WebAPI.Controllers.Admin
 {
-    [Route("api/[controller]/[action]")]
+    [Route("api/admin/[controller]/[action]")]
     [ApiController]
     public class BangQuyDinhController : ControllerBase
     {
