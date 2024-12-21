@@ -302,6 +302,75 @@ namespace WebApp.Areas.Admin.Controllers
             }
         }
 
+       
+
+        [HttpPost]
+        [Route("ImportExcel")]
+        public async Task<IActionResult> ImportExcel(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+            {
+                return BadRequest("File không hợp lệ hoặc bị trống.");
+            }
+
+            // Kiểm tra định dạng file
+            var allowedExtensions = new[] { ".xlsx", ".xls" };
+            var fileExtension = Path.GetExtension(file.FileName).ToLower();
+
+            if (!allowedExtensions.Contains(fileExtension))
+            {
+                return BadRequest("Chỉ chấp nhận file Excel với định dạng .xlsx hoặc .xls.");
+            }
+
+            try
+            {
+                using (var stream = new MemoryStream())
+                {
+                    await file.CopyToAsync(stream);
+                    stream.Position = 0;
+
+                    // Tạo nội dung gửi qua MultipartFormDataContent
+                    var content = new MultipartFormDataContent();
+                    content.Add(new StreamContent(stream), "file", file.FileName);
+
+                    // Gửi yêu cầu POST tới API
+                    HttpResponseMessage response = await _client.PostAsync(_client.BaseAddress + "/NhapSach/ImportExcel", content);
+
+                    // Kiểm tra phản hồi từ API
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var responseData = await response.Content.ReadAsStringAsync();
+
+                        // Deserialize dữ liệu từ JSON trả về
+                        var result = JsonConvert.DeserializeObject<Dictionary<string, object>>(responseData);
+
+                        // Truy cập các thuộc tính từ JSON
+                        string message = result["Message"].ToString();
+                        var successfulRecords = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(result["SuccessfulRecords"].ToString());
+                        var errorRecords = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(result["ErrorRecords"].ToString());
+
+                        // Trả dữ liệu ra View
+                        return View("Index", new
+                        {
+                            Message = message,
+                            SuccessfulRecords = successfulRecords,
+                            ErrorRecords = errorRecords
+                        });
+                    }
+
+                    // Xử lý lỗi từ API
+                    return StatusCode((int)response.StatusCode, $"Lỗi từ API: {response.ReasonPhrase}");
+                }
+            }
+            catch (Exception ex)
+            {
+                // Xử lý lỗi chung
+                return StatusCode(500, $"Lỗi xử lý file: {ex.Message}");
+            }
+
+        }
+
+
     }
 
 }

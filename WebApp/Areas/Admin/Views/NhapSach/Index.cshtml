@@ -21,10 +21,13 @@
                                 <button type="submit" class="btn btn-primary taoPhieuNhap" id="taoPhieuNhap" onclick="taoPhieuNhap()">Tạo phiếu nhập</button>
                             </div>
 
-                            <div class="">
+                            <!-- Form Upload -->
+                            <div class="my-3">
                                 <label for="fileExcel">Chọn file Excel:</label>
-                                <input type="file" id="fileExcel" accept=".xlsx, .xls" onchange="docExcel()">
+                                <input type="file" id="fileExcel" accept=".xlsx, .xls">
+                                <button onclick="uploadExcel()">Tải lên</button>
                             </div>
+
 
                             <div class="pl-2 pr-2">
                                 <button type="button" class="btn btn-warning lamMoiSach" id="lamMoiButton" onclick="lamMoi()">Làm mới</button>
@@ -173,6 +176,27 @@
     </div>
 </section>
 
+<!-- Modal hiển thị lỗi -->
+<div id="errorModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <h4 style="color: red;">Danh sách lỗi</h4>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Mã</th>
+                    <th>Tên</th>
+                    <th>Lỗi</th>
+                    <th>Hành động</th>
+                </tr>
+            </thead>
+            <tbody id="errorTable">
+                <!-- Danh sách lỗi -->
+            </tbody>
+        </table>
+        <button onclick="closeErrorModal()">Đóng</button>
+        <button onclick="updateErrors()">Cập nhật</button>
+    </div>
+</div>
 <!-- Modal hiển thị chi tiết sách -->
 <div class="modal fade bd-example-modal-lg" id="showChiTietSachModal" tabindex="-1" role="dialog" aria-labelledby="showChiTietSachModalTitle" aria-hidden="true">
     <div class="modal-dialog modal-dialog-scrollable modal-dialog modal-lg" role="document">
@@ -1189,132 +1213,254 @@
             });
         }
 
-        function docExcel() {
-            var input = document.getElementById('fileExcel');
-            if (input.files && input.files[0]) {
-                var reader = new FileReader();
+        async function uploadExcel() {
+            const fileInput = document.getElementById('fileExcel');
+            const file = fileInput.files[0];
 
-                reader.onload = function (e) {
-                    var data = new Uint8Array(e.target.result);
-                    var workbook = XLSX.read(data, { type: 'array' });
-
-                    var firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-
-                    // Lấy thông tin Lô Nhập Sách
-                    var maNCC = firstSheet['B3'] ? firstSheet['B3'].v : ''; // Mã NCC
-                    var ngayNhap = firstSheet['C3'] ? firstSheet['C3'].v : ''; // Ngày Nhập
-
-                    // Chuyển đổi định dạng ngày
-                    var ngayNhapFormatted = convertDateFormat(ngayNhap);
-
-                    // Gán giá trị vào input
-                    document.getElementById('MaNCC').value = maNCC;
-                    document.getElementById('NgayNhap').value = ngayNhapFormatted;
-                    console.log("Mã nhà cung cấp: ", maNCC);
-
-                    // Kiểm tra thông tin Nhà cung cấp
-                    if (maNCC) {
-                        layThongTinNCC(maNCC); // Gọi hàm kiểm tra NCC
-                    } else {
-                        alert("Mã nhà cung cấp không tồn tại trong file Excel.");
-                    }
-
-                    // Đọc thông tin sách
-                    var startRow = 6;
-                    var dataSach = [];
-                    var rowIndex = startRow;
-                    while (firstSheet['B' + rowIndex]) {
-                        var sach = {
-                            'Tên sách': firstSheet['B' + rowIndex]?.v || '',
-                            'Thể loại': firstSheet['C' + rowIndex]?.v || '',
-                            'Năm XB': firstSheet['D' + rowIndex]?.v || '',
-                            'Nhà XB': firstSheet['E' + rowIndex]?.v || '',
-                            'Tác giả': firstSheet['F' + rowIndex]?.v || '',
-                            'Số lượng': firstSheet['G' + rowIndex]?.v || '',
-                            'Ngôn ngữ': firstSheet['H' + rowIndex]?.v || '',
-                            'Giá sách': firstSheet['I' + rowIndex]?.v || '',
-                            'Mô tả': firstSheet['J' + rowIndex]?.v || ''
-                        };
-                        dataSach.push(sach);
-                        rowIndex++;
-                    }
-
-                    // Hiển thị danh sách sách lên bảng
-                    var tbody = document.getElementById('danhSachSachNhap');
-                    tbody.innerHTML = ''; // Xóa dữ liệu cũ
-                    dataSach.forEach(function (sach, index) {
-                        var row = `
-                            <tr>
-                                <td>${index + 1}</td>
-                                <td>${sach['Tên sách']}</td>
-                                <td>${sach['Thể loại']}</td>
-                                <td>${sach['Tác giả']}</td>
-                                <td>${sach['Ngôn ngữ']}</td>
-                                <td>${sach['Nhà XB']}</td>
-                                <td>${sach['Năm XB']}</td>
-                                <td>${sach['Số lượng']}</td>
-                                <td>${sach['Giá sách']}</td>
-                            </tr>
-                        `;
-                        tbody.innerHTML += row;
-                    });
-                };
-
-            };
-
-            reader.readAsArrayBuffer(input.files[0]);
-        }
-                
-
-        function convertDateFormat(date) {
-            var parts = date.split('/');
-            if (parts.length === 3) {
-                return `${parts[2]}-${parts[1]}-${parts[0]}`;
+            if (!file) {
+                alert("Vui lòng chọn file Excel!");
+                return;
             }
-            return '';
+
+            const formData = new FormData();
+            formData.append("file", file);
+
+            try {
+                // Đảm bảo rằng URL đúng với controller app
+                const response = await fetch('/admin/nhapsach/ImportExcel', {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Lỗi từ API: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                console.log("Kết quả từ API:", data);
+
+                if (data.SuccessfulRecords && data.SuccessfulRecords.length > 0) {
+                    renderSuccessTable(data.SuccessfulRecords);
+                }
+
+                if (data.Errors && data.Errors.length > 0) {
+                    renderErrorModal(data.Errors);
+                }
+            } catch (err) {
+                console.error("Lỗi:", err);
+                alert(`Lỗi khi tải lên: ${err.message}`);
+            }
         }
 
-        function layThongTinNCC(maNCC) {
-            var requestData = {
-                PageSize: 1, // Lấy 1 bản ghi cụ thể
-                Page: 1,
-                Keyword: maNCC+""  // Tìm kiếm theo mã NCC
-            };
 
-            console.log("Dữ liệu gửi lên APImmm:", requestData); // Kiểm tra dữ liệu gửi lên
+        function renderSuccessTable(records) {
+            const tableBody = document.getElementById('danhSachSachNhap');
+            tableBody.innerHTML = ""; // Xóa dữ liệu cũ
 
-            $.ajax({
-                url: "/admin/nhapsach/GetListNCCPaging_APP",
-                type: "POST",
-                contentType: "application/json; charset=utf-8",
-                //dataType: "json",
-                data: JSON.stringify(requestData),
-                success: function (res) {
-                    console.log("Dữ liệu trả về từ API:", res); // Ghi lại dữ liệu trả về
-
-                    if (res && res.success && res.nccList && res.nccList.results && res.nccList.results.length > 0) {
-                        var ncc = res.nccList.results[0];
-                        console.log("Thông tin NCC:", ncc);
-
-                        // Hiển thị thông tin NCC lên giao diện
-                        document.getElementById('TenNCC').value = ncc.tenncc || '';
-                        document.getElementById('DiaChi').value = ncc.diachincc || '';
-                        document.getElementById('SDT').value = ncc.sdtncc || '';
-                    } else {
-                        console.warn("API trả về kết quả trống hoặc không thành công.");
-                        alert("Nhà cung cấp không tồn tại trong hệ thống.");
-                    }
-                },
-                error: function (xhr, status, error) {
-                    console.error("Lỗi khi gọi API:", error, xhr.responseText);
-                    alert("Đã xảy ra lỗi khi kiểm tra nhà cung cấp.");
-                }
+            records.forEach(record => {
+                const row = `
+                    <tr>
+                        <td>${record.Ma}</td>
+                        <td>${record.Ten}</td>
+                        <td>${record.TheLoai}</td>
+                        <td>${record.TacGia}</td>
+                        <td>${record.NgonNgu}</td>
+                        <td>${record.NhaXuatBan}</td>
+                        <td>${record.NamXuatBan}</td>
+                        <td>${record.SoLuong}</td>
+                        <td>${record.Gia}</td>
+                        <td><button onclick="removeRow('${record.Ma}')">Xóa</button></td>
+                    </tr>
+                `;
+                tableBody.insertAdjacentHTML('beforeend', row);
             });
         }
 
+        function renderErrorModal(errors) {
+            const errorTable = document.getElementById('errorTable');
+            errorTable.innerHTML = ""; // Xóa lỗi cũ
+
+            errors.forEach(error => {
+                const row = `
+                    <tr>
+                        <td>${error.Ma}</td>
+                        <td>${error.Ten}</td>
+                        <td>${error.Loi}</td>
+                        <td><button onclick="editError('${error.Ma}')">Sửa</button></td>
+                    </tr>
+                `;
+                errorTable.insertAdjacentHTML('beforeend', row);
+            });
+
+            openErrorModal();
+        }
+
+        function openErrorModal() {
+            const modal = document.getElementById('errorModal');
+            modal.style.display = 'block';
+        }
+
+        function closeErrorModal() {
+            const modal = document.getElementById('errorModal');
+            modal.style.display = 'none';
+        }
+
+        async function updateErrors() {
+            const errors = [...document.querySelectorAll('#errorTable tr')].map(row => {
+                const cells = row.querySelectorAll('td');
+                return {
+                    Ma: cells[0].textContent,
+                    Ten: cells[1].textContent,
+                    Loi: cells[2].textContent,
+                };
+            });
+
+            try {
+                const response = await fetch('/app/excel/update-errors', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(errors),
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Lỗi khi cập nhật: ${response.statusText}`);
+                }
+
+                alert("Cập nhật lỗi thành công!");
+                closeErrorModal();
+            } catch (err) {
+                console.error("Lỗi:", err);
+                alert(`Lỗi khi cập nhật: ${err.message}`);
+            }
+        }
+
+        function removeRow(maSach) {
+            document.querySelector(`#danhSachSachNhap tr[data-id="${maSach}"]`).remove();
+        }
 
 
+        // function docExcel() {
+        //     var input = document.getElementById('fileExcel');
+        //     if (input.files && input.files[0]) {
+        //         var reader = new FileReader();
 
+        //         reader.onload = function (e) {
+        //             var data = new Uint8Array(e.target.result);
+        //             var workbook = XLSX.read(data, { type: 'array' });
+
+        //             var firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+
+        //             // Lấy thông tin Lô Nhập Sách
+        //             var maNCC = firstSheet['B3'] ? firstSheet['B3'].v : ''; // Mã NCC
+        //             var ngayNhap = firstSheet['C3'] ? firstSheet['C3'].v : ''; // Ngày Nhập
+
+        //             // Chuyển đổi định dạng ngày
+        //             var ngayNhapFormatted = convertDateFormat(ngayNhap);
+
+        //             // Gán giá trị vào input
+        //             document.getElementById('MaNCC').value = maNCC;
+        //             document.getElementById('NgayNhap').value = ngayNhapFormatted;
+        //             console.log("Mã nhà cung cấp: ", maNCC);
+
+        //             // Kiểm tra thông tin Nhà cung cấp
+        //             if (maNCC) {
+        //                 layThongTinNCC(maNCC); // Gọi hàm kiểm tra NCC
+        //             } else {
+        //                 alert("Mã nhà cung cấp không tồn tại trong file Excel.");
+        //             }
+
+        //             // Đọc thông tin sách
+        //             var startRow = 6;
+        //             var dataSach = [];
+        //             var rowIndex = startRow;
+        //             while (firstSheet['B' + rowIndex]) {
+        //                 var sach = {
+        //                     'Tên sách': firstSheet['B' + rowIndex]?.v || '',
+        //                     'Thể loại': firstSheet['C' + rowIndex]?.v || '',
+        //                     'Năm XB': firstSheet['D' + rowIndex]?.v || '',
+        //                     'Nhà XB': firstSheet['E' + rowIndex]?.v || '',
+        //                     'Tác giả': firstSheet['F' + rowIndex]?.v || '',
+        //                     'Số lượng': firstSheet['G' + rowIndex]?.v || '',
+        //                     'Ngôn ngữ': firstSheet['H' + rowIndex]?.v || '',
+        //                     'Giá sách': firstSheet['I' + rowIndex]?.v || '',
+        //                     'Mô tả': firstSheet['J' + rowIndex]?.v || ''
+        //                 };
+        //                 dataSach.push(sach);
+        //                 rowIndex++;
+        //             }
+
+        //             // Hiển thị danh sách sách lên bảng
+        //             var tbody = document.getElementById('danhSachSachNhap');
+        //             tbody.innerHTML = ''; // Xóa dữ liệu cũ
+        //             dataSach.forEach(function (sach, index) {
+        //                 var row = `
+        //                     <tr>
+        //                         <td>${index + 1}</td>
+        //                         <td>${sach['Tên sách']}</td>
+        //                         <td>${sach['Thể loại']}</td>
+        //                         <td>${sach['Tác giả']}</td>
+        //                         <td>${sach['Ngôn ngữ']}</td>
+        //                         <td>${sach['Nhà XB']}</td>
+        //                         <td>${sach['Năm XB']}</td>
+        //                         <td>${sach['Số lượng']}</td>
+        //                         <td>${sach['Giá sách']}</td>
+        //                     </tr>
+        //                 `;
+        //                 tbody.innerHTML += row;
+        //             });
+        //         };
+
+        //     };
+
+        //     reader.readAsArrayBuffer(input.files[0]);
+        // }
+                
+
+        // function convertDateFormat(date) {
+        //     var parts = date.split('/');
+        //     if (parts.length === 3) {
+        //         return `${parts[2]}-${parts[1]}-${parts[0]}`;
+        //     }
+        //     return '';
+        // }
+
+        // function layThongTinNCC(maNCC) {
+        //     var requestData = {
+        //         PageSize: 1, // Lấy 1 bản ghi cụ thể
+        //         Page: 1,
+        //         Keyword: maNCC+""  // Tìm kiếm theo mã NCC
+        //     };
+
+        //     console.log("Dữ liệu gửi lên APImmm:", requestData); // Kiểm tra dữ liệu gửi lên
+
+        //     $.ajax({
+        //         url: "/admin/nhapsach/GetListNCCPaging_APP",
+        //         type: "POST",
+        //         contentType: "application/json; charset=utf-8",
+        //         //dataType: "json",
+        //         data: JSON.stringify(requestData),
+        //         success: function (res) {
+        //             console.log("Dữ liệu trả về từ API:", res); // Ghi lại dữ liệu trả về
+
+        //             if (res && res.success && res.nccList && res.nccList.results && res.nccList.results.length > 0) {
+        //                 var ncc = res.nccList.results[0];
+        //                 console.log("Thông tin NCC:", ncc);
+
+        //                 // Hiển thị thông tin NCC lên giao diện
+        //                 document.getElementById('TenNCC').value = ncc.tenncc || '';
+        //                 document.getElementById('DiaChi').value = ncc.diachincc || '';
+        //                 document.getElementById('SDT').value = ncc.sdtncc || '';
+        //             } else {
+        //                 console.warn("API trả về kết quả trống hoặc không thành công.");
+        //                 alert("Nhà cung cấp không tồn tại trong hệ thống.");
+        //             }
+        //         },
+        //         error: function (xhr, status, error) {
+        //             console.error("Lỗi khi gọi API:", error, xhr.responseText);
+        //             alert("Đã xảy ra lỗi khi kiểm tra nhà cung cấp.");
+        //         }
+        //     });
+        // }
 
 
     </script>

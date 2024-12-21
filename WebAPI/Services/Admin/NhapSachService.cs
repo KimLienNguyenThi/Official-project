@@ -1,7 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using DocumentFormat.OpenXml.Spreadsheet;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using OfficeOpenXml;
+using System.Data;
 using WebAPI.Areas.Admin.Data;
 using WebAPI.DTOs.Admin_DTO;
+using WebAPI.Helper;
 using WebAPI.Models;
 
 namespace WebAPI.Services.Admin
@@ -10,7 +15,7 @@ namespace WebAPI.Services.Admin
     {
         private readonly QuanLyThuVienContext _context;
         private readonly GeneratePDFService _GeneratePDFService;
-        public NhapSachService(QuanLyThuVienContext context,GeneratePDFService generatePDFService)
+        public NhapSachService(QuanLyThuVienContext context, GeneratePDFService generatePDFService)
         {
             _context = context;
             _GeneratePDFService = generatePDFService;
@@ -20,7 +25,7 @@ namespace WebAPI.Services.Admin
         {
             var query =
                  (from NhaCungCap in _context.NhaCungCaps
-                  where string.IsNullOrEmpty(req.Keyword) || NhaCungCap.Tenncc.Contains(req.Keyword)  || NhaCungCap.Mancc.ToString().Contains(req.Keyword)
+                  where string.IsNullOrEmpty(req.Keyword) || NhaCungCap.Tenncc.Contains(req.Keyword) || NhaCungCap.Mancc.ToString().Contains(req.Keyword)
                   select new NhaCungCap
                   {
                       Mancc = NhaCungCap.Mancc,
@@ -45,7 +50,7 @@ namespace WebAPI.Services.Admin
         {
             var query =
                 (from SACH in _context.Saches
-                
+
                  where string.IsNullOrEmpty(req.Keyword) || SACH.Tensach.Contains(req.Keyword)
                  select new Sach
                  {
@@ -233,7 +238,7 @@ namespace WebAPI.Services.Admin
                     // Trả về dữ liệu PDF dưới dạng byte[]
                     return pdfData;
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     transaction.Rollback(); // Rollback nếu gặp lỗi
                     Console.WriteLine($"Error: {ex.Message}");
@@ -247,7 +252,7 @@ namespace WebAPI.Services.Admin
             try
             {
                 // Lấy giá trị NamXBMax từ bảng QuyDinh
-                int namXBMax =  _context.QuyDinhs
+                int namXBMax = _context.QuyDinhs
                     .Select(qd => qd.NamXbmax)
                     .FirstOrDefault();
 
@@ -277,6 +282,169 @@ namespace WebAPI.Services.Admin
                                     .FirstOrDefaultAsync(); // Lấy nhà cung cấp đầu tiên hoặc null nếu không tìm thấy
 
             return ncc;
+        }
+
+        public List<ImportSachTemp> ProcessExcelFile(Stream excelStream)
+        {
+            var result = new List<ImportSachTemp>();
+
+            // Thiết lập LicenseContext
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
+            // Reset vị trí của stream trước khi sử dụng lại
+            excelStream.Position = 0;
+            var dataTable = SetColumnName(new DataTable());
+
+            var (datas, errorMess) = ExcelHelper.ReadExcelTo<ImportSachTemp>(excelStream, dataTable);
+            // Đặt lại con trỏ stream trước khi tiếp tục sử dụng với ExcelPackage
+            excelStream.Position = 0;
+            using (var package = new ExcelPackage(excelStream))
+            {
+                if (package.Workbook.Worksheets.Count == 0)
+                {
+                    throw new Exception("File Excel không chứa sheet nào.");
+                }
+
+                var worksheet = package.Workbook.Worksheets[0];
+                int rowCount = worksheet.Dimension?.Rows ?? 0;
+
+                if (rowCount == 0)
+                {
+                    throw new Exception("Sheet trong file Excel không chứa dữ liệu.");
+                }
+
+                //for (int row = 6; row <= rowCount; row++) // Bỏ qua tiêu đề (row 1)
+                //{
+                //    try
+                //    {
+                //        var tensach = worksheet.Cells[row, 1].Text.Trim();
+                //        var theloai = worksheet.Cells[row, 2].Text.Trim();
+                //        var namxb = int.TryParse(worksheet.Cells[row, 3].Text, out var nam) ? nam : -1;
+                //        var nxb = worksheet.Cells[row, 4].Text.Trim();
+                //        var tacgia = worksheet.Cells[row, 5].Text.Trim();
+                //        var soluong = int.TryParse(worksheet.Cells[row, 6].Text, out var sl) ? sl : -1;
+                //        var ngonngu = worksheet.Cells[row, 7].Text.Trim();
+                //        var giasach = int.TryParse(worksheet.Cells[row, 8].Text.Trim(), out var gia) ? gia : -1; // Cập nhật GiaSach
+                //        var mota = worksheet.Cells[row, 9].Text.Trim();
+                //        var urlImage = worksheet.Cells[row, 10].Text.Trim();
+
+                //        // Xử lý logic kiểm tra dữ liệu
+                //        var trangThai = (soluong > 0 && namxb > 0 &&  DateTime.Now.Year- namxb <=GetNamXBMax() && giasach > 0) ? "OK" : "Lỗi";
+                //        var moTaLoi = "";
+
+                //        if (string.IsNullOrWhiteSpace(tensach)) moTaLoi += "Tên sách không được để trống. ";
+                //        if (namxb <= 0 || DateTime.Now.Year - namxb > GetNamXBMax()) moTaLoi += "Năm xuất bản không hợp lệ. ";
+                //        if (soluong <= 0) moTaLoi += "Số lượng phải lớn hơn 0.";
+                //        if (giasach <= 0) moTaLoi += "Giá sách phải lớn hơn 0.";
+
+                //        result.Add(new ImportSachTemp
+                //        {
+                //            TenSach = tensach,
+                //            TheLoai = theloai,
+                //            TacGia = tacgia,
+                //            NgonNgu = ngonngu,
+                //            NXB = nxb,
+                //            NamXuatBan = namxb,
+                //            URLImage = urlImage,
+                //            MoTa = mota,
+                //            SoLuong = soluong,
+                //            GiaSach = giasach,  // Cập nhật GiaSach
+                //            TrangThai = trangThai,
+                //            MoTaLoi = moTaLoi
+                //        });
+                //    }
+                //    catch (Exception ex)
+                //    {
+                //        result.Add(new ImportSachTemp
+                //        {
+                //            TenSach = "",
+                //            TrangThai = "Lỗi",
+                //            MoTaLoi = $"Lỗi đọc dòng {row}: {ex.Message}"
+                //        });
+                //    }
+                //}
+                foreach (var item in datas)
+                {
+                    var trangThai = (item.SoLuong > 0 &&
+                                     item.NamXuatBan > 0 &&
+                                     DateTime.Now.Year - item.NamXuatBan <= GetNamXBMax() &&
+                                     item.GiaSach > 0) ? "OK" : "Lỗi";
+
+                    var moTaLoi = string.Empty;
+                    if (string.IsNullOrWhiteSpace(item.TenSach)) moTaLoi += "Tên sách không được để trống. ";
+                    if (item.NamXuatBan <= 0 || DateTime.Now.Year - item.NamXuatBan > GetNamXBMax()) moTaLoi += "Năm xuất bản không hợp lệ. ";
+                    if (item.SoLuong <= 0) moTaLoi += "Số lượng phải lớn hơn 0.";
+                    if (item.GiaSach <= 0) moTaLoi += "Giá sách phải lớn hơn 0.";
+
+                    item.TrangThai = trangThai;
+                    item.MoTaLoi = moTaLoi;
+
+                    result.Add(item);
+                }
+
+            }
+
+            return result;
+        }
+
+        public void SaveToTempTable(List<ImportSachTemp> data)
+        {
+            using (var transaction = _context.Database.BeginTransaction())
+            {
+                try
+                {
+                    using (var connection = _context.Database.GetDbConnection())
+                    {
+                        connection.Open();
+
+                        foreach (var item in data)
+                        {
+                            var command = new SqlCommand(@"
+                        INSERT INTO ImportSachTemp 
+                        (TENSACH, THELOAI, TACGIA, NGONNGU, NXB, NAMXB, URL_IMAGE, MOTA, SOLUONG, TrangThai, MoTaLoi)
+                        VALUES 
+                        (@TenSach, @TheLoai, @TacGia, @NgonNgu, @NXB, @NamXuatBan, @URLImage, @MoTa, @SoLuong, @TrangThai, @MoTaLoi)",
+                                (SqlConnection)connection);
+
+                            command.Parameters.AddWithValue("@TenSach", (object)item.TenSach ?? DBNull.Value);
+                            command.Parameters.AddWithValue("@TheLoai", (object)item.TheLoai ?? DBNull.Value);
+                            command.Parameters.AddWithValue("@TacGia", (object)item.TacGia ?? DBNull.Value);
+                            command.Parameters.AddWithValue("@NgonNgu", (object)item.NgonNgu ?? DBNull.Value);
+                            command.Parameters.AddWithValue("@NXB", (object)item.NXB ?? DBNull.Value);
+                            command.Parameters.AddWithValue("@NamXuatBan", item.NamXuatBan > 0 ? item.NamXuatBan : (object)DBNull.Value);
+                            command.Parameters.AddWithValue("@URLImage", (object)item.URLImage ?? DBNull.Value);
+                            command.Parameters.AddWithValue("@MoTa", (object)item.MoTa ?? DBNull.Value);
+                            command.Parameters.AddWithValue("@SoLuong", item.SoLuong > 0 ? item.SoLuong : (object)DBNull.Value);
+                            command.Parameters.AddWithValue("@TrangThai", item.TrangThai);
+                            command.Parameters.AddWithValue("@MoTaLoi", (object)item.MoTaLoi ?? DBNull.Value);
+
+                            command.ExecuteNonQuery();
+                        }
+                    }
+
+                    transaction.Commit();
+                }
+                catch (Exception)
+                {
+                    transaction.Rollback();
+                    throw; // Quăng lại lỗi để xử lý phía trên
+                }
+            }
+        }
+
+        public DataTable SetColumnName(DataTable dt)
+        {
+            dt.Columns.Add("tensach");
+            dt.Columns.Add("theloai");
+            dt.Columns.Add("namxb");
+            dt.Columns.Add("nxb");
+            dt.Columns.Add("tacgia");
+            dt.Columns.Add("soluong");
+            dt.Columns.Add("ngonngu");
+            dt.Columns.Add("giasach");
+            dt.Columns.Add("mota");
+            dt.Columns.Add("urlImage");
+            return dt;
         }
     }
 }

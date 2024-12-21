@@ -113,5 +113,54 @@ namespace WebAPI.Controllers.Admin
             var result = await _nhapSachService.GetAllNCC(mancc);
             return Ok(result);
         }
+
+        [HttpPost]
+        public async Task<IActionResult> ImportExcel(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+            {
+                return BadRequest(new { Message = "File không hợp lệ hoặc bị trống." });
+            }
+
+            // Kiểm tra định dạng tệp
+            var allowedExtensions = new[] { ".xlsx", ".xls" };
+            var fileExtension = Path.GetExtension(file.FileName).ToLower();
+
+            if (!allowedExtensions.Contains(fileExtension))
+            {
+                return BadRequest(new { Message = "Chỉ chấp nhận file Excel với định dạng .xlsx hoặc .xls." });
+            }
+
+            try
+            {
+                using (var stream = new MemoryStream())
+                {
+                    await file.CopyToAsync(stream);
+                    stream.Position = 0;
+
+                    // Gọi service để xử lý file
+                    var result = _nhapSachService.ProcessExcelFile(stream);
+
+                    // Lưu kết quả vào bảng tạm
+                    _nhapSachService.SaveToTempTable(result);
+
+                    // Chuẩn bị dữ liệu trả về
+                    var successfulRecords = result.Where(r => r.TrangThai == "OK").ToList();
+                    var errorRecords = result.Where(r => r.TrangThai != "OK").ToList();
+
+                    return Ok(new
+                    {
+                        Message = "File đã được xử lý thành công.",
+                        SuccessfulRecords = successfulRecords,
+                        ErrorRecords = errorRecords
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Có lỗi xảy ra trong quá trình xử lý file.", Details = ex.Message });
+            }
+        }
+
     }
 }
