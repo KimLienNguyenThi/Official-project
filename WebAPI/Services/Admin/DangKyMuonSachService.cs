@@ -171,6 +171,18 @@ namespace WebAPI.Service_Admin
 
                     _context.SaveChanges(); // Lưu thay đổi vào cơ sở dữ liệu
 
+                    foreach(var sachMuon in x.listCTSachMuon)
+                    {
+                        var newChitietSachMuon = new ChiTietSachMuon
+                        {
+                            Mapm = newPhieuMuon.Mapm,
+                            Macuonsach = sachMuon.MaCuonSach,
+                            Tinhtrang = sachMuon.TinhTrang,
+                        };
+                        _context.ChiTietSachMuons.Add(newChitietSachMuon);
+                    }
+                    _context.SaveChanges(); // Lưu thay đổi vào cơ sở dữ liệu
+
                     transaction.Commit();
 
                     return true;

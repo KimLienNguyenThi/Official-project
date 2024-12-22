@@ -12,4 +12,10 @@
         public DateOnly? NgayHen { get; set; }
         public int? TinhTrang { get; set; }
     }
+
+    public class MaSachCuonSachDto
+    {
+        public int MaSach { get; set; }
+        public List<string> MaCuonSach { get; set; }
+    }
 }

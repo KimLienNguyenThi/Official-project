@@ -3,11 +3,21 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h2>Tài khoản của bạn chưa được kích hoạt</h2>
-<h3>Vui lòng nhập số điện thoại để tiếp tục đăng nhập vào hệ thống</h3>
-
-<input type="text" class="form-control" id="inputSdt">
-<button onclick="ConfirmSdt()" type="button" class="btn btn-primary">Submit</button>
+<div class="container d-flex justify-content-center align-items-start vh-100 py-5">
+    <div class="card shadow p-4" style="max-width: 600px; width: 100%;">
+        <h2 class="text-center text-primary">Tài khoản chưa được kích hoạt</h2>
+        <p class="text-center text-muted">
+            Vui lòng nhập số điện thoại để tiếp tục đăng nhập vào hệ thống.
+        </p>
+        <form>
+            <div class="mb-3">
+                <label for="inputSdt" class="form-label">Số điện thoại</label>
+                <input type="text" class="form-control" id="inputSdt" placeholder="Nhập số điện thoại">
+            </div>
+            <button onclick="ConfirmSdt()" type="button" class="btn btn-primary w-100">Xác nhận</button>
+        </form>
+    </div>
+</div>
 
 
 <!-- Modal -->

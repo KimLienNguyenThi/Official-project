@@ -6,6 +6,7 @@ using NuGet.Common;
 using System.Net.Http.Headers;
 using WebApp.Admin.Data;
 using WebApp.Areas.Admin.Data;
+using WebApp.DTOs.Admin;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace WebApp.Areas.Admin.Controllers
@@ -97,10 +98,11 @@ namespace WebApp.Areas.Admin.Controllers
 
         [HttpPost]
         [Route("SubmitTaoPhieuMuon")]
-        public ActionResult SubmitTaoPhieuMuon(int maNV, int maDK, DateOnly ngayTra, DateOnly ngayMuon, string sdt, string token)
+        public ActionResult SubmitTaoPhieuMuon(int maNV, int maDK, DateOnly ngayTra, DateOnly ngayMuon, string sdt, List<MaSachCuonSachDto> data, string token)
         {
             try
             {
+
                 List<DTO_Sach_Muon> danhSachDK = new List<DTO_Sach_Muon>();
                 int maThe;
                 bool checkHanThe;
@@ -137,6 +139,9 @@ namespace WebApp.Areas.Admin.Controllers
 
                 if (response_CheckHanTheDocGia.IsSuccessStatusCode)
                 {
+                    string dataJson = response_CheckHanTheDocGia.Content.ReadAsStringAsync().Result;
+                    var apiResponse = JsonConvert.DeserializeObject<APIResponse<List<DTO_DangKyMuonSach_GroupSDT>>>(dataJson);
+
                     checkHanThe = true;
                 }
                 else
@@ -145,16 +150,49 @@ namespace WebApp.Areas.Admin.Controllers
                 }
 
 
-
                 if (checkHanThe)
                 {
+                    // thông tin tổng quan của sách
+                    List<DTO_Sach_Muon> dTO_Sach_Muons = new List<DTO_Sach_Muon>();
+                    foreach (var item in data)
+                    {
+                        DTO_Sach_Muon dTO_Sach_Muon = new DTO_Sach_Muon()
+                        {
+                            MaSach = item.MaSach,
+                            SoLuong = data
+                                .Where(d => d.MaSach == item.MaSach)
+                                .Select(d => d.MaCuonSach.Count)
+                                .FirstOrDefault(),
+                            TenSach = "",
+                            
+                        };
+                        dTO_Sach_Muons.Add(dTO_Sach_Muon);
+                    }
+
+                    // thông tin chi tiết
+                    List<DTO_CT_Sach_Muon> dTO_CT_Sach_Muons = new List<DTO_CT_Sach_Muon>();
+                    foreach (var item in data)
+                    {
+                        foreach(var items in item.MaCuonSach)
+                        {
+                            DTO_CT_Sach_Muon dTO_CT_Sach_Muon = new DTO_CT_Sach_Muon()
+                            {
+                                MaCuonSach = items,
+                                TinhTrang = false,
+                            };
+                            dTO_CT_Sach_Muons.Add(dTO_CT_Sach_Muon);
+                        }
+                    };
+
                     DTO_Tao_Phieu_Muon tpm = new DTO_Tao_Phieu_Muon();
                     tpm.NgayMuon = ngayMuon;
                     tpm.NgayTra = ngayTra;
                     tpm.MaNhanVien = maNV;
                     tpm.MaTheDocGia = maThe;
                     tpm.MaDK = maDK;
-                    tpm.listSachMuon = danhSachDK;
+                    tpm.TenDocGia = "";
+                    tpm.listSachMuon = dTO_Sach_Muons;
+                    tpm.listCTSachMuon = dTO_CT_Sach_Muons;
 
                     // đính kèm token khi gọi API
                     _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);

@@ -112,7 +112,7 @@
                                 <span class="float-right text-muted text-sm"></span>
                             </a>*@
                         <div class="dropdown-divider"></div>
-                        <a href="javascript:void(0);" onclick="confirmLogout()" class="dropdown-item">
+                        <a href="javascript:void(0);" onclick="confirmLogoutAdmin()" class="dropdown-item">
                             <i class="fas fa-sign-out-alt mr-2"></i> Đăng xuất
                             <span class="float-right text-muted text-sm"></span>
                         </a>
@@ -318,7 +318,7 @@
         // DropzoneJS Demo Code End
 
 
-        function confirmLogout() {
+        function confirmLogoutAdmin() {
             var confirmLogout = confirm("Bạn có chắc chắn muốn đăng xuất không?");
             if (confirmLogout) {
                 // Set a session variable to indicate logout

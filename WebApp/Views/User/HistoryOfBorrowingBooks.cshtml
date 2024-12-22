@@ -47,19 +47,19 @@
                         <td class="trang-thai">
                             @if (item.Tinhtrang == 0)
                             {
-                                <span class="badge badge-secondary" style="color:black;">Chưa duyệt</span>
+                                <span class="badge badge-secondary" style="color:red; font-size: 16px">Chưa duyệt</span>
                             }
                             else if (item.Tinhtrang == 1)
                             {
-                                <span class="badge badge-success" style="color:black">Đã duyệt</span>
+                                <span class="badge badge-success" style="color:darkgreen; font-size: 16px">Đã duyệt</span>
                             }
                             else if (item.Tinhtrang == 2)
                             {
-                                <span class="badge badge-info" style="color:black">Đã mượn</span>
+                                <span class="badge badge-info" style="color:darkorange; font-size: 16px">Đã mượn</span>
                             }
                             else if (item.Tinhtrang == 3)
                             {
-                                <span class="badge badge-danger" style="color:black">Đã hủy</span>
+                                <span class="badge badge-danger" style="color:darkgray; font-size: 16px">Đã hủy</span>
                             }
                         </td>
                         <td>
