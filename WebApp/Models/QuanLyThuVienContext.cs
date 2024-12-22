@@ -574,13 +574,13 @@ public partial class QuanLyThuVienContext : DbContext
 
         modelBuilder.Entity<QuyDinh>(entity =>
         {
-            entity.HasKey(e => e.NamXbmax).HasName("PK__QuyDinh__EDD1A17A57077B9C");
+            entity.HasKey(e => e.MaQuyDinh).HasName("PK__QuyDinh__EDD1A17A57077B9C");
 
             entity.ToTable("QuyDinh");
 
-            entity.Property(e => e.NamXbmax)
+            entity.Property(e => e.MaQuyDinh)
                 .ValueGeneratedNever()
-                .HasColumnName("NamXBMax");
+                .HasColumnName("MaQuyDinh");
         });
 
         modelBuilder.Entity<Sach>(entity =>

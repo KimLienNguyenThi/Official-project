@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using NuGet.Common;
+using System.Net.Http.Headers;
 using WebApp.Admin.Data;
 using WebApp.Areas.Admin.Data;
 using static System.Runtime.InteropServices.JavaScript.JSType;
@@ -59,10 +61,12 @@ namespace WebApp.Areas.Admin.Controllers
 
         [HttpPost]
         [Route("HandleBtnHuyAndDuyet")]
-        public ActionResult HandleBtnHuyAndDuyet(int maDK, int tinhTrang)
+        public ActionResult HandleBtnHuyAndDuyet(int maDK, int tinhTrang, string token)
         {
             try
             {
+                // đính kèm token khi gọi API
+                _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
                 HttpResponseMessage response = _client.GetAsync(_client.BaseAddress + $"/DangKyMuonSach/UpdateTinhTrang/{maDK}/{tinhTrang}").Result;
 
                 if (response.IsSuccessStatusCode)
@@ -93,7 +97,7 @@ namespace WebApp.Areas.Admin.Controllers
 
         [HttpPost]
         [Route("SubmitTaoPhieuMuon")]
-        public ActionResult SubmitTaoPhieuMuon(int maNV, int maDK, DateOnly ngayTra, DateOnly ngayMuon, string sdt)
+        public ActionResult SubmitTaoPhieuMuon(int maNV, int maDK, DateOnly ngayTra, DateOnly ngayMuon, string sdt, string token)
         {
             try
             {
@@ -152,7 +156,8 @@ namespace WebApp.Areas.Admin.Controllers
                     tpm.MaDK = maDK;
                     tpm.listSachMuon = danhSachDK;
 
-
+                    // đính kèm token khi gọi API
+                    _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
                     // call API
                     HttpResponseMessage response_Insert = _client.PostAsJsonAsync(_client.BaseAddress + "/DangKyMuonSach/Insert", tpm).Result;
 

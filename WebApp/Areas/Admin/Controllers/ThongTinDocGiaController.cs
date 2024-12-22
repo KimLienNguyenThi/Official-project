@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using NuGet.Common;
+using System.Net.Http.Headers;
 using WebApp.Admin.Data;
 using WebApp.Areas.Admin.Data;
 using WebApp.Models;
@@ -129,7 +131,7 @@ namespace WebApp.Areas.Admin.Controllers
 
         [HttpPost]
         [Route("CapNhatThongTin")]
-        public ActionResult CapNhatThongTin(int maDocGia, DateOnly ngaySinh, string diaChi, string gioiTinh, string soDienThoai, string tenDocGia)
+        public ActionResult CapNhatThongTin(int maDocGia, DateOnly ngaySinh, string diaChi, string gioiTinh, string soDienThoai, string tenDocGia, string token)
         {
             try
             {
@@ -142,6 +144,8 @@ namespace WebApp.Areas.Admin.Controllers
                 dg.Gioitinh = gioiTinh;
                 dg.Sdt = soDienThoai;
 
+                // đính kèm token khi gọi API
+                _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
                 // call API
                 HttpResponseMessage response = _client.PostAsJsonAsync(_client.BaseAddress + "/ThongTinDocGia/UpdateThongTinDocGia", dg).Result;
 

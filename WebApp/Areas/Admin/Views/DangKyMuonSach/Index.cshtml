@@ -245,6 +245,7 @@
 @section scripts
 {
     <script>
+        const tokenJWT = localStorage.getItem("accessToken");
 
         // Lấy ngày hiện tại
         var currentDate = new Date();
@@ -300,6 +301,7 @@
                 data: {
                     maDK: maDK,
                     tinhTrang: tinhTrang,
+                    token: tokenJWT
                 },
                 success: function (data) {
                     if (data.success) {
@@ -372,6 +374,7 @@
                             ngayTra: formatNgayTra,
                             ngayMuon: ngayMuon,
                             sdt: sdt,
+                            token: tokenJWT
                         },
                         success: function (data) {
                             if (data.success) {

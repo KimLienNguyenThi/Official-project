@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using WebAPI.Areas.Admin.Data;
 using WebAPI.DTOs.Admin_DTO;
@@ -50,7 +51,7 @@ namespace WebAPI.Controllers.Admin
             }
         }
 
-
+        [Authorize(Policy = "AdminPolicy")]
         [HttpGet("{maDK}/{tinhTrang}")]
         public IActionResult UpdateTinhTrang(int maDK, int tinhTrang)
         {
@@ -180,7 +181,7 @@ namespace WebAPI.Controllers.Admin
             }
         }
 
-
+        [Authorize(Policy = "AdminPolicy")]
         [HttpPost]
         public IActionResult Insert([FromBody] DTO_Tao_Phieu_Muon x)
         {

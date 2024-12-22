@@ -58,7 +58,7 @@
             <!-- Right navbar links -->
             <ul class="navbar-nav ml-auto">
 
-                @* <!-- Tên nhân viên + Chức vụ -->
+                <!-- Tên nhân viên + Chức vụ -->
                 <li class="nav-item">
                     <a class="nav-link" data-widget="navbar-search" href="#" role="button">
                         @{
@@ -68,7 +68,7 @@
                         }
                         @user | @chucvu
                     </a>
-                </li> *@
+                </li>
 
                 <!-- Messages Dropdown Menu -->
                 <li class="nav-item dropdown">
@@ -323,7 +323,7 @@
             if (confirmLogout) {
                 // Set a session variable to indicate logout
                 sessionStorage.setItem('logout', 'true');
-
+                localStorage.removeItem("accessToken"); // Xóa token
                 // Redirect to the logout URL
                 window.location.href = "/Admin/account/logout";
             }

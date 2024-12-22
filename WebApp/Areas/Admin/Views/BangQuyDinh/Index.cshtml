@@ -31,10 +31,10 @@
 
                 <div class="form-row d-flex justify-content-around">
                     <!-- Nút bấm -->
-                    <button type="button" class="btn btn-primary px-4 py-2" id="update" onclick="Update()">
+                    <button type="button" class="btn btn-primary px-4 py-2" id="update" onclick="UpdateRegulation()">
                         <i class="fas fa-save"></i> Cập nhật
                     </button>
-                    <button type="button" class="btn btn-warning px-4 py-2" id="refresh">
+                    <button type="button" class="btn btn-warning px-4 py-2" id="refresh" onclick="Refresh()">
                         <i class="fas fa-sync-alt"></i> Làm mới
                     </button>
                 </div>
@@ -66,37 +66,45 @@
     </div>
 </div>
 
-<script>
-    function Update() {
-        var maxYearOfPublication = document.getElementById("maxYearOfPublication").value;
-        var nunbOfBorrowBooks = document.getElementById("nunbOfBorrowBooks").value;
-        var numbOfDays = document.getElementById("numbOfDays").value;
-        const token = localStorage.getItem("accessToken");
+@section scripts
+    {
+    <script>
 
-        $.ajax({
-            url: '@Url.Action("UpdateRegulation", "BangQuyDinh")',
-            type: 'PUT',
-            data: {
-                nunbOfBorrowBooks: nunbOfBorrowBooks,
-                numbOfDays: numbOfDays,
-                maxYearOfPublication: maxYearOfPublication,
-                token = token
-            },
-            success: function (data) {
-                if (data.success) {
-                    document.getElementById("contentModalSuccess").innerHTML = data.message;
-                    // Mở modal
-                    $("#ModalSuccess").modal("show");
+        function UpdateRegulation() {
+            var maxYearOfPublication = document.getElementById("maxYearOfPublication").value;
+            var nunbOfBorrowBooks = document.getElementById("nunbOfBorrowBooks").value;
+            var numbOfDays = document.getElementById("numbOfDays").value;
+            const tokenJWT = localStorage.getItem("accessToken");
 
-                } else {
-                    document.getElementById("contentModalError").innerHTML = data.message;
-                    $("#ModalError").modal("show");
+            $.ajax({
+                url: '@Url.Action("UpdateRegulation", "BangQuyDinh")',
+                type: 'PUT',
+                data: {
+                    nunbOfBorrowBooks: nunbOfBorrowBooks,
+                    numbOfDays: numbOfDays,
+                    maxYearOfPublication: maxYearOfPublication,
+                    token: tokenJWT
+                },
+                success: function (data) {
+                    if (data.success) {
+                        document.getElementById("contentModalSuccess").innerHTML = data.message;
+                        // Mở modal
+                        $("#ModalSuccess").modal("show");
+
+                    } else {
+                        document.getElementById("contentModalError").innerHTML = data.message;
+                        $("#ModalError").modal("show");
+                    }
+                },
+                error: function (error) {
+                    console.error("Error:", error);
                 }
-            },
-            error: function (error) {
-                console.error("Error:", error);
-            }
-        });
-    }
+            });
+        }
 
-</script>
+        function Refresh(){
+            window.location.reload();
+        }
+
+    </script>
+}

@@ -1,4 +1,5 @@
-﻿CREATE DATABASE QuanLyThuVien;
+﻿-- DROP DATABASE QuanLyThuVien
+-- CREATE DATABASE QuanLyThuVien;
 GO
 
 USE QuanLyThuVien;
@@ -235,7 +236,8 @@ CREATE TABLE ChiTietDk (
 );
 
 CREATE TABLE QuyDinh (
-	NamXBMax INT PRIMARY KEY, 
+	MaQuyDinh INT PRIMARY KEY IDENTITY NOT NULL,
+	NamXBMax INT, 
 	SosachmuonMax INT,
 	SongayMax INT
 	

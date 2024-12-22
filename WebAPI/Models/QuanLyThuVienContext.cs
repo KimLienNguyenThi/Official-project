@@ -69,7 +69,7 @@ public partial class QuanLyThuVienContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 /*#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.*/
-        => optionsBuilder.UseSqlServer("Data Source=KT;Initial Catalog=QuanLyThuVien;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=False;Application Intent=ReadWrite;Multi Subnet Failover=False");
+        => optionsBuilder.UseSqlServer("Data Source=VOGIAHUY\\SQLEXPRESS;Initial Catalog=QuanLyThuVien;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=False;Application Intent=ReadWrite;Multi Subnet Failover=False");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -574,13 +574,13 @@ public partial class QuanLyThuVienContext : DbContext
 
         modelBuilder.Entity<QuyDinh>(entity =>
         {
-            entity.HasKey(e => e.NamXbmax).HasName("PK__QuyDinh__EDD1A17A57077B9C");
+            entity.HasKey(e => e.MaQuyDinh).HasName("PK__QuyDinh__EDD1A17A57077B9C");
 
             entity.ToTable("QuyDinh");
 
-            entity.Property(e => e.NamXbmax)
+            entity.Property(e => e.MaQuyDinh)
                 .ValueGeneratedNever()
-                .HasColumnName("NamXBMax");
+                .HasColumnName("MaQuyDinh");
         });
 
         modelBuilder.Entity<Sach>(entity =>

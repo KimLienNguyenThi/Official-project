@@ -273,6 +273,8 @@
 @section scripts
 {
     <script>
+        const tokenJWT = localStorage.getItem("accessToken");
+
         //khong cho nhap chu
         function validateInput(event, maxQuantity) {
             // Prevent input of non-numeric characters
@@ -451,6 +453,7 @@
                         chucVu: chucVu,
                         username: username,
                         password: password,
+                        token: tokenJWT
                     },
                     success: function (data) {
                         if (data.success) {
@@ -541,6 +544,7 @@
                         username: username,
                         password: password,
                         ngaySinh: ngaySinh,
+                        token: tokenJWT
                     },
                     success: function (data) {
                         if (data.success) {

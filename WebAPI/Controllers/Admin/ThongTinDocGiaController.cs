@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using WebAPI.Areas.Admin.Data;
 using WebAPI.DTOs.Admin_DTO;
@@ -53,6 +54,7 @@ namespace WebAPI.Controllers.Admin
             }
         }
 
+        [Authorize(Policy = "AdminPolicy")]
         [HttpPost]
         public IActionResult UpdateThongTinDocGia([FromBody] DocGium obj)
         {

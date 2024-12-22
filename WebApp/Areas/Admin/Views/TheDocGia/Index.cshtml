@@ -317,6 +317,8 @@
 @section scripts
 {
     <script>
+        const tokenJWT = localStorage.getItem("accessToken");
+
         //khong cho nhap chu
         function validateInput(event, maxQuantity) {
             // Prevent input of non-numeric characters
@@ -616,6 +618,7 @@
                                 maThe: maThe,
                                 thoiGianGiaHan: thoiGianGiaHan,
                                 tienGiaHan: tienGiaHan,
+                                token: tokenJWT
                             },
                             success: function (data) {
                                 if (data.success) {
@@ -733,6 +736,7 @@
                         diaChi: diaChi,
                         hanThe: hanThe,
                         tienDK: parseMoneyString(tienDK),
+                        token: tokenJWT
                     },
                     success: function (data) {
                         if (data.success) {

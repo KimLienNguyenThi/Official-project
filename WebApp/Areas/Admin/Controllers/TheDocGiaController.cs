@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.DotNet.Scaffolding.Shared.Messaging;
 using Newtonsoft.Json;
+using NuGet.Common;
+using System.Net.Http.Headers;
 using WebApp.Admin.Data;
 using WebApp.Areas.Admin.Data;
 using WebApp.Areas.Admin.Helper;
@@ -105,7 +107,7 @@ namespace WebApp.Areas.Admin.Controllers
 
         [HttpPost]
         [Route("GiaHanTheDocGia")]
-        public async Task<ActionResult> GiaHanTheDocGia(int maThe, DateOnly thoiGianGiaHan, int tienGiaHan)
+        public async Task<ActionResult> GiaHanTheDocGia(int maThe, DateOnly thoiGianGiaHan, int tienGiaHan, string token)
         {
             try
             {
@@ -120,6 +122,9 @@ namespace WebApp.Areas.Admin.Controllers
                 tdg.NgayDangKy = thoiGianGiaHan;
                 tdg.NgaySinh = thoiGianGiaHan;
                 tdg.SDT = "null";
+
+                // đính kèm token khi gọi API
+                _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
                 // call API
                 HttpResponseMessage response = await _client.PostAsJsonAsync(_client.BaseAddress + "/TheDocGia/Update", tdg);
@@ -189,7 +194,7 @@ namespace WebApp.Areas.Admin.Controllers
 
         [HttpPost]
         [Route("DangKyTheDocGia")]
-        public async Task<ActionResult> DangKyTheDocGia(int maNV, DateTime ngayDK, string tenDocGia, string soDienThoai, string gioiTinh, DateOnly ngaySinh, string diaChi, int hanThe, int tienDK)
+        public async Task<ActionResult> DangKyTheDocGia(int maNV, DateTime ngayDK, string tenDocGia, string soDienThoai, string gioiTinh, DateOnly ngaySinh, string diaChi, int hanThe, int tienDK, string token)
         {
             try
             {
@@ -204,6 +209,9 @@ namespace WebApp.Areas.Admin.Controllers
                 tdg.DiaChi = diaChi;
                 tdg.TienThe = tienDK;
                 tdg.NgayHetHan = DateOnly.FromDateTime(DateTime.Now).AddMonths(hanThe);
+
+                // đính kèm token khi gọi API
+                _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
                 // call API
                 HttpResponseMessage response = await _client.PostAsJsonAsync(_client.BaseAddress + "/TheDocGia/DangKyTheDocGia", tdg);

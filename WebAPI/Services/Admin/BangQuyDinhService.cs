@@ -21,12 +21,25 @@ namespace WebAPI.Services.Admin
         {
             try
             {
-                _context.QuyDinhs.Update(quyDinh);
-                _context.SaveChanges();
+                // Lấy bản ghi đầu tiên trong bảng QuyDinhs
+                var regulation = _context.QuyDinhs.First();
+                if (regulation == null)
+                {
+                    return false; // Không tìm thấy bản ghi
+                }
+
+                // Cập nhật các thuộc tính
+                regulation.NamXbmax = quyDinh.NamXbmax;
+                regulation.SosachmuonMax = quyDinh.SosachmuonMax;
+                regulation.SongayMax = quyDinh.SongayMax;
+                // Cập nhật thêm các thuộc tính khác theo yêu cầu
+
+                _context.SaveChanges(); // Lưu thay đổi vào cơ sở dữ liệu
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
+                Console.WriteLine("Error: " + ex.Message); // Ghi log lỗi
                 return false;
             }
         }

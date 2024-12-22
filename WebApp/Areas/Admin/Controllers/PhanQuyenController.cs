@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using NuGet.Common;
+using System.Net.Http.Headers;
 using WebApp.Admin.Data;
 using WebApp.Areas.Admin.Data;
 
@@ -102,7 +104,7 @@ namespace WebApp.Areas.Admin.Controllers
 
         [HttpPost]
         [Route("ThemNhanVien")]
-        public ActionResult ThemNhanVien(string hoTen, string soDienThoai, string gioiTinh, DateOnly ngaySinh, string diaChi, string chucVu, string username, string password)
+        public ActionResult ThemNhanVien(string hoTen, string soDienThoai, string gioiTinh, DateOnly ngaySinh, string diaChi, string chucVu, string username, string password, string token)
         {
             try
             {
@@ -116,6 +118,9 @@ namespace WebApp.Areas.Admin.Controllers
                 nv.ChucVu = chucVu;
                 nv.Username = username;
                 nv.Password = password;
+
+                // đính kèm token khi gọi API
+                _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
                 // call API
                 HttpResponseMessage response = _client.PostAsJsonAsync(_client.BaseAddress + "/Account/ThemNhanVien", nv).Result;
@@ -153,7 +158,7 @@ namespace WebApp.Areas.Admin.Controllers
 
         [HttpPost]
         [Route("CapNhatThongTin")]
-        public ActionResult CapNhatThongTin(int maNV, DateOnly ngaySinh, string diaChi, string gioiTinh, string soDienThoai, string hoTen, string chucVu, string username, string password)
+        public ActionResult CapNhatThongTin(int maNV, DateOnly ngaySinh, string diaChi, string gioiTinh, string soDienThoai, string hoTen, string chucVu, string username, string password, string token)
         {
             try
             {
@@ -169,6 +174,8 @@ namespace WebApp.Areas.Admin.Controllers
                 nv.Username = username;
                 nv.Password = password;
 
+                // đính kèm token khi gọi API
+                _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
                 // call API
                 HttpResponseMessage response = _client.PostAsJsonAsync(_client.BaseAddress + "/Account/UpdateThongTinNhanVien", nv).Result;
 

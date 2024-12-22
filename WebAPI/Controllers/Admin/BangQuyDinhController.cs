@@ -50,7 +50,7 @@ namespace WebAPI.Controllers.Admin
         }
 
         [Authorize(Policy = "AdminPolicy")]
-        [HttpPost]
+        [HttpPut]
         public IActionResult UpdateRegulation([FromBody] QuyDinh quyDinh)
         {
             try
