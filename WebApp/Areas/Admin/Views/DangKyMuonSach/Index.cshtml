@@ -186,40 +186,7 @@
 </div>
 
 
-<!-- Modal nhập hạn trả -->
-<!--<div class="modal fade bd-example-modal-md" id="ModalHanTra" tabindex="-1" role="dialog" aria-labelledby="exampleModalScrollableTitle" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-scrollable modal-dialog modal-md" role="document">
-        <div class="modal-content">-->
-<!-- Header -->
-<!--<div class="modal-header text-center">
-    <h4 class="modal-title w-100 text-blue" style="font-weight: bold;" id="">Chọn hạn trả</h4>
-</div>-->
-<!-- Body -->
-<!--<form class="modal-body p-4">
-    <div class="form-row">-->
-<!--Ngày trả-->
-<!--<div class="form-group col">
-            <label for="HanTra">Hạn trả:</label>
-            <select class="form-control" id="HanTra" name="HanTra">
-                <option value="0">-- Chọn hạn trả --</option>
-                <option value="1">1 tháng</option>
-                <option value="2">2 tháng</option>
-                <option value="3">3 tháng</option>
-                <option value="4">4 tháng</option>
-                <option value="5">5 tháng</option>
-                <option value="6">6 tháng</option>
-            </select>
-        </div>
-    </div>
-</form>-->
-<!-- Footer -->
-<!--<div class="modal-footer" id="modal-footer">
-                <button type="button" class="btn btn-primary" style="font-size: 15px;" onclick="">Submit</button>
-            </div>
 
-        </div>
-    </div>
-</div>-->
 <!-- Modal error-->
 <div class="modal fade" id="ModalError" tabindex="-1" role="dialog" aria-labelledby="ModalError" aria-hidden="true">
     <div class="modal-dialog" role="document">
@@ -588,6 +555,13 @@
                 // Thu thập dữ liệu "Mã sách" và các "Mã cuốn sách"
                 const data = [];
 
+                // Đếm số dòng sách trong bảng
+                var giaTriSoLuong=0;
+                // Tạo vòng lặp qua tất cả các <td> có id="soLuong"
+                $("#danhSachSachDk td#soLuong").each(function () {
+                    giaTriSoLuong += parseInt($(this).text().trim(), 10); // Lấy giá trị và loại bỏ khoảng trắng
+                });
+
                 let isValid = true; // Biến kiểm tra tính hợp lệ
                 let allMaCuonSach = []; // Mảng chứa tất cả giá trị của các input
 
@@ -637,6 +611,16 @@
                     isValid = false;
                 }
 
+                console.log("allMaCuonSach: ", allMaCuonSach.length)
+                console.log("giaTriSoLuong: ", giaTriSoLuong);
+
+
+                if (allMaCuonSach.length != giaTriSoLuong) {
+                    document.getElementById("contentModalError").innerHTML = "Vui lòng điền đầy đủ Mã cuốn sách";
+                    $("#ModalError").modal("show");
+                    isValid = false;
+                }
+
                 if (isValid) {
                     console.log(data); // Dữ liệu đã thu thập (mảng chứa Mã sách và Mã cuốn sách)
 
@@ -678,7 +662,8 @@
                                     }
                                     $("#ModaldanhSachDkiMuon").modal("hide");
                                 } else {
-                                    console.error("Không thành công trong việc nhận dữ liệu từ server.");
+                                    document.getElementById("contentModalError").innerHTML = data.message;
+                                    $("#ModalError").modal("show");
                                 }
                             }
                         });

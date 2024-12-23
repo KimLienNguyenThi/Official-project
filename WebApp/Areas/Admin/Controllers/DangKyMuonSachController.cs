@@ -102,21 +102,8 @@ namespace WebApp.Areas.Admin.Controllers
         {
             try
             {
-
-                List<DTO_Sach_Muon> danhSachDK = new List<DTO_Sach_Muon>();
                 int maThe;
                 bool checkHanThe;
-
-
-                // call API
-                HttpResponseMessage response_Get_CTDK_ByMaDK = _client.GetAsync(_client.BaseAddress + $"/DangKyMuonSach/Get_CTDK_ByMaDK/{maDK}").Result;
-
-                if (response_Get_CTDK_ByMaDK.IsSuccessStatusCode)
-                {
-                    string dataJson = response_Get_CTDK_ByMaDK.Content.ReadAsStringAsync().Result;
-                    var apiResponse = JsonConvert.DeserializeObject<APIResponse<List<DTO_Sach_Muon>>>(dataJson);
-                    danhSachDK = apiResponse.Data;
-                }
 
 
                 // call API
@@ -152,71 +139,91 @@ namespace WebApp.Areas.Admin.Controllers
 
                 if (checkHanThe)
                 {
-                    // thông tin tổng quan của sách
-                    List<DTO_Sach_Muon> dTO_Sach_Muons = new List<DTO_Sach_Muon>();
-                    foreach (var item in data)
+                    // Kiểm tra lịch sử mượn sách (điều kiện cho độc giả mượn sách)
+                    HttpResponseMessage response_CheckAllow = _client.GetAsync(_client.BaseAddress + $"/PhieuMuon/ValidatePhieuMuon/{maThe}").Result;
+                    if (response_CheckAllow.IsSuccessStatusCode)
                     {
-                        DTO_Sach_Muon dTO_Sach_Muon = new DTO_Sach_Muon()
-                        {
-                            MaSach = item.MaSach,
-                            SoLuong = data
-                                .Where(d => d.MaSach == item.MaSach)
-                                .Select(d => d.MaCuonSach.Count)
-                                .FirstOrDefault(),
-                            TenSach = "",
-                            
-                        };
-                        dTO_Sach_Muons.Add(dTO_Sach_Muon);
-                    }
+                        string dataJsonCheckAllow = response_CheckAllow.Content.ReadAsStringAsync().Result;
+                        var apiResponseCheckAllow = JsonConvert.DeserializeObject<APIResponse<object>>(dataJsonCheckAllow);
 
-                    // thông tin chi tiết
-                    List<DTO_CT_Sach_Muon> dTO_CT_Sach_Muons = new List<DTO_CT_Sach_Muon>();
-                    foreach (var item in data)
-                    {
-                        foreach(var items in item.MaCuonSach)
+                        if (apiResponseCheckAllow != null && apiResponseCheckAllow.Success)
                         {
-                            DTO_CT_Sach_Muon dTO_CT_Sach_Muon = new DTO_CT_Sach_Muon()
+                            // thông tin tổng quan của sách
+                            List<DTO_Sach_Muon> dTO_Sach_Muons = new List<DTO_Sach_Muon>();
+                            foreach (var item in data)
                             {
-                                MaCuonSach = items,
-                                TinhTrang = false,
+                                DTO_Sach_Muon dTO_Sach_Muon = new DTO_Sach_Muon()
+                                {
+                                    MaSach = item.MaSach,
+                                    SoLuong = data
+                                        .Where(d => d.MaSach == item.MaSach)
+                                        .Select(d => d.MaCuonSach.Count)
+                                        .FirstOrDefault(),
+                                    TenSach = "",
+
+                                };
+                                dTO_Sach_Muons.Add(dTO_Sach_Muon);
+                            }
+
+                            // thông tin chi tiết
+                            List<DTO_CT_Sach_Muon> dTO_CT_Sach_Muons = new List<DTO_CT_Sach_Muon>();
+                            foreach (var item in data)
+                            {
+                                foreach (var items in item.MaCuonSach)
+                                {
+                                    DTO_CT_Sach_Muon dTO_CT_Sach_Muon = new DTO_CT_Sach_Muon()
+                                    {
+                                        MaCuonSach = items,
+                                        TinhTrang = false,
+                                    };
+                                    dTO_CT_Sach_Muons.Add(dTO_CT_Sach_Muon);
+                                }
                             };
-                            dTO_CT_Sach_Muons.Add(dTO_CT_Sach_Muon);
-                        }
-                    };
 
-                    DTO_Tao_Phieu_Muon tpm = new DTO_Tao_Phieu_Muon();
-                    tpm.NgayMuon = ngayMuon;
-                    tpm.NgayTra = ngayTra;
-                    tpm.MaNhanVien = maNV;
-                    tpm.MaTheDocGia = maThe;
-                    tpm.MaDK = maDK;
-                    tpm.TenDocGia = "";
-                    tpm.listSachMuon = dTO_Sach_Muons;
-                    tpm.listCTSachMuon = dTO_CT_Sach_Muons;
+                            DTO_Tao_Phieu_Muon tpm = new DTO_Tao_Phieu_Muon();
+                            tpm.NgayMuon = ngayMuon;
+                            tpm.NgayTra = ngayTra;
+                            tpm.MaNhanVien = maNV;
+                            tpm.MaTheDocGia = maThe;
+                            tpm.MaDK = maDK;
+                            tpm.TenDocGia = "";
+                            tpm.listSachMuon = dTO_Sach_Muons;
+                            tpm.listCTSachMuon = dTO_CT_Sach_Muons;
 
-                    // đính kèm token khi gọi API
-                    _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                    // call API
-                    HttpResponseMessage response_Insert = _client.PostAsJsonAsync(_client.BaseAddress + "/DangKyMuonSach/Insert", tpm).Result;
+                            // đính kèm token khi gọi API
+                            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                            // call API
+                            HttpResponseMessage response_Insert = _client.PostAsJsonAsync(_client.BaseAddress + "/DangKyMuonSach/Insert", tpm).Result;
 
-                    if (response_Insert.IsSuccessStatusCode)
-                    {
-                        string dataJson = response_Insert.Content.ReadAsStringAsync().Result;
-                        var apiResponse = JsonConvert.DeserializeObject<APIResponse<List<DTO_DangKyMuonSach_GroupSDT>>>(dataJson);
+                            if (response_Insert.IsSuccessStatusCode)
+                            {
+                                string dataJson = response_Insert.Content.ReadAsStringAsync().Result;
+                                var apiResponse = JsonConvert.DeserializeObject<APIResponse<List<DTO_DangKyMuonSach_GroupSDT>>>(dataJson);
 
-                        if (apiResponse != null && apiResponse.Success)
-                        {
-                            return Json(new { success = true, data = apiResponse.Data, message = apiResponse.Message });
+                                if (apiResponse != null && apiResponse.Success)
+                                {
+                                    return Json(new { success = true, data = apiResponse.Data, message = apiResponse.Message });
+                                }
+                                else
+                                {
+                                    return Json(new { success = false, data = apiResponse.Data, message = apiResponse.Message });
+                                }
+                            }
+                            else
+                            {
+                                return Json(new { success = false, message = response_Insert.RequestMessage });
+                            }
                         }
                         else
                         {
-                            return Json(new { success = false, data = apiResponse.Data, message = apiResponse.Message });
+                            return Json(new { success = false, message = apiResponseCheckAllow.Message});
                         }
                     }
                     else
                     {
-                        return Json(new { success = false, message = response_Insert.RequestMessage });
+                        return Json(new { success = false, message = response_CheckAllow.Content.ReadAsStringAsync() });
                     }
+
                 }
                 else
                 {
