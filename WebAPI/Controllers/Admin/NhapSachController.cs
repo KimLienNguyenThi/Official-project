@@ -38,7 +38,6 @@ namespace WebAPI.Controllers.Admin
             return Ok(result);
         }
 
-
         [HttpPost]
         public IActionResult ThemNCC_API([FromBody] NhaCungCap data)
         {
@@ -48,7 +47,6 @@ namespace WebAPI.Controllers.Admin
 
             // return BadRequest(new { success = false, message = "Thêm NCC thất bại." });
         }
-
 
         [HttpPost]
         public IActionResult PhieuNhap_API([FromForm] string data)
@@ -139,18 +137,27 @@ namespace WebAPI.Controllers.Admin
                     stream.Position = 0;
 
                     // Gọi service để xử lý file
-                    var result = _nhapSachService.ProcessExcelFile(stream);
+                    var (successfulRecords, errorRecords) = _nhapSachService.ProcessExcelFile(stream);
 
-                    // Lưu kết quả vào bảng tạm
-                    _nhapSachService.SaveToTempTable(result);
+                    // Lưu các bản ghi hợp lệ và lỗi vào bảng tạm
+                    var allRecords = successfulRecords.Concat(errorRecords).ToList();
+                    _nhapSachService.SaveToTempTable(allRecords);
 
-                    // Chuẩn bị dữ liệu trả về
-                    var successfulRecords = result.Where(r => r.TrangThai == "OK").ToList();
-                    var errorRecords = result.Where(r => r.TrangThai != "OK").ToList();
+                    // Nếu toàn bộ đều lỗi, thông báo rõ ràng
+                    if (successfulRecords.Count == 0 && errorRecords.Count > 0)
+                    {
+                        return Ok(new
+                        {
+                            Message = "Toàn bộ file chứa lỗi, vui lòng kiểm tra và sửa lại.",
+                            SuccessfulRecords = successfulRecords,
+                            ErrorRecords = errorRecords
+                        });
+                    }
 
+                    // Nếu có dòng hợp lệ và dòng lỗi
                     return Ok(new
                     {
-                        Message = "File đã được xử lý thành công.",
+                        Message = "File đã được xử lý thành công. Một số dòng chứa lỗi cần được chỉnh sửa.",
                         SuccessfulRecords = successfulRecords,
                         ErrorRecords = errorRecords
                     });
@@ -158,9 +165,40 @@ namespace WebAPI.Controllers.Admin
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { Message = "Có lỗi xảy ra trong quá trình xử lý file.", Details = ex.Message });
+                return StatusCode(500, new
+                {
+                    Message = "Có lỗi xảy ra trong quá trình xử lý file.",
+                    Details = ex.Message
+                });
             }
         }
+
+        [HttpPost]
+        public IActionResult PhieuNhap_Excel_API(DTO_Tao_Phieu_Nhap_Excel obj)
+        {
+            try
+            {
+                if (obj == null)
+                {
+                    return BadRequest(new { success = false, message = "Dữ liệu không hợp lệ." });
+                }
+
+                // Call the service to insert data into the database
+                bool result = _nhapSachService.InsertPhieuNhapByExcel(obj);
+                if (!result)
+                {
+                    return StatusCode(500, new { success = false, message = "Không thể tạo phiếu nhập." });
+                }
+
+                // Return success response
+                return Ok(new { success = true, message = "Phiếu nhập đã được tạo thành công." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = "Có lỗi xảy ra khi tạo phiếu nhập.", error = ex.Message });
+            }
+        }
+
 
     }
 }

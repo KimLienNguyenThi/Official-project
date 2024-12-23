@@ -180,10 +180,11 @@ BEGIN
 
     -- Lặp qua các bản ghi vừa được thêm vào bảng ChiTietSachTra
     DECLARE cur CURSOR FOR
-    SELECT pt.MaSach, i.MaCuonSach
+    SELECT cs.MASACH, i.MACUONSACH
     FROM inserted i
-    JOIN ChiTietPT pt ON i.MaPT = pt.MaPT
-    WHERE i.TinhTrang = 2;  -- Chỉ chọn các cuốn sách hư hỏng (TinhTrang = 2)
+    JOIN CuonSach cs ON i.MACUONSACH = cs.MACUONSACH
+    JOIN ChiTietPT pt ON i.MAPT = pt.MAPT
+    WHERE i.TINHTRANG = 2;  -- Chỉ chọn các cuốn sách hư hỏng (TINHTRANG = 2)
 
     OPEN cur;
     FETCH NEXT FROM cur INTO @MaSach, @MaCuonSach;
@@ -193,7 +194,7 @@ BEGIN
         -- Kiểm tra xem cuốn sách đã tồn tại trong ChitietKhoThanhLy chưa
         IF NOT EXISTS (SELECT 1 FROM ChitietKhoThanhLy WHERE MaCuonSach = @MaCuonSach)
         BEGIN
-            -- Insert nếu chưa tồn tại
+            -- Insert vào ChitietKhoThanhLy nếu chưa tồn tại, đảm bảo lấy đúng mã sách
             INSERT INTO ChitietKhoThanhLy (MaSachKho, MaCuonSach, VANDE, TINHTRANG)
             VALUES (@MaSach, @MaCuonSach, 2, 0);  -- VANDE = 2 (hư hỏng), TINHTRANG = 0 (chưa thanh lý)
         END
@@ -204,7 +205,6 @@ BEGIN
     CLOSE cur;
     DEALLOCATE cur;
 END;
-
 
 
 /* UPDATE NẾU TÌNH TRẠNG Ở BẢNG CUỐN SÁCH và bảng chitietsachmuon sau khi trả*/

@@ -97,7 +97,7 @@ builder.Services.AddTransient<QuanLyPhieuTraService, QuanLyPhieuTraService>();
 
 builder.Services.AddTransient<KhoSachService, KhoSachService>();
 builder.Services.AddTransient<NhapSachService, NhapSachService>();
-//builder.Services.AddTransient<ThanhLySachService, ThanhLySachService>();
+builder.Services.AddTransient<ThanhLySachService, ThanhLySachService>();
 builder.Services.AddTransient<TheDocGiaService, TheDocGiaService>();
 builder.Services.AddTransient<ThongTinDocGiaService, ThongTinDocGiaService>();
 builder.Services.AddTransient<AccountService, AccountService>();

@@ -14,12 +14,13 @@ using Microsoft.AspNetCore.Hosting;
 using WebApp.Models;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Http;
+using Newtonsoft.Json.Linq;
 
 namespace WebApp.Areas.Admin.Controllers
 {
     [Area("admin")]
     [Route("admin/nhapsach")]
-   // [Authorize(AuthenticationSchemes = "AdminCookie")]
+    // [Authorize(AuthenticationSchemes = "AdminCookie")]
 
     public class NhapSachController : Controller
     {
@@ -43,7 +44,7 @@ namespace WebApp.Areas.Admin.Controllers
             //}
             //else
             //{
-                return View();
+            return View();
             //}
         }
 
@@ -232,7 +233,6 @@ namespace WebApp.Areas.Admin.Controllers
 
         [HttpPost]
         [Route("GetNamXBMax_APP")]
-
         public async Task<IActionResult> GetNamXBMax_APP()
         {
             try
@@ -302,30 +302,29 @@ namespace WebApp.Areas.Admin.Controllers
             }
         }
 
-       
-
         [HttpPost]
         [Route("ImportExcel")]
         public async Task<IActionResult> ImportExcel(IFormFile file)
         {
             if (file == null || file.Length == 0)
             {
-                return BadRequest("File không hợp lệ hoặc bị trống.");
+                return BadRequest(new { Message = "File không hợp lệ hoặc bị trống." });
             }
 
-            // Kiểm tra định dạng file
+            // Kiểm tra định dạng tệp
             var allowedExtensions = new[] { ".xlsx", ".xls" };
             var fileExtension = Path.GetExtension(file.FileName).ToLower();
 
             if (!allowedExtensions.Contains(fileExtension))
             {
-                return BadRequest("Chỉ chấp nhận file Excel với định dạng .xlsx hoặc .xls.");
+                return BadRequest(new { Message = "Chỉ chấp nhận file Excel với định dạng .xlsx hoặc .xls." });
             }
 
             try
             {
                 using (var stream = new MemoryStream())
                 {
+                    // Sao chép nội dung của file vào bộ nhớ
                     await file.CopyToAsync(stream);
                     stream.Position = 0;
 
@@ -336,41 +335,109 @@ namespace WebApp.Areas.Admin.Controllers
                     // Gửi yêu cầu POST tới API
                     HttpResponseMessage response = await _client.PostAsync(_client.BaseAddress + "/NhapSach/ImportExcel", content);
 
-                    // Kiểm tra phản hồi từ API
                     if (response.IsSuccessStatusCode)
                     {
                         var responseData = await response.Content.ReadAsStringAsync();
 
-                        // Deserialize dữ liệu từ JSON trả về
-                        var result = JsonConvert.DeserializeObject<Dictionary<string, object>>(responseData);
-
-                        // Truy cập các thuộc tính từ JSON
-                        string message = result["Message"].ToString();
-                        var successfulRecords = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(result["SuccessfulRecords"].ToString());
-                        var errorRecords = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(result["ErrorRecords"].ToString());
-
-                        // Trả dữ liệu ra View
-                        return View("Index", new
+                        // Kiểm tra nếu dữ liệu trả về có chứa trường Message
+                        if (string.IsNullOrEmpty(responseData))
                         {
-                            Message = message,
-                            SuccessfulRecords = successfulRecords,
-                            ErrorRecords = errorRecords
-                        });
+                            return StatusCode(500, new { message = "Dữ liệu trả về từ API không hợp lệ." });
+                        }
+
+                        try
+                        {
+                            // Deserialize dữ liệu từ JSON trả về
+                            var result = JsonConvert.DeserializeObject<Dictionary<string, object>>(responseData);
+
+                            // Kiểm tra sự tồn tại và tính hợp lệ của dữ liệu trả về
+                            if (result["message"] == null ||
+                                result["successfulRecords"] == null ||
+                                result["errorRecords"] == null ||
+                                !(result["successfulRecords"] is JArray successfulRecordsArray) ||
+                                !(result["errorRecords"] is JArray errorRecordsArray))
+                            {
+                                return StatusCode(500, new { Message = "Dữ liệu trả về từ API không hợp lệ hoặc không đầy đủ." });
+                            }
+
+                            // Lấy dữ liệu từ JSON
+                            string Message = result["message"].ToString();
+                            var successfulRecords = successfulRecordsArray.ToObject<List<ImportSachTemp>>();
+                            var errorRecords = errorRecordsArray.ToObject<List<ImportSachTemp>>();
+
+                            // Trả về dữ liệu JSON cho modal
+                            return Json(new
+                            {
+                                message = Message,
+                                successfulRecords = successfulRecords,
+                                errorRecords = errorRecords
+                            });
+                        }
+                        catch (JsonException jsonEx)
+                        {
+                            // Xử lý lỗi khi deserializing JSON
+                            return StatusCode(500, new { Message = $"Lỗi trong quá trình phân tích dữ liệu JSON: {jsonEx.Message}" });
+                        }
+                        catch (Exception ex)
+                        {
+                            // Xử lý các lỗi chung khác
+                            return StatusCode(500, new { Message = $"Có lỗi xảy ra trong quá trình xử lý: {ex.Message}" });
+                        }
+
                     }
 
                     // Xử lý lỗi từ API
-                    return StatusCode((int)response.StatusCode, $"Lỗi từ API: {response.ReasonPhrase}");
+                    return StatusCode((int)response.StatusCode, new { Message = $"Lỗi từ API: {response.ReasonPhrase}" });
                 }
             }
             catch (Exception ex)
             {
                 // Xử lý lỗi chung
-                return StatusCode(500, $"Lỗi xử lý file: {ex.Message}");
+                return StatusCode(500, new { Message = $"Lỗi xử lý file: {ex.Message}" });
             }
-
         }
 
+        [HttpPost]
+        [Route("PhieuNhap_Excel_APP")]
+        public async Task<IActionResult> PhieuNhap_Excel_APP([FromBody] DTO_Tao_Phieu_Nhap_Excel dto)
+        {
+            try
+            {
+                if (dto == null || dto.idThongTin == null || dto.idThongTin.Count == 0)
+                {
+                    return BadRequest(new { success = false, message = "Dữ liệu không hợp lệ hoặc danh sách ID rỗng." });
+                }
 
+                var reqjson = JsonConvert.SerializeObject(dto);
+                var httpContent = new StringContent(reqjson, Encoding.UTF8, "application/json");
+                HttpResponseMessage response = await _client.PostAsync(_client.BaseAddress + "/Nhapsach/PhieuNhap_Excel_API", httpContent);
+                
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return Ok(new { success = true, message = "Phiếu nhập đã được tạo thành công." });
+                }
+                else
+                {
+                    // Nếu API trả lỗi, trả về lỗi đó
+                    return StatusCode((int)response.StatusCode, new
+                    {
+                        success = false,
+                        message = $"Lỗi từ API: {response.ReasonPhrase}"
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                // Xử lý ngoại lệ và trả về lỗi
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = "Có lỗi xảy ra khi gọi API PhieuNhap_Excel_API.",
+                    error = ex.Message
+                });
+            }
+        }
     }
 
 }

@@ -1,4 +1,5 @@
-﻿using DocumentFormat.OpenXml.Spreadsheet;
+﻿using DocumentFormat.OpenXml.InkML;
+using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
@@ -266,7 +267,6 @@ namespace WebAPI.Services.Admin
                 return 0;
             }
         }
-
         public async Task<NhaCungCap> GetAllNCC(int mancc)
         {
             // Truy vấn để lấy nhà cung cấp với mancc cụ thể
@@ -283,21 +283,18 @@ namespace WebAPI.Services.Admin
 
             return ncc;
         }
-
-        public List<ImportSachTemp> ProcessExcelFile(Stream excelStream)
+        public (List<ImportSachTemp>, List<ImportSachTemp>) ProcessExcelFile(Stream excelStream)
         {
             var result = new List<ImportSachTemp>();
+            var errors = new List<ImportSachTemp>();
 
-            // Thiết lập LicenseContext
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-
-            // Reset vị trí của stream trước khi sử dụng lại
             excelStream.Position = 0;
+
             var dataTable = SetColumnName(new DataTable());
-
             var (datas, errorMess) = ExcelHelper.ReadExcelTo<ImportSachTemp>(excelStream, dataTable);
-            // Đặt lại con trỏ stream trước khi tiếp tục sử dụng với ExcelPackage
             excelStream.Position = 0;
+
             using (var package = new ExcelPackage(excelStream))
             {
                 if (package.Workbook.Worksheets.Count == 0)
@@ -313,56 +310,6 @@ namespace WebAPI.Services.Admin
                     throw new Exception("Sheet trong file Excel không chứa dữ liệu.");
                 }
 
-                //for (int row = 6; row <= rowCount; row++) // Bỏ qua tiêu đề (row 1)
-                //{
-                //    try
-                //    {
-                //        var tensach = worksheet.Cells[row, 1].Text.Trim();
-                //        var theloai = worksheet.Cells[row, 2].Text.Trim();
-                //        var namxb = int.TryParse(worksheet.Cells[row, 3].Text, out var nam) ? nam : -1;
-                //        var nxb = worksheet.Cells[row, 4].Text.Trim();
-                //        var tacgia = worksheet.Cells[row, 5].Text.Trim();
-                //        var soluong = int.TryParse(worksheet.Cells[row, 6].Text, out var sl) ? sl : -1;
-                //        var ngonngu = worksheet.Cells[row, 7].Text.Trim();
-                //        var giasach = int.TryParse(worksheet.Cells[row, 8].Text.Trim(), out var gia) ? gia : -1; // Cập nhật GiaSach
-                //        var mota = worksheet.Cells[row, 9].Text.Trim();
-                //        var urlImage = worksheet.Cells[row, 10].Text.Trim();
-
-                //        // Xử lý logic kiểm tra dữ liệu
-                //        var trangThai = (soluong > 0 && namxb > 0 &&  DateTime.Now.Year- namxb <=GetNamXBMax() && giasach > 0) ? "OK" : "Lỗi";
-                //        var moTaLoi = "";
-
-                //        if (string.IsNullOrWhiteSpace(tensach)) moTaLoi += "Tên sách không được để trống. ";
-                //        if (namxb <= 0 || DateTime.Now.Year - namxb > GetNamXBMax()) moTaLoi += "Năm xuất bản không hợp lệ. ";
-                //        if (soluong <= 0) moTaLoi += "Số lượng phải lớn hơn 0.";
-                //        if (giasach <= 0) moTaLoi += "Giá sách phải lớn hơn 0.";
-
-                //        result.Add(new ImportSachTemp
-                //        {
-                //            TenSach = tensach,
-                //            TheLoai = theloai,
-                //            TacGia = tacgia,
-                //            NgonNgu = ngonngu,
-                //            NXB = nxb,
-                //            NamXuatBan = namxb,
-                //            URLImage = urlImage,
-                //            MoTa = mota,
-                //            SoLuong = soluong,
-                //            GiaSach = giasach,  // Cập nhật GiaSach
-                //            TrangThai = trangThai,
-                //            MoTaLoi = moTaLoi
-                //        });
-                //    }
-                //    catch (Exception ex)
-                //    {
-                //        result.Add(new ImportSachTemp
-                //        {
-                //            TenSach = "",
-                //            TrangThai = "Lỗi",
-                //            MoTaLoi = $"Lỗi đọc dòng {row}: {ex.Message}"
-                //        });
-                //    }
-                //}
                 foreach (var item in datas)
                 {
                     var trangThai = (item.SoLuong > 0 &&
@@ -379,64 +326,41 @@ namespace WebAPI.Services.Admin
                     item.TrangThai = trangThai;
                     item.MoTaLoi = moTaLoi;
 
-                    result.Add(item);
+                    if (trangThai == "Lỗi")
+                    {
+                        errors.Add(item);
+                    }
+                    else
+                    {
+                        result.Add(item);
+                    }
                 }
-
             }
 
-            return result;
+            return (result, errors);
         }
+
 
         public void SaveToTempTable(List<ImportSachTemp> data)
         {
-            using (var transaction = _context.Database.BeginTransaction())
+            try
             {
-                try
-                {
-                    using (var connection = _context.Database.GetDbConnection())
-                    {
-                        connection.Open();
-
-                        foreach (var item in data)
-                        {
-                            var command = new SqlCommand(@"
-                        INSERT INTO ImportSachTemp 
-                        (TENSACH, THELOAI, TACGIA, NGONNGU, NXB, NAMXB, URL_IMAGE, MOTA, SOLUONG, TrangThai, MoTaLoi)
-                        VALUES 
-                        (@TenSach, @TheLoai, @TacGia, @NgonNgu, @NXB, @NamXuatBan, @URLImage, @MoTa, @SoLuong, @TrangThai, @MoTaLoi)",
-                                (SqlConnection)connection);
-
-                            command.Parameters.AddWithValue("@TenSach", (object)item.TenSach ?? DBNull.Value);
-                            command.Parameters.AddWithValue("@TheLoai", (object)item.TheLoai ?? DBNull.Value);
-                            command.Parameters.AddWithValue("@TacGia", (object)item.TacGia ?? DBNull.Value);
-                            command.Parameters.AddWithValue("@NgonNgu", (object)item.NgonNgu ?? DBNull.Value);
-                            command.Parameters.AddWithValue("@NXB", (object)item.NXB ?? DBNull.Value);
-                            command.Parameters.AddWithValue("@NamXuatBan", item.NamXuatBan > 0 ? item.NamXuatBan : (object)DBNull.Value);
-                            command.Parameters.AddWithValue("@URLImage", (object)item.URLImage ?? DBNull.Value);
-                            command.Parameters.AddWithValue("@MoTa", (object)item.MoTa ?? DBNull.Value);
-                            command.Parameters.AddWithValue("@SoLuong", item.SoLuong > 0 ? item.SoLuong : (object)DBNull.Value);
-                            command.Parameters.AddWithValue("@TrangThai", item.TrangThai);
-                            command.Parameters.AddWithValue("@MoTaLoi", (object)item.MoTaLoi ?? DBNull.Value);
-
-                            command.ExecuteNonQuery();
-                        }
-                    }
-
-                    transaction.Commit();
-                }
-                catch (Exception)
-                {
-                    transaction.Rollback();
-                    throw; // Quăng lại lỗi để xử lý phía trên
-                }
+                 _context.ImportSachTemp.AddRange(data);
+                 _context.SaveChanges();    
             }
+            catch (Exception ex)
+            {
+
+                throw;
+            }
+            
         }
 
         public DataTable SetColumnName(DataTable dt)
         {
             dt.Columns.Add("tensach");
             dt.Columns.Add("theloai");
-            dt.Columns.Add("namxb");
+            dt.Columns.Add("namxuatban");
             dt.Columns.Add("nxb");
             dt.Columns.Add("tacgia");
             dt.Columns.Add("soluong");
@@ -446,5 +370,154 @@ namespace WebAPI.Services.Admin
             dt.Columns.Add("urlImage");
             return dt;
         }
+
+        public bool InsertPhieuNhapByExcel(DTO_Tao_Phieu_Nhap_Excel obj)
+        {
+            if (obj.idThongTin == null || obj.idThongTin.Any() == false)
+            {
+                return false; // Nếu không có ID nào, không làm gì thêm
+            }
+
+            using (var transaction = _context.Database.BeginTransaction())
+            {
+                try
+                {
+                    // Lấy giá trị NamXBMax từ bảng QuyDinh
+                    int namXBMax = _context.QuyDinhs.Select(qd => qd.NamXbmax).FirstOrDefault();
+                    if (namXBMax == 0)
+                    {
+                        throw new Exception("Không tìm thấy quy định về năm xuất bản tối đa.");
+                    }
+
+                    // Tạo mới phiếu nhập sách
+                    var newPhieuNhap = new PhieuNhapSach
+                    {
+                        Ngaynhap = obj.NgayNhap,
+                        Manv = obj.MaNhanVien,
+                        Mancc = obj.MaNhaCungCap,
+                    };
+
+                    _context.PhieuNhapSaches.Add(newPhieuNhap);
+                    _context.SaveChanges(); // Save to get the generated MaPn
+
+                    // Lấy danh sách ID từ obj.idThongTin
+                    var idList = obj.idThongTin.Select(dto => dto.ID).ToList();
+
+                    // Lấy các bản ghi từ bảng ImportSachTemp theo danh sách ID
+                    var listSachTemp = _context.ImportSachTemp
+                            .Where(isTemp => idList.Contains(isTemp.Id)) // Sử dụng Contains thay vì Any
+                            .Select(isTemp => new
+                            {
+                                isTemp.Id,
+                                isTemp.TenSach,
+                                isTemp.TacGia,
+                                isTemp.GiaSach, // Đảm bảo lấy giá trị đúng kiểu
+                                isTemp.SoLuong,
+                                isTemp.NamXuatBan,
+                                isTemp.TheLoai,
+                                isTemp.NgonNgu,
+                                isTemp.NXB,
+                                isTemp.MoTa,
+                                isTemp.URLImage
+
+                            })
+                            .ToList();
+
+
+                    if (!listSachTemp.Any())
+                    {
+                        throw new Exception("Không tìm thấy sách trong ImportSachTemp.");
+                    }
+
+                    // Khai báo currentYear ngay trước khi sử dụng
+                    int currentYear = DateTime.Now.Year;
+
+                    // Lặp qua các sách trong danh sách ImportSachTemp
+                    foreach (var sachTemp in listSachTemp)
+                    {
+                        // Kiểm tra năm xuất bản theo quy định
+                        if ((currentYear - sachTemp.NamXuatBan) > namXBMax)
+                        {
+                            throw new Exception($"Sách '{sachTemp.TenSach}' có năm xuất bản quá cũ so với quy định ({namXBMax} năm trở lại).");
+                        }
+
+                        // Kiểm tra trong bảng Sach nếu có sách trùng khớp với tên sách, tác giả, nhà xuất bản, năm xuất bản, ngôn ngữ, thể loại
+                        var existingSach = _context.Saches.FirstOrDefault(s => s.Tensach == sachTemp.TenSach && s.Tacgia == sachTemp.TacGia &&
+                           s.Nxb == sachTemp.NXB && s.Namxb == sachTemp.NamXuatBan &&
+                           s.Ngonngu == sachTemp.NgonNgu && s.Theloai == sachTemp.TheLoai);
+
+                        // Nếu sách đã tồn tại, chỉ cần thêm vào ChiTiết Phiếu Nhập
+                        if (existingSach != null)
+                        {
+                            var newChiTietPN = new Chitietpn
+                            {
+                                Mapn = newPhieuNhap.Mapn,
+                                Masach = existingSach.Masach,
+                                Giasach = sachTemp.GiaSach != 0 ? Convert.ToDecimal(sachTemp.GiaSach) : 0m, // Chuyển đổi giá trị sang decimal
+                                Soluongnhap = sachTemp.SoLuong,
+                            };
+
+                            _context.Chitietpns.Add(newChiTietPN);
+                        }
+                        else
+                        {
+                            // Nếu sách chưa tồn tại, thêm sách mới vào bảng Sach
+                            var newSach = new Sach
+                            {
+                                Tensach = sachTemp.TenSach,
+                                Theloai = sachTemp.TheLoai,
+                                Tacgia = sachTemp.TacGia,
+                                Ngonngu = sachTemp.NgonNgu,
+                                Nxb = sachTemp.NXB,
+                                Namxb = sachTemp.NamXuatBan,
+                                Soluonghientai = 0, // Số lượng hiện tại = 0 khi thêm mới
+                                Mota = sachTemp.MoTa,
+                                UrlImage = sachTemp.URLImage,
+                            };
+
+                            _context.Saches.Add(newSach);
+                            _context.SaveChanges(); // Save để lấy MaSach
+
+                            // Insert vào ChiTiết Phiếu Nhập
+                            var newChiTietPN = new Chitietpn
+                            {
+                                Mapn = newPhieuNhap.Mapn,
+                                Masach = newSach.Masach, // Lấy MaSach sau khi insert
+                                Giasach = sachTemp.GiaSach != 0 ? Convert.ToDecimal(sachTemp.GiaSach) : 0m, // Chuyển đổi giá trị sang decimal
+                                Soluongnhap = sachTemp.SoLuong,
+                            };
+
+                            _context.Chitietpns.Add(newChiTietPN);
+                        }
+                    }
+
+                    // Lưu tất cả các thay đổi vào cơ sở dữ liệu
+                    _context.SaveChanges();
+
+                    // Xóa các bản ghi đã sử dụng trong bảng ImportSachTemp
+                    var idsToDelete = listSachTemp.Select(s => s.Id).ToList();
+                    var recordsToDelete = _context.ImportSachTemp.Where(isTemp => idsToDelete.Contains(isTemp.Id)).ToList();
+                    _context.ImportSachTemp.RemoveRange(recordsToDelete);
+                    _context.SaveChanges();
+
+                    // Commit transaction
+                    transaction.Commit();
+
+                    // Trả về true nếu thao tác thành công
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    transaction.Rollback(); // Rollback nếu gặp lỗi
+                    Console.WriteLine($"Error: {ex.Message}");
+                    // Xử lý lỗi (ghi log hoặc thông báo)
+                    return false; // Trả về false nếu có lỗi
+                }
+            }
+        }
+
+
+
+
     }
 }
