@@ -58,24 +58,32 @@ namespace WebApp.Areas.Admin.Data
         public string TenSach { get; set; }
         public int SoLuong { get; set; }
     }
+    public class DTO_CT_Sach_Muon
+    {
+        public string MaCuonSach { get; set; }
+        public bool TinhTrang { get; set; }
+     
+    }
 
     public class DTO_Tao_Phieu_Muon
     {
         public int MaNhanVien { get; set; }
         public int MaTheDocGia { get; set; }
+
+        public string TenDocGia { get; set; }
         public DateOnly NgayMuon { get; set; }
         public DateOnly NgayTra { get; set; }
         public int MaDK { get; set; }
 
 
         public List<DTO_Sach_Muon> listSachMuon { get; set; }
-
+        public List<DTO_CT_Sach_Muon> listCTSachMuon { get; set; }
         public DTO_Tao_Phieu_Muon()
         {
             listSachMuon = new List<DTO_Sach_Muon>();
+            listCTSachMuon = new List<DTO_CT_Sach_Muon>();
         }
     }
-
 
     public class DTO_Sach_Nhap
     {

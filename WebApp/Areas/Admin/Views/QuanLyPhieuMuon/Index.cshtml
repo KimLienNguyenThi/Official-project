@@ -3,7 +3,7 @@
     Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
 }
 <style>
-   
+
     /* Khi một hàng có lớp row-clicked */
     #tblDanhSachDG_PhieuMuon tr.row-clicked {
         background-color: #e0e0e0; /* Màu nền xám */
@@ -22,22 +22,19 @@
         .tablechild th, .tablechild td {
             border: 1px solid #00008B; /* Viền xanh đậm */
             background-color: #E0F7FA; /* Màu nền xanh dương pastel rất nhạt */
-
-
         }
 
         .tablechild th {
             background-color: #e0e94; /* Màu nền xám cho tiêu đề */
         }
 
-        /*///////////////////////////////*/*/
+    /*///////////////////////////////*/ */
     .btn {
         padding: 5px 10px;
         border: none;
         border-radius: 3px;
         cursor: pointer;
         font-size: 14px;
-        
     }
 
     .btn-success {
@@ -89,7 +86,6 @@
 
                             <div class="card-tools col-3">
                                 <div class="input-group input-group-sm pt-1">
-                                   
                                 </div>
                             </div>
 
@@ -107,13 +103,13 @@
                                     <thead>
                                         <tr>
                                             <th style="text-align: center;">Xem Chi tiết</th>
-                                            <th style ="text-align: center;">Mã Thẻ</th>
-                                            <th style ="text-align: center;">Độc giả</th>
-                                            <th style ="text-align: center;">Số điện thoại</th>
-                                         
+                                            <th style="text-align: center;">Mã Thẻ</th>
+                                            <th style="text-align: center;">Độc giả</th>
+                                            <th style="text-align: center;">Số điện thoại</th>
+
                                         </tr>
                                     </thead>
-                                   
+
                                 </table>
                             </div>
                         </form>
@@ -140,9 +136,9 @@
                 <div class="form-row">
                     @* <!--Mã phiếu mượn-->
                     <div class="form-group col">
-                        <label>Mã phiếu mượn:</label>
+                    <label>Mã phiếu mượn:</label>
                     <input class="form-control" id="maPhieuMuonModal" readonly></div>  *@
-                 
+
 
                     <!--Mã thẻ-->
                     <div class="form-group col">
@@ -150,20 +146,20 @@
                         <input class="form-control" id="maTheModal" readonly>
                     </div>
                 </div>
-                
+
                 <!--Danh sách sách mượn-->
                 <div class="text-center">
                     <table class="table table-hover">
                         <thead>
                             <tr>
-                                <th>Mã PM</th> 
+                                <th>Mã PM</th>
                                 <th>Mã sách</th>
+                                <th>Mã cuốn sách</th>
                                 <th>Tên sách</th>
                                 <th>S/Lượng</th>
                             </tr>
                         </thead>
                         <tbody id="danhSachSachMuonbyMaDG">
-                            
                         </tbody>
                     </table>
                 </div>
@@ -192,10 +188,11 @@
             <!-- Body -->
             <form class="modal-body p-4">
                 <div class="form-row">
-                     <!--Mã phiếu mượn-->
+                    <!--Mã phiếu mượn-->
                     <div class="form-group col">
-                    <label>Mã phiếu mượn:</label>
-                    <input class="form-control" id="maPhieuMuonModal" readonly></div>  
+                        <label>Mã phiếu mượn:</label>
+                        <input class="form-control" id="maPhieuMuonModal" readonly>
+                    </div>
 
 
                     <!--Mã thẻ-->
@@ -210,8 +207,9 @@
                     <table class="table table-hover">
                         <thead>
                             <tr>
-                               
+
                                 <th>Mã sách</th>
+                                <th>Mã cuốn sách</th>
                                 <th>Tên sách</th>
                                 <th>S/Lượng</th>
                             </tr>
@@ -233,8 +231,7 @@
 @section scripts
 {
     <script>
-
-        function lamMoi() {
+ function lamMoi() {
             // Làm mới trang
             location.reload();
         }
@@ -380,7 +377,7 @@
         }
 
         function sendSearchRequest(Keyword) {
-            $('#tblDanhSachPhieuTra').DataTable().ajax.reload(null, false);
+            $('#tblDanhSachDG_PhieuMuon').DataTable().ajax.reload(null, false);
         }
 
         let currentOpenRowIndex = null;
@@ -445,8 +442,8 @@
                 }
 
                 render += '<tr>';
-                render += '<td> <button class="btn btn-icon btn-hover btn-sm btn-see-all" id="' + item.maThe + '"> Xem Tất Cả</button></td>';
-                render += '<td class="maPM-cell" id="' + item.maPM + '_' + item.maThe + '">' + item.maPM + " - Chi tiết" + '</td>';
+                render += '<td> <button class="btn btn-icon btn-hover btn-sm btn-see-all text-primary" id="' + item.maThe + '"> Xem Tất Cả</button></td>';
+                render += '<td class="maPM-cell text-primary" id="' + item.maPM + '_' + item.maThe + '">' + item.maPM + " - Chi tiết" + '</td>';
                 render += '<td>' + moment(item.ngayMuon).format("YYYY-MM-DD") + '</td>';
                 render += '<td>' + moment(item.hanTra).format("YYYY-MM-DD") + '</td>';
                 render += '<td>' + item.maNV + '</td>';
@@ -491,7 +488,7 @@
             var maPM = arr[0];
             var maThe = arr[1];
 
-            // Gọi hàm xử lý chi tiết sách trả
+            // Gọi hàm xử lý chi tiết sách mượn
             getCTPM(maPM, maThe, e);
         });
         // Hàm xử lý sự kiện "See All" với mã PM
@@ -504,29 +501,34 @@
                 success: function (data) {
                     console.log("Response from server:", data);
                     if (data && data.length > 0) { // Kiểm tra xem data có tồn tại và không rỗng
-                        var ctptData = data;
+                        var ctpmData = data;
                         var danhSachSachMuonbyMaDG = $("#danhSachSachMuonbyMaDG");
                         danhSachSachMuonbyMaDG.empty();
 
-                        $.each(ctptData, function (index, item) {
-                            var newRow = $(
-                                `<tr class="sachtra-row" data-ma-sach="${item.maSach}">
-                                                    <td>${item.maPM}</td>
-                                                    <td>${item.maSach}</td>
-                                                    <td>${item.tenSach}</td>
-                                                    <td>${item.soLuongMuon}</td>
-
-                                                </tr>`
-                            );
-                            danhSachSachMuonbyMaDG.append(newRow);
+                        $.each(ctpmData, function (index, item) {
+                            // Duyệt qua danh sách listCTQLSachMuon để lấy dữ liệu từng đối tượng
+                            if (Array.isArray(item.listCTQLSachMuon)) {
+                                item.listCTQLSachMuon.forEach(function (ctql) {
+                                    var newRow = $(`
+                        <tr class="sachmuon-row">
+                            <td>${item.maPM}</td>
+                            <td>${item.maSach}</td>
+                            <td>${ctql.maCuonSach}</td> <!-- Hiển thị mã cuốn sách -->
+                            <td>${item.tenSach}</td>
+                            <td>1</td>
+                        </tr>
+                    `);
+                                    danhSachSachMuonbyMaDG.append(newRow);
+                                });
+                            }
                         });
 
                         // Mở modal
                         $("#ModaldanhSachSachMuonbyMaThe").modal("show");
 
                         // Điền dữ liệu vào các trường trong modal
-                        // $("#maPhieuMuonModal").val(maPM);
                         $("#maTheModal").val(maThe);
+
                     } else {
                         console.error("Không thành công trong việc nhận dữ liệu từ server hoặc dữ liệu rỗng.");
                         alert("Không thành công trong việc nhận dữ liệu từ server hoặc dữ liệu rỗng.");
@@ -550,23 +552,29 @@
                 success: function (data) {
                     console.log("Response from server:", data);
                     if (data && data.length > 0) { // Kiểm tra xem data có tồn tại và không rỗng
-                        var ctptData = data;
+                        var ctpmData = data;
                         var danhSachSachMuonbyMaPM = $("#danhSachSachMuonbyMaPM");
                         danhSachSachMuonbyMaPM.empty();
 
-                        $.each(ctptData, function (index, item) {
-                            var newRow = $(
-                                `<tr class="sachtra-row" data-ma-sach="${item.maSach}">
-                                                    
-                                                    <td>${item.maSach}</td>
-                                                    <td>${item.tenSach}</td>
-                                                    <td>${item.soLuongMuon}</td>
+                        $.each(ctpmData, function (index, item) {
+                            // Duyệt qua danh sách listCTQLSachMuon để lấy dữ liệu từng đối tượng
+                            if (Array.isArray(item.listCTQLSachMuon)) {
+                                item.listCTQLSachMuon.forEach(function (ctpm) {
+                                    var newRow = $(`
+                                                <tr class= "sachtra-row" data-ma-sach="${item.maSach}" >
 
-                                                </tr>`
-                            );
-                            danhSachSachMuonbyMaPM.append(newRow);
+                                                  <td>${item.maSach}</td>
+                                                  <td>${ctpm.maCuonSach}</td>
+                                                  <td>${item.tenSach}</td>
+                                                  <td>1</td>
+                                                  </tr >
+                                    `);
+                                    danhSachSachMuonbyMaPM.append(newRow);
+                                });
+                            }
                         });
 
+                       
                         // Mở modal
                         $("#ModaldanhSachSachMuonbyMaPM").modal("show");
 

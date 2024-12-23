@@ -221,6 +221,119 @@ namespace WebAPI.Services.Admin
             return document.GeneratePdf();
         }
 
+        public byte[] GeneratePhieuMuonPDF(DTO_Tao_Phieu_Muon tpm, int mapm)
+        {
+            if (tpm == null || tpm.listSachMuon == null || tpm.listCTSachMuon == null)
+            {
+                throw new Exception($"Không tìm thấy dữ liệu cho phiếu mượn: {mapm}");
+            }
+
+            // Tạo file PDF
+            var document = Document.Create(container =>
+            {
+                container.Page(page =>
+                {
+                    page.Size(PageSizes.A4);
+                    page.Margin(2, QuestPDF.Infrastructure.Unit.Centimetre);
+
+                    // Header
+                    page.Header().Row(row =>
+                    {
+                        row.RelativeItem().Column(column =>
+                        {
+                            column.Item().Text("Thư viện ABC").FontFamily("Arial").FontSize(20).Bold();
+                            column.Item().Text("450 Lê Văn Việt, Thành Phố Thủ Đức").FontFamily("Arial");
+                        });
+
+                        row.RelativeItem().Text("Phiếu mượn sách").AlignRight().FontFamily("Arial").FontSize(20).Bold();
+                    });
+
+                    // Content
+                    page.Content().PaddingTop(20).Column(column =>
+                    {
+                        // Thông tin phiếu mượn
+                        column.Item().Row(row =>
+                        {
+                            row.RelativeItem().Column(infoCol =>
+                            {
+                                infoCol.Item().Text("Thông tin phiếu mượn").Bold();
+                                infoCol.Item().Text($"Mã phiếu mượn: {mapm}").FontSize(15);
+                                infoCol.Item().Text($"Mã thẻ độc giả: {tpm.MaTheDocGia}").FontSize(15);
+                                infoCol.Item().Text($"Tên độc giả: {tpm.TenDocGia}").FontSize(15);
+                                infoCol.Item().Text($"Mã nhân viên: {tpm.MaNhanVien}").FontSize(15);
+                                infoCol.Item().Text($"Ngày mượn: {tpm.NgayMuon:dd/MM/yyyy}").FontSize(15);
+                                infoCol.Item().Text($"Hạn trả: {tpm.NgayTra:dd/MM/yyyy}").FontSize(15);
+                            });
+                        });
+
+                        // Hiển thị danh sách sách mượn
+                        column.Item().PaddingTop(30).Table(table =>
+                        {
+                            // Định nghĩa cột
+                            table.ColumnsDefinition(columns =>
+                            {
+                                columns.RelativeColumn(1);  // Mã sách
+                                columns.RelativeColumn(4);  // Tên sách
+                                columns.RelativeColumn(3);  // Mã cuốn sách
+                                columns.RelativeColumn(1);  // Số lượng
+                            });
+
+                            // Header bảng
+                            table.Header(header =>
+                            {
+                                header.Cell().Text("Mã sách").Bold();
+                                header.Cell().Text("Tên sách").Bold();
+                                header.Cell().Text("Mã cuốn sách").Bold();
+                                header.Cell().Text("Số lượng").Bold().AlignCenter();
+
+                                header.Cell().ColumnSpan(4).PaddingVertical(6).BorderBottom(1).BorderColor(Colors.Black);
+                            });
+
+                            // Dữ liệu bảng
+                            var addedBooks = new HashSet<string>(); // Bộ nhớ để kiểm tra dòng đã được thêm
+
+                            foreach (var sach in tpm.listSachMuon)
+                            {
+                                var maCuonSachList = tpm.listCTSachMuon
+                                    .Where(ct => ct.MaCuonSach.StartsWith(sach.MaSach.ToString()))
+                                    .Select(ct => ct.MaCuonSach)
+                                    .Distinct()
+                                    .ToList();
+
+                                foreach (var maCuonSach in maCuonSachList)
+                                {
+                                    // Kiểm tra nếu mã cuốn sách đã hiển thị thì bỏ qua
+                                    if (addedBooks.Contains(maCuonSach)) continue;
+
+                                    // Thêm mã cuốn sách vào bộ nhớ
+                                    addedBooks.Add(maCuonSach);
+
+                                    table.Cell().Padding(4).Text(sach.MaSach.ToString());      // Mã sách
+                                    table.Cell().Padding(4).Text(sach.TenSach);                // Tên sách
+                                    table.Cell().Padding(4).Text(maCuonSach);                  // Mã cuốn sách
+                                    table.Cell().Padding(4).Text("1").AlignCenter();           // Số lượng mặc định là 1
+                                }
+                            }
+                        });
+
+                        column.Item().PaddingTop(30).Text("Vui lòng kiểm tra lại thông tin trước khi rời khỏi quầy")
+                              .FontFamily("Arial").FontSize(15).Italic();
+                    });
+
+                    // Footer
+                    page.Footer().Column(column =>
+                    {
+                        column.Item().AlignCenter().Text("Thư viện ABC trân trọng cảm ơn quý khách");
+                    });
+                });
+            });
+
+            return document.GeneratePdf();
+        }
+
+
+
+
         public byte[] GeneratePhieuNhapPDF(DTO_Tao_Phieu_Nhap tpn, int mapn)
         {
             if (tpn == null || tpn.listSachNhap == null || !tpn.listSachNhap.Any())
