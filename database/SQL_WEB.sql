@@ -175,7 +175,7 @@ CREATE TABLE KhoSachThanhLy (
 CREATE TABLE ChitietKhoThanhLy (
     MASACHKHO INT,
     MACUONSACH NVARCHAR(10),
-    VANDE INT, --sách bị quá hạn hay  2 là hư hỏng
+    VANDE INT, --1 sách bị quá hạn hay  2 là hư hỏng
     TINHTRANG INT, --0 là chưa tl, 1 là đã thanh lý
     PRIMARY KEY (MASACHKHO, MACUONSACH),
     FOREIGN KEY (MACUONSACH) REFERENCES CUONSACH(MACUONSACH),
@@ -250,9 +250,9 @@ CREATE  TABLE ImportSachTemp (
     TACGIA NVARCHAR(50),                   -- Tác giả
     NGONNGU NVARCHAR(50),                  -- Ngôn ngữ
     NXB NVARCHAR(100),                     -- Nhà xuất bản
-    NAMXB INT,                             -- Năm xuất bản
-    URL_IMAGE TEXT,                        -- Link ảnh
-	GiaSach INT,
+    NamXuatBan INT,                             -- Năm xuất bản
+    URLImage TEXT,                        -- Link ảnh
+	GiaSach MONEY,
     MOTA NTEXT,                            -- Mô tả
     SOLUONG INT,                           -- Số lượng (tạm thời)
     TrangThai NVARCHAR(20),                -- Trạng thái: 'OK' hoặc 'Lỗi'
@@ -287,7 +287,9 @@ ALTER TABLE PHIEUNHAPSACH ADD CONSTRAINT CHECK_NGAYNHAP_PNS CHECK (NGAYNHAP <= G
 
 
 --RANG BUOC SACH
-ALTER TABLE SACH ADD CONSTRAINT CHK_THELOAI_SACH CHECK (THELOAI IN(N'Truyện ngắn',N'Truyện thiếu nhi',N'Tiểu thuyết', N'Ngôn tình',N'Sách giáo khoa',N'Sách tham khảo', N'Văn học',N'Sách ngoại ngữ',N'Kỹ năng sống'));
+--ALTER TABLE SACH ADD CONSTRAINT CHK_THELOAI_SACH CHECK (THELOAI IN(N'Truyện ngắn',N'Truyện thiếu nhi',N'Tiểu thuyết', N'Ngôn tình',N'Sách giáo khoa',N'Sách tham khảo', N'Văn học',N'Sách ngoại ngữ',N'Kỹ năng sống'));
+--ALTER TABLE SACH DROP CONSTRAINT CHK_THELOAI_SACH;
+
 ALTER TABLE SACH ADD CONSTRAINT CHK_NGONNGU_SACH CHECK (NGONNGU IN(N'Tiếng anh',N'Tiếng việt',N'Tiếng hàn',N'Tiếng trung',N'Tiếng pháp'));
 ALTER TABLE SACH ADD CONSTRAINT CHK_NAMXB_SACH CHECK (NAMXB <= YEAR(GETDATE()));
 --ALTER TABLE SACH ADD CONSTRAINT CHK_GIASACH_SACH CHECK (GIASACH >0);

@@ -110,6 +110,21 @@ namespace WebAPI.Areas.Admin.Data
         public List<DTO_Sach_Nhap> listSachNhap { get; set; }
 
     }
+
+    public class DTO_ID
+    {
+        public int ID { get; set; }
+        
+    }
+    public class DTO_Tao_Phieu_Nhap_Excel
+    {
+        public int MaNhanVien { get; set; }
+        public int MaNhaCungCap { get; set; }
+        public string TenNhaCungCap { get; set; }
+
+        public DateOnly? NgayNhap { get; set; }
+        public List<DTO_ID> idThongTin { get; set; }
+    }
     public class DTO_DangKyMuonSach
     {
         public string SDT { get; set; }

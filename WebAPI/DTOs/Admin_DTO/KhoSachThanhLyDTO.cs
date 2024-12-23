@@ -15,6 +15,19 @@
         public string TenSach { get; set; }
         public int SoLuongKhoTL { get; set; }
         public decimal GiaSachTL { get; set; }
+
+        public List<DTO_ChitietkhoSachTl> listchitietkhoSachTL { get; set; }
+        public KhoSachThanhLyDTO()
+        {
+            listchitietkhoSachTL = new List<DTO_ChitietkhoSachTl>();
+        }
+    }
+
+    public class DTO_ChitietkhoSachTl
+    {
+        public string Macuonsach { get; set; }
+
+        public int? Tinhtrang {  get; set; }
     }
 
     public class DTO_DonViTL

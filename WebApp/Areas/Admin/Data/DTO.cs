@@ -65,6 +65,8 @@ namespace WebApp.Areas.Admin.Data
 
     }
 
+    }
+
     public class DTO_Tao_Phieu_Muon
     {
         public int MaNhanVien { get; set; }
@@ -169,5 +171,19 @@ namespace WebApp.Areas.Admin.Data
         public string? moTa { get; set; }
 
         public string? fileImage { get; set; }
+    }
+    public class DTO_ID
+    {
+        public int ID { get; set; }
+
+    }
+    public class DTO_Tao_Phieu_Nhap_Excel
+    {
+        public int MaNhanVien { get; set; }
+        public int MaNhaCungCap { get; set; }
+        public string TenNhaCungCap { get; set; }
+
+        public DateOnly? NgayNhap { get; set; }
+        public List<DTO_ID> idThongTin { get; set; }
     }
 }
