@@ -12,6 +12,9 @@ using WebApp.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using WebApp.Admin.Data;
 using System.Net.Http;
+using Humanizer;
+using System.Text;
+using WebApp.Responses;
 
 namespace WebApp.Areas.Admin.Controllers
 {
@@ -65,11 +68,6 @@ namespace WebApp.Areas.Admin.Controllers
                     return View();
                 }
             }
-
-
-
-
-
         }
 
         [HttpPost]
@@ -215,226 +213,51 @@ namespace WebApp.Areas.Admin.Controllers
         }
 
 
-        //[HttpGet]
-        //[Route("GetAllThongTinDangKy")]
+        [HttpPost]
+        [Route("TaoPhieuMuon")]
+        public async Task<IActionResult> TaoPhieuMuon([FromBody] DTO_Tao_Phieu_Muon tpm)
+        {
 
-        //public ActionResult GetAllThongTinDangKy()
-        //{
-        //    try
-        //    {
-        //        List<DKiMuonSachDTO_PM> data = new List<DKiMuonSachDTO_PM>();
-        //        HttpResponseMessage response = _client.GetAsync(_client.BaseAddress + "/PhieuMuon/GetAllThongTinDangKy").Result;
+            try
+            {
+                // Kiểm tra dữ liệu đầu vào
+                if (tpm == null)
+                {
+                    return BadRequest(new { success = false, message = "Dữ liệu không hợp lệ." });
+                }
 
-        //        if (response.IsSuccessStatusCode)
-        //        {
-        //            string dataJson = response.Content.ReadAsStringAsync().Result;
-        //            data = JsonConvert.DeserializeObject<List<DKiMuonSachDTO_PM>>(dataJson);
+                // Chuyển đổi DTO thành chuỗi JSON
+                var jsonContent = JsonConvert.SerializeObject(tpm);
+                var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
-        //            return Json(new { success = true, result = data });
-        //        }
-        //        else
-        //        {
-        //            return Json(new { success = false });
-        //        }
+                // Gửi yêu cầu POST tới API TaoPhieuTra_API
+                HttpResponseMessage response = await _client.PostAsync(_client.BaseAddress + "/PhieuMuon/Insert", httpContent);
 
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return Json( new { success = false, message = ex.Message });
-        //    }
-        //}
+                // Kiểm tra phản hồi từ API
+                if (response.IsSuccessStatusCode)
+                {
+                    // Đọc nội dung PDF từ phản hồi
+                    var pdfData = await response.Content.ReadAsByteArrayAsync();
 
+                    if (pdfData != null && pdfData.Length > 0)
+                    {
+                        // Chuyển file PDF sang dạng Base64 để gửi về JavaScript
+                        string base64Pdf = Convert.ToBase64String(pdfData);
+                        return Json(new { success = true, pdfBase64 = base64Pdf });
+                    }
 
-        //[HttpPost]
-        //[Route("ThemSachMuon")]
-        //public ActionResult ThemSachMuon(int MaSach, string TenSach, int SoLuong, int MaDK)
-        //{
-        //    List<DTO_Sach_Muon> listSachMuon;
-
-        //    if (MaDK > 0)
-        //    {
-        //        List<DTO_Sach_Muon> data = new List<DTO_Sach_Muon>();
-
-        //        HttpResponseMessage response = _client.GetAsync(_client.BaseAddress + $"/PhieuMuon/Get_CTDK_ByMaDK/{MaDK}").Result;
-
-        //        if (response.IsSuccessStatusCode)
-        //        {
-        //            string dataJson = response.Content.ReadAsStringAsync().Result;
-        //            data = JsonConvert.DeserializeObject<List<DTO_Sach_Muon>>(dataJson);
-        //        }
-        //        else
-        //        {
-        //            return Json(new { success = false });
-        //        }
-
-        //        Console.WriteLine("LoaiClick: " + HttpContext.Session.GetObjectFromJson<int>("LoaiClick"));
-
-        //        if (HttpContext.Session.GetObjectFromJson<int>("LoaiClick") == 2)
-        //        {
-        //            HttpContext.Session.SetObjectAsJson("ListSachMuon", null);
-        //        }
-
-        //        if (data == null)
-        //        {
-        //            listSachMuon = new List<DTO_Sach_Muon>();
-        //        }
-        //        else
-        //        {
-        //            listSachMuon = data;
-        //        }
-
-        //        HttpContext.Session.SetObjectAsJson("ListSachMuon", listSachMuon);
-        //        HttpContext.Session.SetObjectAsJson("LoaiClick", 1);
-
-        //        Console.WriteLine("ListSachMuon: " + HttpContext.Session.GetObjectFromJson<List<DTO_Sach_Muon>>("ListSachMuon"));
-        //        Console.WriteLine("LoaiClick: " + HttpContext.Session.GetObjectFromJson<int>("LoaiClick"));
-
-
-        //        // Trả về một JsonResult chứa danh sách sách đã cập nhật
-        //        return Json(new { success = true, data = listSachMuon });
-
-        //    }
-        //    else
-        //    {
-        //        Console.WriteLine("ListSachMuon: " + HttpContext.Session.GetObjectFromJson<List<DTO_Sach_Muon>>("ListSachMuon"));
-        //        Console.WriteLine("LoaiClick: " + HttpContext.Session.GetObjectFromJson<int>("LoaiClick"));
-
-        //        if (HttpContext.Session.GetObjectFromJson<int>("LoaiClick") == 1)
-        //        {
-        //            HttpContext.Session.SetObjectAsJson("ListSachMuon", null);
-        //            Console.WriteLine("ListSachMuon: " + HttpContext.Session.GetObjectFromJson<List<DTO_Sach_Muon>>("ListSachMuon"));
-        //        }
-
-        //        // Lấy danh sách sách đã mượn từ Session hoặc tạo danh sách mới nếu chưa tồn tại
-        //        if ( HttpContext.Session.GetObjectFromJson<List<DTO_Sach_Muon>>("ListSachMuon") == null)
-        //        {
-        //            listSachMuon = new List<DTO_Sach_Muon>();
-        //        }
-        //        else
-        //        {
-        //            listSachMuon = HttpContext.Session.GetObjectFromJson<List<DTO_Sach_Muon>>("ListSachMuon");
-
-        //            Console.WriteLine("ListSachMuon: " + HttpContext.Session.GetObjectFromJson<List<DTO_Sach_Muon>>("ListSachMuon"));
-        //        }
-
-        //        // Tìm xem sách có MaSach trong danh sách chưa
-        //        var existingSach = listSachMuon.FirstOrDefault(s => s.MaSach == MaSach);
-
-        //        if (existingSach != null)
-        //        {
-        //            if ((existingSach.SoLuong + SoLuong) > 2)
-        //            {
-        //                return Json(new { success = false, message = "Số lượng sách vượt quá quy định" });
-        //            }
-        //            else
-        //            {
-        //                // Nếu đã tồn tại, tăng số lượng
-        //                existingSach.SoLuong += SoLuong;
-        //            }
-        //        }
-        //        else
-        //        {
-        //            // Nếu chưa tồn tại, thêm sách mới vào danh sách
-        //            var sachMoi = new DTO_Sach_Muon
-        //            {
-        //                MaSach = MaSach,
-        //                TenSach = TenSach,
-        //                SoLuong = SoLuong
-        //            };
-
-        //            listSachMuon.Add(sachMoi);
-        //        }
-
-        //        // Lưu danh sách đã cập nhật vào Session
-        //        HttpContext.Session.SetObjectAsJson("ListSachMuon", listSachMuon);
-        //        HttpContext.Session.SetObjectAsJson("LoaiClick", 2);
-
-        //        Console.WriteLine("ListSachMuon: " + HttpContext.Session.GetObjectFromJson<List<DTO_Sach_Muon>>("ListSachMuon"));
-        //        Console.WriteLine("LoaiClick: " + HttpContext.Session.GetObjectFromJson<int>("LoaiClick"));
-
-
-        //        // Trả về một JsonResult chứa danh sách sách đã cập nhật
-        //        return Json(new { success = true, data = listSachMuon });
-        //    }
-
-        //}
-
-
-        //[HttpPost]
-        //[Route("LamMoiDanhSachSachMuon")]
-        //public ActionResult LamMoiDanhSachSachMuon()
-        //{
-        //    HttpContext.Session.SetObjectAsJson("ListSachMuon", new List<DTO_Sach_Muon>());
-        //    return Json(new { success = true });
-        //}
-
-
-        //[HttpPost]
-        //[Route("XoaSachMuon")]
-        //public ActionResult XoaSachMuon(int MaSach)
-        //{
-        //    // Lấy danh sách sách đã mượn từ Session hoặc tạo danh sách mới nếu chưa tồn tại
-        //    List<DTO_Sach_Muon> listSachMuon = listSachMuon = HttpContext.Session.GetObjectFromJson<List<DTO_Sach_Muon>>("ListSachMuon") ?? new List<DTO_Sach_Muon>();
-
-        //    // Tìm và xóa sách khỏi danh sách dựa trên mã sách
-        //    var sachXoa = listSachMuon.FirstOrDefault(s => s.MaSach == MaSach);
-        //    if (sachXoa != null)
-        //    {
-        //        listSachMuon.Remove(sachXoa);
-        //        HttpContext.Session.SetObjectAsJson("ListSachMuon", listSachMuon);
-        //        return Json(new { success = true });
-        //    }
-
-        //    return Json(new { success = false });
-        //}
-
-
-        //[HttpPost]
-        //[Route("TaoPhieuMuon")]
-        //public ActionResult TaoPhieuMuon(int MaNhanVien, int MaThe, DateOnly NgayMuon, DateOnly NgayTra, int MaDK)
-        //{
-        //    DTO_Tao_Phieu_Muon tpm = new DTO_Tao_Phieu_Muon();
-
-        //    tpm.MaNhanVien = MaNhanVien;
-        //    tpm.MaTheDocGia = MaThe;
-        //    tpm.NgayMuon = NgayMuon;
-        //    tpm.NgayTra = NgayTra;
-        //    tpm.MaDK = MaDK;
-        //    tpm.listSachMuon = HttpContext.Session.GetObjectFromJson<List<DTO_Sach_Muon>>("ListSachMuon");
-
-        //    if (HttpContext.Session.GetObjectFromJson<List<DTO_Sach_Muon>>("ListSachMuon") == null)
-        //        return Json(new { success = false });
-        //    else
-        //    {
-        //        // Gửi yêu cầu POST và truyền dữ liệu từ đối tượng tpm dưới dạng body
-        //        HttpResponseMessage response = _client.PostAsJsonAsync(_client.BaseAddress + "/PhieuMuon/Insert", tpm).Result;
-
-        //        if (response.IsSuccessStatusCode)
-        //        {
-        //            if (tpm.MaDK != 0)
-        //            {
-        //                HttpResponseMessage res = _client.GetAsync(_client.BaseAddress + $"/PhieuMuon/UpdateTinhTrang/{tpm.MaDK}/{2}").Result;
-
-        //                if (res.IsSuccessStatusCode)
-        //                {
-        //                    return Json(new { success = true });
-
-        //                }
-        //                else
-        //                {
-        //                    return Json(new { success = false, message = "Failed to retrieve data from API." });
-        //                }
-        //            }
-
-        //            return Json(new { success = true });
-        //        }
-        //        else
-        //        {
-        //            return Json(new { success = false, message = "Failed to retrieve data from API." });
-        //        }
-        //    }
-        //}
-
+                    return Json(new { success = false, message = "Không nhận được file PDF từ API." });
+                }
+                string checkSL = await response.Content.ReadAsStringAsync();
+                // Xử lý nếu API trả về lỗi
+                return Json(new { success = false, message = checkSL });
+            }
+            catch (Exception ex)
+            {
+                // Bắt lỗi và trả về thông báo lỗi
+                return Json(new { success = false, message = "Lỗi khi gọi API: " + ex.Message });
+            }
+        }
 
     }
 }

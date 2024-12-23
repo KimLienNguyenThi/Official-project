@@ -138,36 +138,47 @@ namespace WebAPI.Controllers.Admin
             }
         }
 
-        /*[HttpGet("{maCuonSach}")]
-        public ActionResult ThongTinTheDocGia(string maCuonSach)
+        
+
+        [HttpPost]
+        public IActionResult Insert([FromBody] DTO_Tao_Phieu_Muon data)
         {
             try
             {
-                BookDetailsDTO thongTinsach = _phieuMuonService.GetByMaCuonSach(maCuonSach);
-
-                if (thongTinsach == null)
+                var CheckSL = _phieuMuonService.CheckSoLuongSach(data);
+                if(CheckSL != null && CheckSL.Length > 0)
                 {
-                    return Ok(new APIResponse<object>()
-                    {
-                        Success = false,
-                        Message = "Không có dữ liệu của độc giả",
-                        Data = null
-                    });
+                    return BadRequest( CheckSL ); 
                 }
 
-                return Ok(new APIResponse<BookDetailsDTO>()
-                {
-                    Success = true,
-                    Message = "Lấy thông tin độc giả thành công",
-                    Data = thongTinsach
-                });
+                else {
+                    // Gọi service để tạo phiếu trả và nhận về file PDF dưới dạng byte[]
+                    var pdfData = _phieuMuonService.InsertAndGeneratePDF(data);
 
+                    if (pdfData != null && pdfData.Length > 0) // Kiểm tra dữ liệu PDF
+                    {
+                        // Tạo tên file PDF
+                        string fileName = $"PhieuMuon_{Guid.NewGuid()}.pdf";
+
+                        // Thiết lập response để trả về file PDF
+                        return File(pdfData, "application/pdf", fileName);
+                    }
+                    else
+                    {
+                        return BadRequest(new { success = false, message = "Tạo file PDF không thành công!" });
+                    }
+                }
+               
+                
+
+                
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                // Bắt lỗi và trả về thông báo lỗi
+                return StatusCode(500, new { success = false, message = "Có lỗi xảy ra khi tạo phiếu mượn.", error = ex.Message });
             }
-        }*/
+        }
 
     }
 }
