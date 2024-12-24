@@ -27,7 +27,9 @@ SELECT * FROM CHITIETDK
 SELECT * FROM CHITIETDK
 
 SELECT * FROM ImportSachTemp
-
+SELECT * FROM CUONSACH where macuonsach in('1A10', '1A11')
+SELECT * FROM KhoSachThanhLy
+SELECT * FROM CHITIETKHOTHANHLY
 
 
 insert into PhieuMuon ( MaThe, NgayMuon, HanTra, MaNV, MADK) values ( 1,'2024-5-22', '2024-6-21', 2,4);--10

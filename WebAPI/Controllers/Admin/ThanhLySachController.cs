@@ -57,7 +57,7 @@ namespace WebAPI.Controllers.Admin
             var success = _thanhLySachService.Insertsach(data);
             if (success)
             {
-                return Ok(new { success = true, message = "Thêm sach thành công." });
+                return Ok(new { success = true, message = "Thêm sách thành công." });
 
             }
             return BadRequest(new { success = false, message = "Thêm sách thất bại." });
