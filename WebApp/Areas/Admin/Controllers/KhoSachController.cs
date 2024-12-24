@@ -8,7 +8,7 @@ namespace WebApp.Areas.Admin.Controllers
 {
     [Area("admin")]
     [Route("admin/khosach")]
-   // [Authorize(AuthenticationSchemes = "AdminCookie")]
+    [Authorize(AuthenticationSchemes = "AdminCookie")]
 
     public class KhoSachController : Controller
     {

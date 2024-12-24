@@ -20,7 +20,7 @@ namespace WebApp.Areas.Admin.Controllers
 {
     [Area("admin")]
     [Route("admin/nhapsach")]
-    // [Authorize(AuthenticationSchemes = "AdminCookie")]
+    [Authorize(AuthenticationSchemes = "AdminCookie")]
 
     public class NhapSachController : Controller
     {
@@ -38,14 +38,14 @@ namespace WebApp.Areas.Admin.Controllers
         [Route("")]
         public IActionResult Index()
         {
-            //if (User.IsInRole("ThuThu"))
-            //{
-            //    return RedirectToAction("LoiPhanQuyen", "phanquyen");
-            //}
-            //else
-            //{
-            return View();
-            //}
+            if (User.IsInRole("ThuThu"))
+            {
+                return RedirectToAction("LoiPhanQuyen", "phanquyen");
+            }
+            else
+            {
+                return View();
+            }
         }
 
         [HttpPost]

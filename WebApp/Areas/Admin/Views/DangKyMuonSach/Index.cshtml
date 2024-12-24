@@ -73,7 +73,7 @@
                                                     <td>@string.Format("{0:dd-MM-yyyy}", dataDkiMuonSach.NgayDK)</td>
                                                     <td>@string.Format("{0:dd-MM-yyyy}", dataDkiMuonSach.NgayHen)</td>
 
-                                                    @if (dataDkiMuonSach.NgayHen < DateOnly.FromDateTime(DateTime.Now) && (dataDkiMuonSach.TinhTrang ==0 || dataDkiMuonSach.TinhTrang ==1) )
+                                                    @if (dataDkiMuonSach.NgayHen < DateOnly.FromDateTime(DateTime.Now) && (dataDkiMuonSach.TinhTrang == 0 || dataDkiMuonSach.TinhTrang == 1))
                                                     {
                                                         <td><button type="button" class="btn btn-danger px-3" style="font-size: 14px;" onclick="handleTinhTrang(@dataDkiMuonSach.MaDK, @dataDkiMuonSach.SDT, @dataDkiMuonSach.TinhTrang)">Đã hủy</button></td>
                                                     }
@@ -208,6 +208,26 @@
         </div>
     </div>
 </div>
+
+<!-- Modal confirm -->
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="xacNhanModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="xacNhanModalLabel">Xác nhận hành động</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <span class="" id="contentModalConfirm"></span>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal"> Đóng </button>
+                <button type="button" class="btn btn-primary" id="confirmButton">Xác nhận</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
@@ -354,10 +374,10 @@
 
                         $.each(ctdk, function (index, item) {
                             var newRow = $(` <tr class="sachdk-row" data-ma-sach="${item.maSach}">
-                                     <td id="maSach">${item.maSach}</td>
-                                     <td id="tenSach">${item.tenSach}</td>
-                                     <td id="soLuong">${item.soLuong}</td>
-                                     </tr> `);
+                                             <td id="maSach">${item.maSach}</td>
+                                             <td id="tenSach">${item.tenSach}</td>
+                                             <td id="soLuong">${item.soLuong}</td>
+                                             </tr> `);
 
                             danhSachSachDK.append(newRow);
                         });
@@ -408,7 +428,7 @@
                                 selectHanTra.append('<option value="2">2 tuần</option>');
                                 selectHanTra.append('<option value="3">3 tuần</option>');
                                 selectHanTra.append('<option value="4">4 tuần</option>');
-                               
+
 
                                 divHanTra.append(selectHanTra);
 
@@ -556,7 +576,7 @@
                 const data = [];
 
                 // Đếm số dòng sách trong bảng
-                var giaTriSoLuong=0;
+                var giaTriSoLuong = 0;
                 // Tạo vòng lặp qua tất cả các <td> có id="soLuong"
                 $("#danhSachSachDk td#soLuong").each(function () {
                     giaTriSoLuong += parseInt($(this).text().trim(), 10); // Lấy giá trị và loại bỏ khoảng trắng
@@ -638,40 +658,48 @@
                     console.log('maNV', maNV);
                     console.log('sdt', sdt);
 
-                    var confirmed = confirm("Bạn có chắc muốn tạo phiếu mượn không?");
-                    if (confirmed) {
-                        $.ajax({
-                            url: '@Url.Action("SubmitTaoPhieuMuon", "DangKyMuonSach")',
-                            type: 'POST',
-                            data: {
-                                maNV: maNV,
-                                maDK: maDK,
-                                ngayTra: formatNgayTra,
-                                ngayMuon: ngayMuon,
-                                sdt: sdt,
-                                data: data, // Gửi mảng dữ liệu chứa các Mã sách và Mã cuốn sách
-                                token: tokenJWT
-                            },
-                            success: function (data) {
-                                if (data.success) {
-                                    if (data.data === "checkthedocgia") {
-                                        document.getElementById("contentModalError").innerHTML = "Thẻ độc giả đã hết hạn. Vui lòng gia  hạn để được mượn sách!";
-                                        $("#ModalError").modal("show");
+
+                    document.getElementById("contentModalConfirm").innerHTML = "Bạn có chắc muốn tạo phiếu mượn không?";
+                    const modal = new bootstrap.Modal(document.getElementById("confirmModal"));
+                    modal.show();
+
+                    // Lắng nghe sự kiện xác nhận
+                    const confirmButton = document.getElementById("confirmButton");
+                    confirmButton.onclick = function () {
+
+                        modal.hide(); // Ẩn modal
+                            $.ajax({
+                                url: '@Url.Action("SubmitTaoPhieuMuon", "DangKyMuonSach")',
+                                type: 'POST',
+                                data: {
+                                    maNV: maNV,
+                                    maDK: maDK,
+                                    ngayTra: formatNgayTra,
+                                    ngayMuon: ngayMuon,
+                                    sdt: sdt,
+                                    data: data, // Gửi mảng dữ liệu chứa các Mã sách và Mã cuốn sách
+                                    token: tokenJWT
+                                },
+                                success: function (data) {
+                                    if (data.success) {
+                                        if (data.data === "checkthedocgia") {
+                                            document.getElementById("contentModalError").innerHTML = "Thẻ độc giả đã hết hạn. Vui lòng gia  hạn để được mượn sách!";
+                                            $("#ModalError").modal("show");
+                                        } else {
+                                            HandleBtnHuyAndDuyet(maDK, 2);
+                                        }
+                                        $("#ModaldanhSachDkiMuon").modal("hide");
                                     } else {
-                                        HandleBtnHuyAndDuyet(maDK, 2);
+                                        document.getElementById("contentModalError").innerHTML = data.message;
+                                        $("#ModalError").modal("show");
                                     }
-                                    $("#ModaldanhSachDkiMuon").modal("hide");
-                                } else {
-                                    document.getElementById("contentModalError").innerHTML = data.message;
-                                    $("#ModalError").modal("show");
                                 }
-                            }
-                        });
-                    }
+                            });
+                    };
                 }
 
 
-                
+
             }
         }
 
@@ -697,31 +725,31 @@
 
                 soLuongList.forEach((soLuongIndex) => {
                     maCuonSachRows += `
-                        <tr>
-                            ${soLuongIndex === 1 ? `<td rowspan="${soLuongList.length}" class="align-middle text-center">${tenSach}</td>` : ''}
-                            <td class="text-center align-middle">
-                                <input type="text" class="form-control" name="maCuonSach[${maSach}][]" placeholder="Nhập mã cuốn sách" />
-                            </td>
-                        </tr>`;
+                                <tr>
+                                    ${soLuongIndex === 1 ? `<td rowspan="${soLuongList.length}" class="align-middle text-center">${tenSach}</td>` : ''}
+                                    <td class="text-center align-middle">
+                                        <input type="text" class="form-control" name="maCuonSach[${maSach}][]" placeholder="Nhập mã cuốn sách" />
+                                    </td>
+                                </tr>`;
                 });
 
                 // Tạo bảng mới
                 const newTable = `
-                    <tr class="details-table">
-                        <td colspan="3">
-                            <table class="table table-bordered">
-                                <thead>
-                                    <tr>
-                                        <th class="text-center">Tên sách</th>
-                                        <th class="text-center">Mã cuốn sách</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    ${maCuonSachRows}
-                                </tbody>
-                            </table>
-                        </td>
-                    </tr>`;
+                            <tr class="details-table">
+                                <td colspan="3">
+                                    <table class="table table-bordered">
+                                        <thead>
+                                            <tr>
+                                                <th class="text-center">Tên sách</th>
+                                                <th class="text-center">Mã cuốn sách</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            ${maCuonSachRows}
+                                        </tbody>
+                                    </table>
+                                </td>
+                            </tr>`;
 
                 // Thêm bảng mới ngay sau hàng hiện tại
                 $(this).after(newTable);

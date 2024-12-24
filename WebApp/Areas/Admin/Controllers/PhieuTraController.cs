@@ -12,7 +12,7 @@ namespace WebApp.Areas.Admin.Controllers
 {
     [Area("admin")]
     [Route("admin/phieutra")]
-   // [Authorize(AuthenticationSchemes = "AdminCookie")]
+    [Authorize(AuthenticationSchemes = "AdminCookie")]
 
     public class PhieuTraController : Controller
     {
@@ -28,14 +28,14 @@ namespace WebApp.Areas.Admin.Controllers
         [Route("")]
         public IActionResult Index()
         {
-            //if (User.IsInRole("QuanLyKho"))
-            //{
-            //    return RedirectToAction("LoiPhanQuyen", "phanquyen");
-            //}
-            //else
-            //{
+            if (User.IsInRole("QuanLyKho"))
+            {
+                return RedirectToAction("LoiPhanQuyen", "phanquyen");
+            }
+            else
+            {
                 return View();
-            //}
+            }
         }
 
         [HttpPost]

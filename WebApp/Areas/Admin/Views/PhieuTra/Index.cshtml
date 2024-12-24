@@ -193,6 +193,26 @@
         </div>
     </div>
 </div>
+
+<!-- Modal confirm -->
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="xacNhanModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="xacNhanModalLabel">Xác nhận hành động</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <span class="" id="contentModalConfirm"></span>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal"> Đóng </button>
+                <button type="button" class="btn btn-primary" id="confirmButton">Xác nhận</button>
+            </div>
+        </div>
+    </div>
+</div>
+
  @section scripts
 {
     <script>
@@ -682,8 +702,14 @@
             }
             console.log(dataPost);
             // Hỏi người dùng có chắc chắn muốn tạo phiếu trả không
-            var confirmed = confirm("Bạn có chắc muốn tạo phiếu trả không?");
-            if (confirmed) {
+            document.getElementById("contentModalConfirm").innerHTML = "Bạn có chắc muốn tạo phiếu trả không?";
+            const modal = new bootstrap.Modal(document.getElementById("confirmModal"));
+            modal.show();
+
+            // Lắng nghe sự kiện xác nhận
+            const confirmButton = document.getElementById("confirmButton");
+            confirmButton.onclick = function () {
+                modal.hide(); // Ẩn modal
 
                 // Gửi yêu cầu Ajax
                 $.ajax({
@@ -750,7 +776,7 @@
                     }
 
                 });
-            }
+            };
         }
 
 

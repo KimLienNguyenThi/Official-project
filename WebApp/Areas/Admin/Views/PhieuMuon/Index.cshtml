@@ -202,6 +202,26 @@
         </div>
     </div>
 </div>
+
+<!-- Modal confirm -->
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="xacNhanModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="xacNhanModalLabel">Xác nhận hành động</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <span class="" id="contentModalConfirm"></span>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal"> Đóng </button>
+                <button type="button" class="btn btn-primary" id="confirmButton">Xác nhận</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section scripts
 {
     <script>
@@ -261,7 +281,8 @@
                     }
                 },
                 error: function () {
-                    alert("Đã xảy ra lỗi khi kiểm tra phiếu mượn.");
+                    document.getElementById("contentModalError").innerHTML = "Đã xảy ra lỗi khi kiểm tra phiếu mượn.";
+                    $("#ModalError").modal("show");
                 }
             });
         }
@@ -272,7 +293,8 @@
             // Lấy hàng thông tin độc giả dựa trên `data-ma-the`
             const row = document.querySelector(`tr[data-ma-the="${maThe}"]`);
             if (!row) {
-                alert('Không tìm thấy thông tin cho mã thẻ: ' + maThe);
+                document.getElementById("contentModalError").innerHTML = 'Không tìm thấy thông tin cho mã thẻ: ' + maThe;
+                $("#ModalError").modal("show");
                 return;
             }
             // matheselect = maThe;
@@ -384,87 +406,90 @@
                 }
             });
 
-            // Xác nhận trước khi tạo phiếu mượn
-            var confirmed = confirm("Bạn có chắc muốn tạo phiếu mượn không?");
-            if (!confirmed) {
-                return;
-            }
+            document.getElementById("contentModalConfirm").innerHTML = "Bạn có chắc muốn tạo phiếu mượn không?";
+            const modal = new bootstrap.Modal(document.getElementById("confirmModal"));
+            modal.show();
 
-            // Dữ liệu gửi qua AJAX
-            var data = {
-                MaNhanVien: maNhanVien,
-                MaTheDocGia: maTheDocGia, // Truyền mã thẻ độc giả
-                TenDocGia: tenDocGia,
-                NgayMuon: ngayMuon,
-                NgayTra: formatNgayTra,
-                MaDK: maDK,
-                listSachMuon: listSachMuon,
-                listCTSachMuon: listCTSachMuon
-            };
+            // Lắng nghe sự kiện xác nhận
+            const confirmButton = document.getElementById("confirmButton");
+            confirmButton.onclick = function () {
+                modal.hide(); // Ẩn modal
+                // Dữ liệu gửi qua AJAX
+                var data = {
+                    MaNhanVien: maNhanVien,
+                    MaTheDocGia: maTheDocGia, // Truyền mã thẻ độc giả
+                    TenDocGia: tenDocGia,
+                    NgayMuon: ngayMuon,
+                    NgayTra: formatNgayTra,
+                    MaDK: maDK,
+                    listSachMuon: listSachMuon,
+                    listCTSachMuon: listCTSachMuon
+                };
 
-            // Gửi yêu cầu POST để tạo phiếu mượn
-            $.ajax({
-                type: "POST",
-                url: "/Admin/PhieuMuon/TaoPhieuMuon", // Đảm bảo URL chính xác
-                contentType: "application/json; charset=utf-8",
-                dataType: "json",
-                data: JSON.stringify(data),
-                success: function (response) {
-                    if (response.success) {
-                        document.getElementById("contentModalSuccess").innerHTML = "Thêm phiếu mượn thành công!";
-                        $("#ModalSuccess").modal("show");
-                        // Lấy dữ liệu PDF Base64 từ phản hồi
-                        var pdfBase64 = response.pdfBase64;
+                // Gửi yêu cầu POST để tạo phiếu mượn
+                $.ajax({
+                    type: "POST",
+                    url: "/Admin/PhieuMuon/TaoPhieuMuon", // Đảm bảo URL chính xác
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    data: JSON.stringify(data),
+                    success: function (response) {
+                        if (response.success) {
+                            document.getElementById("contentModalSuccess").innerHTML = "Thêm phiếu mượn thành công!";
+                            $("#ModalSuccess").modal("show");
+                            // Lấy dữ liệu PDF Base64 từ phản hồi
+                            var pdfBase64 = response.pdfBase64;
 
-                        if (pdfBase64) {
-                            // Chuyển Base64 thành Blob
-                            var byteCharacters = atob(pdfBase64);
-                            var byteNumbers = new Array(byteCharacters.length).fill(null).map((_, i) => byteCharacters.charCodeAt(i));
-                            var byteArray = new Uint8Array(byteNumbers);
-                            var blob = new Blob([byteArray], { type: 'application/pdf' });
+                            if (pdfBase64) {
+                                // Chuyển Base64 thành Blob
+                                var byteCharacters = atob(pdfBase64);
+                                var byteNumbers = new Array(byteCharacters.length).fill(null).map((_, i) => byteCharacters.charCodeAt(i));
+                                var byteArray = new Uint8Array(byteNumbers);
+                                var blob = new Blob([byteArray], { type: 'application/pdf' });
 
-                            // Tạo URL Blob
-                            var url = URL.createObjectURL(blob);
+                                // Tạo URL Blob
+                                var url = URL.createObjectURL(blob);
 
-                            // Cập nhật nội dung iframe trong modal
-                            var iframe = document.getElementById("pdfIframe"); // Đảm bảo HTML có iframe với id="pdfIframe"
-                            iframe.src = url; // Đặt URL file PDF vào iframe
+                                // Cập nhật nội dung iframe trong modal
+                                var iframe = document.getElementById("pdfIframe"); // Đảm bảo HTML có iframe với id="pdfIframe"
+                                iframe.src = url; // Đặt URL file PDF vào iframe
 
-                            // Hiển thị modal chứa PDF
-                            $('#ModalPDF').modal('show'); // Hiển thị modal chứa iframe với PDF
+                                // Hiển thị modal chứa PDF
+                                $('#ModalPDF').modal('show'); // Hiển thị modal chứa iframe với PDF
 
-                            // Reset modal tạo phiếu mượn về trạng thái ban đầu khi đóng
-                            $('#ModalPhieuMuon').on('hide.bs.modal', function () {
-                                // Lưu giá trị mã nhân viên trước khi reset
-                                currentMaNhanVien = document.getElementById("MaNhanVien").value.trim();
+                                // Reset modal tạo phiếu mượn về trạng thái ban đầu khi đóng
+                                $('#ModalPhieuMuon').on('hide.bs.modal', function () {
+                                    // Lưu giá trị mã nhân viên trước khi reset
+                                    currentMaNhanVien = document.getElementById("MaNhanVien").value.trim();
 
-                                // Reset các trường khác, không reset mã nhân viên
-                                $('#ModalPhieuMuon input, #ModalPhieuMuon select').not("#MaNhanVien").val(''); // Đặt lại giá trị trống trừ mã nhân viên
-                                $('#danhSachSachMuon').empty(); // Xóa danh sách sách mượn nếu có
-                            });
+                                    // Reset các trường khác, không reset mã nhân viên
+                                    $('#ModalPhieuMuon input, #ModalPhieuMuon select').not("#MaNhanVien").val(''); // Đặt lại giá trị trống trừ mã nhân viên
+                                    $('#danhSachSachMuon').empty(); // Xóa danh sách sách mượn nếu có
+                                });
 
-                            // Khi modal PDF được đóng
-                            $('#ModalPDF').on('hide.bs.modal', function () {
-                                // Đóng modal tạo phiếu mượn và reset dữ liệu
-                                $('#ModalPhieuMuon').modal('hide');
-                            });
+                                // Khi modal PDF được đóng
+                                $('#ModalPDF').on('hide.bs.modal', function () {
+                                    // Đóng modal tạo phiếu mượn và reset dữ liệu
+                                    $('#ModalPhieuMuon').modal('hide');
+                                });
+                            } else {
+                                // Nếu không có dữ liệu Base64
+                                document.getElementById("contentModalError").innerHTML = "Không có file PDF được trả về!";
+                                $("#ModalError").modal("show");
+                            }
                         } else {
-                            // Nếu không có dữ liệu Base64
-                            document.getElementById("contentModalError").innerHTML = "Không có file PDF được trả về!";
+                            console.log(response)
+                            document.getElementById("contentModalError").innerHTML = response.message;
                             $("#ModalError").modal("show");
                         }
-                    } else {
-                        console.log(response)
-                        document.getElementById("contentModalError").innerHTML = response.message ;
+                    },
+                    error: function (xhr, status, error) {
+                        document.getElementById("contentModalError").innerHTML = "Có lỗi xảy ra khi tạo phiếu mượn.";
                         $("#ModalError").modal("show");
+                        console.error("Lỗi: ", status, error);
                     }
-                },
-                error: function (xhr, status, error) {
-                    document.getElementById("contentModalError").innerHTML = "Có lỗi xảy ra khi tạo phiếu mượn.";
-                    $("#ModalError").modal("show");
-                    console.error("Lỗi: ", status, error);
-                }
-            });
+                });
+            };
         }
 
 

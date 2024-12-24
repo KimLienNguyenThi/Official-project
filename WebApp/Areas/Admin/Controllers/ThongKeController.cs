@@ -8,7 +8,7 @@ namespace WebApp.Areas.Admin.Controllers
 {
     [Area("admin")]
     [Route("admin/thongke")]
-    //[Authorize(AuthenticationSchemes = "AdminCookie")]
+    [Authorize(AuthenticationSchemes = "AdminCookie")]
 
     public class ThongKeController : Controller
     {
@@ -25,14 +25,14 @@ namespace WebApp.Areas.Admin.Controllers
         [Route("")]
         public IActionResult Index()
         {
-            //if (!(User.IsInRole("Admin")))
-            //{
-            //    return RedirectToAction("LoiPhanQuyen", "phanquyen");
-            //}
-            //else
-            //{
+            if (!(User.IsInRole("Admin")))
+            {
+                return RedirectToAction("LoiPhanQuyen", "phanquyen");
+            }
+            else
+            {
                 return View();
-           // }
+            }
         }
 
 
