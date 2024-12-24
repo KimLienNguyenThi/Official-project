@@ -53,15 +53,7 @@ namespace WebAPI.Services.Admin
                     Sach.Tensach,
                     SoLuongKhoTL = KhoSachThanhLy.Soluongkhotl.Value,
                     GiaSachTL = (decimal)(CHITIETPN.Giasach.Value * 30 / 100),
-                    ChiTietCuonSachs = _context.ChitietKhoThanhLies
-                                               .Where(ct => ct.Masachkho == KhoSachThanhLy.Masachkho && ct.Tinhtrang == 0)
-                                               .Select(ct => new DTO_ChitietkhoSachTl
-                                               {
-                                                   Macuonsach = ct.Macuonsach,
-                                                   Tinhtrang = ct.Tinhtrang
-                                               })
-                                               .Distinct()
-                                               .ToList()
+                    
                 };
 
             var groupedQuery = query
@@ -71,8 +63,7 @@ namespace WebAPI.Services.Admin
                     MaSachKho = x.Key.Masachkho,
                     TenSach = x.Key.Tensach,
                     SoLuongKhoTL = x.Key.SoLuongKhoTL,
-                    GiaSachTL = x.OrderByDescending(item => item.GiaSachTL).First().GiaSachTL,
-                    listchitietkhoSachTL = x.SelectMany(item => item.ChiTietCuonSachs).Distinct().ToList()
+                    GiaSachTL = x.OrderByDescending(item => item.GiaSachTL).First().GiaSachTL
                 })
                 .Where(x => x.SoLuongKhoTL > 0)
                 .AsQueryable();
@@ -96,18 +87,25 @@ namespace WebAPI.Services.Admin
 
         public async Task<PagingResult<DTO_Sach_Nhap_Kho>> GetAllSachNhapPaging(GetListPhieuMuonPaging req)
         {
-
             var query =
-              (from Sach in _context.Saches
-               where Sach.Soluonghientai > 0 && (
-                  string.IsNullOrEmpty(req.Keyword) || Sach.Tensach.Contains(req.Keyword))
-               select new DTO_Sach_Nhap_Kho
-               {
-                   MaSach = Sach.Masach,
-                   TenSach = Sach.Tensach,
-                   SoLuongHienTai = Sach.Soluonghientai.Value,
-               }
-                );
+                from Sach in _context.Saches
+                join CuonSachs in _context.CuonSaches on Sach.Masach equals CuonSachs.Masach into cuonSachGroup
+                where Sach.Soluonghientai > 0
+                      && (string.IsNullOrEmpty(req.Keyword) || Sach.Tensach.Contains(req.Keyword))
+                select new DTO_Sach_Nhap_Kho
+                {
+                    MaSach = Sach.Masach,
+                    TenSach = Sach.Tensach,
+                    SoLuongHienTai = Sach.Soluonghientai.Value,
+                    listSachNhapKho = cuonSachGroup
+                        .Where(cs => cs.Tinhtrang == 0) // Thêm điều kiện TinhTrang == 0
+                        .Select(cs => new DTO_CTSach_Nhap_Kho
+                        {
+                            MaCuonSach = cs.Macuonsach,
+                            TinhTrang = cs.Tinhtrang
+                        }).ToList()
+                };
+
             var totalRow = await query.CountAsync();
 
             var listsachs = await query.OrderBy(x => x.MaSach)
@@ -122,8 +120,8 @@ namespace WebAPI.Services.Admin
                 RowCount = totalRow,
                 PageSize = req.PageSize
             };
-
         }
+
 
         ///
         public InsertRes Insertdonvi(DonViTl obj)
@@ -212,7 +210,27 @@ namespace WebAPI.Services.Admin
                             sach.Soluonghientai -= x.SoLuongKhoTL;
                             _context.Saches.Update(sach);
                         }
+                        // Chèn vào bảng ChitietKhoThanhLy và cập nhật tình trạng mã cuốn sách
+                        foreach (var cuonSach in x.listCT_cuonsach)
+                        {
+                            // Thêm bản ghi vào ChitietKhoThanhLy với tình trạng = 0
+                            var chiTietKhoThanhLy = new ChitietKhoThanhLy
+                            {
+                                Macuonsach = cuonSach.MaCuonSach,
+                                Masachkho = x.MaSachKho,
+                                Vande = 1,
+                                Tinhtrang = 0 // Tình trạng = 0
+                            };
+                            _context.ChitietKhoThanhLies.Add(chiTietKhoThanhLy);
 
+                            // Cập nhật tình trạng của cuốn sách trong bảng CuonSach
+                            var cuonSachDb = _context.CuonSaches.FirstOrDefault(c => c.Macuonsach == cuonSach.MaCuonSach);
+                            if (cuonSachDb != null)
+                            {
+                                cuonSachDb.Tinhtrang = 4; // Tình trạng = 4
+                                _context.CuonSaches.Update(cuonSachDb);
+                            }
+                        }
                         transaction.Commit();
                         _context.SaveChanges();
                         return true;
@@ -234,7 +252,27 @@ namespace WebAPI.Services.Admin
                             sach.Soluonghientai -= x.SoLuongKhoTL;
                             _context.Saches.Update(sach);
                         }
+                        // Chèn vào bảng ChitietKhoThanhLy và cập nhật tình trạng mã cuốn sách
+                        foreach (var cuonSach in x.listCT_cuonsach)
+                        {
+                            // Thêm bản ghi vào ChitietKhoThanhLy với tình trạng = 0
+                            var chiTietKhoThanhLy = new ChitietKhoThanhLy
+                            {
+                                Macuonsach = cuonSach.MaCuonSach,
+                                Masachkho = x.MaSachKho,
+                                Vande = 1,
+                                Tinhtrang = 0 // Tình trạng = 0
+                            };
+                            _context.ChitietKhoThanhLies.Add(chiTietKhoThanhLy);
 
+                            // Cập nhật tình trạng của cuốn sách trong bảng CuonSach
+                            var cuonSachDb = _context.CuonSaches.FirstOrDefault(c => c.Macuonsach == cuonSach.MaCuonSach);
+                            if (cuonSachDb != null)
+                            {
+                                cuonSachDb.Tinhtrang = 4; // Tình trạng = 4
+                                _context.CuonSaches.Update(cuonSachDb);
+                            }
+                        }
                         transaction.Commit();
                         _context.SaveChanges();
                         return true;
@@ -251,11 +289,10 @@ namespace WebAPI.Services.Admin
 
         }
 
-
         public bool InsertPhieuThanhLy(DTO_Tao_Phieu_TL data)
         {
 
-            if (data.listSachTL.Any(sach => sach.SoLuong > 0) == false)
+            if (data.listSachTL.Any(sach => sach.SoLuong > 0) == false )
             {
                 return false;
             }
@@ -298,6 +335,29 @@ namespace WebAPI.Services.Admin
 
                         // Thêm ChiTietPT vào Context
                         _context.ChiTietPtls.Add(chiTietPTL);
+                        // Truy xuất mã cuốn sách từ KhoSachThanhLy và ChiTietKhoThanhLy
+                        var maCuonSachList = _context.ChitietKhoThanhLies
+                            .Where(ct => ct.Masachkho == sachThanhLy.MaSach)
+                            .Select(ct => ct.Macuonsach)
+                            .Take(sachThanhLy.SoLuong) // Lấy số lượng cuốn sách tương ứng
+                            .ToList();
+
+                        if (maCuonSachList.Count < sachThanhLy.SoLuong)
+                        {
+                            throw new Exception($"Not enough MaCuonSach available for MaSach = {sachThanhLy.MaSach}");
+                        }
+
+                        // Thêm vào ChiTietSachThanhLy
+                        foreach (var maCuonSach in maCuonSachList)
+                        {
+                            var chiTietSachThanhLy = new ChiTietSachThanhLy
+                            {
+                                Maptl = newPhieuThanhLy.Maptl,
+                                Macuonsach = maCuonSach,
+                                Tinhtrang = 1
+                            };
+                            _context.ChiTietSachThanhLies.Add(chiTietSachThanhLy);
+                        }
                     }
 
                     // Lưu thay đổi vào cơ sở dữ liệu khi mọi thứ đã thành công

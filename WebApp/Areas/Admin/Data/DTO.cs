@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Policy;
 using System.Web;
+using WebApp.Areas.Admin.Data;
 using WebApp.Models;
 
 namespace WebApp.Areas.Admin.Data
@@ -65,7 +66,7 @@ namespace WebApp.Areas.Admin.Data
 
     }
 
-    }
+    
 
     public class DTO_Tao_Phieu_Muon
     {
