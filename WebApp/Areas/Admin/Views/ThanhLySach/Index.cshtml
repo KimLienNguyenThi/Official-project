@@ -286,6 +286,16 @@
     </div>
 </div>
 
+<!-- Modal Thông Báo -->
+<div class="modal fade" id="notificationModal" tabindex="-1" role="dialog" aria-labelledby="notificationModal" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-body text-center bg-warning text-white">
+                <span id="notificationMessage"></span>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- Modal error-->
 <div class="modal fade" id="ModalError" tabindex="-1" role="dialog" aria-labelledby="ModalError" aria-hidden="true">
@@ -307,7 +317,24 @@
         </div>
     </div>
 </div>
-
+<!-- Modal confirm -->
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="xacNhanModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="xacNhanModalLabel">Xác nhận hành động</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <span class="" id="contentModalConfirm"></span>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal"> Đóng </button>
+                <button type="button" class="btn btn-primary" id="confirmButton">Xác nhận</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 @section scripts
 {
@@ -919,8 +946,13 @@
                     document.getElementById("contentModalError").innerHTML = "Hãy nhập đúng định dạng số điện thoại!";
                     $("#ModalError").modal("show");
                 } else {
-                    var confirmed = confirm("Bạn có chắc muốn thêm đơn vị thanh lý không?");
-                    if (confirmed) {
+                    document.getElementById("contentModalConfirm").innerHTML = "Bạn có chắc muốn thêm đơn vị thanh lý không không?";
+                    const modal = new bootstrap.Modal(document.getElementById("confirmModal"));
+                    modal.show();
+
+                    // Lắng nghe sự kiện xác nhận
+                    const confirmButton = document.getElementById("confirmButton");
+                    confirmButton.onclick = function () {
                         $.ajax({
                             url: "/admin/thanhlysach/ThemDonViThanhLy_APP",
                             type: 'POST',
@@ -938,6 +970,7 @@
                                     $("#ThemDVModal").modal("hide");
                                     loadDVTLs();
                                     console.log("dv: ", response);
+                                    modal.hide(); // Ẩn modal
                                 } else {
                                     
 
@@ -991,8 +1024,15 @@
 
             // Kiểm tra nếu số lượng nhập kho không được lớn hơn số lượng hiện tại
             if (sachNhapKhoDTO.SoLuongKhoTL <= parseInt(soluonghientai)) {
-                var confirmed = confirm("Bạn có chắc muốn thêm vào kho sách thanh lý không?");
-                if (confirmed) {
+
+                document.getElementById("contentModalConfirm").innerHTML = "Bạn có chắc muốn thêm vào kho sách thanh lý không?";
+                const modal = new bootstrap.Modal(document.getElementById("confirmModal"));
+                modal.show();
+
+                // Lắng nghe sự kiện xác nhận
+                const confirmButton = document.getElementById("confirmButton");
+                confirmButton.onclick = function () {
+               
                     $.ajax({
                         url: "/admin/thanhlysach/ThemSachThanhLy_APP",
                         type: 'POST',
@@ -1009,6 +1049,7 @@
                                 $("#ThemKhoTLModal").modal("hide");
                                 loadKhoTLs();
                                 loadSachNhaps();
+                                modal.hide(); // Ẩn modal
                             } else {
                                 document.getElementById("contentModalError").innerHTML = "Lỗi khi thêm, Hãy thử lại!";
                                 $("#ModalError").modal("show");
@@ -1029,12 +1070,14 @@
         function taoPhieuTL() {
             var maDonVi = document.getElementById("MaDV").value;
             if (maDonVi == "" || maDonVi == 'undefined') {
-                alert("Vui lòng chọn Đơn vị.");
+                $("#notificationMessage").text("Vui lòng chọn Đơn vị.");
+                $("#notificationModal").modal("show");
                 return;
             }
 
             if (sachValues == null || sachValues.length == 0) {
-                alert("Vui lòng chọn sách thanh lý.");
+                $("#notificationMessage").text("Vui lòng chọn sách thanh lý.");
+                $("#notificationModal").modal("show");
                 return;
             }
 
@@ -1044,8 +1087,13 @@
                 MaDonVi: document.getElementById("MaDV").value,
                 listSachTL: sachValues,
             };
-            var confirmed = confirm("Bạn có chắc muốn tạo phiếu thanh lý không?");
-            if (confirmed) {
+            document.getElementById("contentModalConfirm").innerHTML = "Bạn có chắc muốn tạo phiếu thanh lý không?";
+            const modal = new bootstrap.Modal(document.getElementById("confirmModal"));
+            modal.show();
+
+            // Lắng nghe sự kiện xác nhận
+            const confirmButton = document.getElementById("confirmButton");
+            confirmButton.onclick = function () {
                 $.ajax({
                     type: "POST",
                     url: "/Admin/ThanhLySach/PhieuThanhLy_APP",
@@ -1059,7 +1107,7 @@
                             $("#ModalSuccess").modal("show");
                             sachValues = [];
                             lamMoi();
-
+                            modal.hide(); // Ẩn modal
                             console.log('Tạo phiếu thanh lý: ', response);
                         } else {
                             document.getElementById("contentModalError").innerHTML = "Vui lòng nhập đầy đủ thông tin!";

@@ -1,5 +1,5 @@
 ﻿-- DROP DATABASE QuanLyThuVien
--- CREATE DATABASE QuanLyThuVien;
+ CREATE DATABASE QuanLyThuVien;
 GO
 
 USE QuanLyThuVien;
@@ -244,19 +244,19 @@ CREATE TABLE QuyDinh (
 );
 
 CREATE  TABLE ImportSachTemp (
-    ID INT IDENTITY(1,1) PRIMARY KEY,       -- Khoá chính tạm thời cho mỗi dòng import
-    TENSACH NVARCHAR(150),                 -- Tên sách
-    THELOAI NVARCHAR(50),                  -- Thể loại
-    TACGIA NVARCHAR(50),                   -- Tác giả
-    NGONNGU NVARCHAR(50),                  -- Ngôn ngữ
-    NXB NVARCHAR(100),                     -- Nhà xuất bản
-    NamXuatBan INT,                             -- Năm xuất bản
-    URLImage TEXT,                        -- Link ảnh
-	GiaSach MONEY,
-    MOTA NTEXT,                            -- Mô tả
-    SOLUONG INT,                           -- Số lượng (tạm thời)
-    TrangThai NVARCHAR(20),                -- Trạng thái: 'OK' hoặc 'Lỗi'
-    MoTaLoi NVARCHAR(255)                  -- Mô tả lỗi (VD: "Trùng mã sách", "Số lượng không hợp lệ")
+    ID INT IDENTITY(1,1) PRIMARY KEY,       -- KHOÁ CHÍNH TẠM THỜI CHO MỖI DÒNG IMPORT
+    TENSACH NVARCHAR(150),                 -- TÊN SÁCH
+    THELOAI NVARCHAR(50),                  -- THỂ LOẠI
+    TACGIA NVARCHAR(50),                   -- TÁC GIẢ
+    NGONNGU NVARCHAR(50),                  -- NGÔN NGỮ
+    NXB NVARCHAR(100),                     -- NHÀ XUẤT BẢN
+    NAMXUATBAN INT,                             -- NĂM XUẤT BẢN
+    URLIMAGE TEXT,                        -- LINK ẢNH
+	GIASACH MONEY,
+    MOTA NTEXT,                            -- MÔ TẢ
+    SOLUONG INT,                           -- SỐ LƯỢNG (TẠM THỜI)
+    TRANGTHAI NVARCHAR(20),                -- TRẠNG THÁI: 'OK' HOẶC 'LỖI'
+    MOTALOI NVARCHAR(255)                  -- Mô tả lỗi (VD: "Trùng mã sách", "Số lượng không hợp lệ")
 );
 
 ----------------+**************************************************************+----------------

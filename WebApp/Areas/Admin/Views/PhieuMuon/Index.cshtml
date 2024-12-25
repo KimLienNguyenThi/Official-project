@@ -64,6 +64,17 @@
     </form>
 </div>
 
+<!-- Modal Thông Báo -->
+<div class="modal fade" id="notificationModal" tabindex="-1" role="dialog" aria-labelledby="notificationModal" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-body text-center bg-warning text-white">
+                <span id="notificationMessage"></span>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Modal lập phiếu mượn -->
 <div class="modal fade bd-example-modal-lg" id="ModalPhieuMuon" tabindex="-1" role="dialog" aria-labelledby="exampleModalScrollableTitle" aria-hidden="true">
     <div class="modal-dialog modal-dialog-scrollable modal-dialog modal-lg" role="document">
@@ -193,7 +204,7 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="ModalPDFLabel">Phieu Tra PDF</h5>
+                <h5 class="modal-title" id="ModalPDFLabel">Phieu Muon PDF</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -277,7 +288,9 @@
                         openModal(maThe);
                         // Mở modal khi thành công
                     } else {
-                        alert(response.message);  // Hiển thị thông báo lỗi khi không thành công
+                        $("#notificationMessage").text(response.message);
+                        $("#notificationModal").modal("show");
+                        //alert(response.message);  // Hiển thị thông báo lỗi khi không thành công
                     }
                 },
                 error: function () {
@@ -524,7 +537,8 @@
             const maCuonSach = searchInput.value.trim();
 
             if (!maCuonSach) {
-                alert("Vui lòng nhập mã sách!");
+                $("#notificationMessage").text("Vui lòng nhập mã sách!");
+                $("#notificationModal").modal("show");
                 return;
             }
 
@@ -544,7 +558,8 @@
                         });
 
                         if (existingRow) {
-                            alert("Sách đã được thêm vào danh sách mượn!");
+                            $("#notificationMessage").text("Sách đã được thêm vào danh sách mượn!");
+                            $("#notificationModal").modal("show");
                             return;
                         }
 
@@ -590,10 +605,13 @@
                         // Xóa giá trị trong ô tìm kiếm
                         searchInput.value = "";
                     } else {
-                        alert("Mã cuốn sách không tồn tại. Vui lòng kiểm tra lại.");
+                        $("#notificationMessage").text("Mã cuốn sách không tồn tại. Vui lòng kiểm tra lại.");
+                        $("#notificationModal").modal("show");
                     }
                 } else {
-                    alert(data.message || "Lỗi tìm kiếm sách.");
+                    $("#notificationMessage").text(data.message || "Lỗi tìm kiếm sách.");
+                    $("#notificationModal").modal("show");
+                    //alert();
                 }
             } catch (error) {
                 console.error("Error fetching books:", error);

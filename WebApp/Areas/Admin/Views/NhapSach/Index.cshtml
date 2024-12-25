@@ -208,8 +208,6 @@
     </div>
 </div>
 
-
-
 <!-- Modal hiển thị chi tiết sách -->
 <div class="modal fade bd-example-modal-lg" id="showChiTietSachModal" tabindex="-1" role="dialog" aria-labelledby="showChiTietSachModalTitle" aria-hidden="true">
     <div class="modal-dialog modal-dialog-scrollable modal-dialog modal-lg" role="document">
@@ -568,7 +566,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal"> Đóng </button>
-                <button type="button" class="btn btn-primary" id="confirmButton">Xác nhận</button>
+                <button type="button" class="btn btn-primary" id="confirmButton1">Xác nhận</button>
             </div>
         </div>
     </div>
@@ -1077,19 +1075,38 @@
                 danhSachSachNhap.append(newRow);
             });
         }
+
+
         function xoaSachNhapV2(maSach) {
-            var index = listSachNhap.findIndex((element) => element.maSach == maSach);
-            if (index != -1) {
-                var isDeleting = confirm("Bạn có chắc chắn muốn xóa sách ra khỏi danh sách nhập!");
-                if (isDeleting) {
+            // Tính giá trị index
+            const index = listSachNhap.findIndex((element) => element.maSach == maSach);
+
+            // Nếu sách tồn tại trong danh sách
+            if (index !== -1) {
+                // Hiển thị nội dung xác nhận
+                document.getElementById("contentModalConfirm").textContent = "Bạn có chắc chắn muốn xóa sách này khỏi danh sách nhập?";
+
+                // Hiển thị modal xác nhận
+                const modal = new bootstrap.Modal(document.getElementById("confirmModal"));
+                modal.show();
+
+                // Lắng nghe sự kiện "Xác nhận"
+                const confirmButton = document.getElementById("confirmButton1");
+                confirmButton.onclick = function () {
+                    // Xóa sách khỏi danh sách
                     listSachNhap.splice(index, 1);
                     renderListSachNhap();
-                    console.log("sach nhap sau khi xoa:   " ,listSachNhap);
-                }
-                updateTongTien();
+                    console.log("Danh sách sau khi xóa: ", listSachNhap);
+                    updateTongTien();
+
+                    // Ẩn modal sau khi thực hiện xong
+                    modal.hide();
+                };
             }
         }
-       
+
+
+
         //===================== Hàm show modal nha cung cap  =====================
         function btnShowModalThemNCC() {
             $("#ThemNccModal").modal("show");
@@ -1115,8 +1132,15 @@
                     document.getElementById("contentModalError").innerHTML = "Hãy nhập đúng định dạng số điện thoại!";
                     $("#ModalError").modal("show");
                 } else {
-                    var confirmed = confirm("Bạn có chắc muốn thêm nhà cung cấp không?");
-                    if (confirmed) {
+                    document.getElementById("contentModalConfirm").innerHTML = "Bạn có chắc muốn thêm nhà cung cấp không?";
+                    const modal = new bootstrap.Modal(document.getElementById("confirmModal"));
+                    modal.show();
+
+                    // Lắng nghe sự kiện xác nhận
+                    const confirmButton = document.getElementById("confirmButton1");
+                    confirmButton.onclick = function () {
+                    // var confirmed = confirm("Bạn có chắc muốn thêm nhà cung cấp không?");
+                    // if (confirmed) {
                         $.ajax({
                             url: "/admin/nhapsach/ThemNCC_APP",
                             type: 'POST',
@@ -1134,6 +1158,9 @@
                                     $("#ThemNccModal").modal("hide");
                                     loadNCCs();
                                     console.log("ncc: ", response);
+                                    // Đóng modal xác nhận
+                                    modal.hide();
+
                                 } else {
 
                                     document.getElementById("contentModalError").innerHTML = response.message;
@@ -1155,32 +1182,26 @@
             var maNhanVien = document.getElementById("MaNhanVien").value;
             var ngayNhap = document.getElementById("NgayNhap").value;
             console.log(document.getElementById("TenNCC").value);
-
             if (!maNCC) {
                 $("#notificationMessage").text("Vui lòng chọn nhà cung cấp.");
                 $("#notificationModal").modal("show");
-                //alert("Vui lòng chọn nhà cung cấp.");
                 return;
             }
             if (!tenNCC) {
                 $("#notificationMessage").text("Không thể lấy tên nhà cung cấp. Vui lòng kiểm tra lại.");
                 $("#notificationModal").modal("show");
-               // alert("Không thể lấy tên nhà cung cấp. Vui lòng kiểm tra lại.");
                 return;
             }
             if (listSachNhap == null || listSachNhap.length == 0) {
                 $("#notificationMessage").text("Vui lòng chọn sách nhập.");
                 $("#notificationModal").modal("show");
-               // alert("Vui lòng chọn sách nhập.");
                 return;
             }
-
             var formData = new FormData();
             formData.append('MaNhaCungCap', maNCC);
             formData.append('TenNhaCungCap', tenNCC);
             formData.append('MaNhanVien', maNhanVien);
             formData.append('NgayNhap', ngayNhap);
-
             listSachNhap.forEach((item, index) => {
                 formData.append(`listSachNhap[${index}].maSach`, item.maSach);
                 formData.append(`listSachNhap[${index}].tenSach`, item.tenSach);
@@ -1195,33 +1216,30 @@
                 formData.append(`listSachNhap[${index}].moTa`, item.moTa);
             });
 
-            const tokenJWT = localStorage.getItem("accessToken");
-
-            document.getElementById("contentModalConfirm").innerHTML = "Bạn có chắc muốn tạo phiếu nhập không?";
+            document.getElementById("contentModalConfirm").innerHTML = "Bạn có chắc muốn tạo phiếu nhập không ? ";
             const modal = new bootstrap.Modal(document.getElementById("confirmModal"));
             modal.show();
 
             // Lắng nghe sự kiện xác nhận
-            const confirmButton = document.getElementById("confirmButton");
+            const confirmButton = document.getElementById("confirmButton1");
             confirmButton.onclick = function () {
+            // var confirmed = confirm("Bạn có chắc muốn tạo phiếu nhập không?");
+            // if (confirmed) {
                 $.ajax({
                     type: "POST",
                     url: "/admin/nhapsach/PhieuNhap_APP",
                     contentType: false,
                     processData: false,
-                    data:{
-                        dto: formData,
-                        token: tokenJWT
-                    },
+                    data: formData,
                     success: function (response, status, xhr) {
                         if (xhr.getResponseHeader('Content-Type') === 'application/pdf') {
                             var pdfBlob = new Blob([response], { type: 'application/pdf' });
                             var pdfUrl = URL.createObjectURL(pdfBlob);
                             document.getElementById('pdfIframe').src = pdfUrl;
                             $("#ModalPDF").modal("show");
-
                             listSachNhap = [];
                             lamMoi();
+                            modal.hide(); // Ẩn modal
                         } else {
                             var errorResponse = JSON.parse(response);
                             document.getElementById("contentModalError").innerHTML = errorResponse.message || "Có lỗi xảy ra!";
@@ -1235,7 +1253,7 @@
                         alert("Lỗi khi gửi yêu cầu đến máy chủ.");
                     }
                 });
-            };
+            }
         }
 
         function updateTongTien() {
@@ -1324,7 +1342,8 @@
                     const message = "Dữ liệu hợp lệ. Bạn có muốn tạo phiếu nhập không?";
                     showConfirmationModal(message, data.successfulRecords);
                 } else {
-                    alert("Không có dữ liệu hợp lệ hoặc lỗi!");
+                    $("#notificationMessage").text("Không có dữ liệu hợp lệ hoặc lỗi!");
+                    $("#notificationModal").modal("show");
                 }
             } catch (err) {
                 console.error("Lỗi:", err);
@@ -1446,8 +1465,6 @@
                 alert(`Lỗi khi tạo phiếu nhập: ${err.message}`);
             }
         }
-
-
 
         // Hàm đọc file Excel khi người dùng chọn file
         function docexcel() {
