@@ -649,6 +649,25 @@
             }
 
         }
+        function resetInputModal() {
+            // Làm mới các trường input
+            document.getElementById("inputTenSachModal").value = '';
+            document.getElementById("inputTacGiaModal").value = '';
+            document.getElementById("inputNhaXuatBanModal").value = '';
+            document.getElementById("inputNamXuatBanModal").value = '';
+            document.getElementById("inputSoLuongModal").value = '';
+            document.getElementById("inputGiaSachModal").value = '';
+            document.getElementById("inputMoTaModal").value = '';
+
+            // Làm mới dropdown
+            document.getElementById("inputTheLoaiModal").selectedIndex = 0; // Chọn "Chọn thể loại"
+            document.getElementById("inputNgonNguModal").selectedIndex = 0; // Chọn "Chọn ngôn ngữ"
+
+            // Làm mới ảnh và preview
+            document.getElementById("inputHinhAnhModal").value = '';
+            document.getElementById("hinhAnhPreview").src = '';
+        }
+
 
         //===================== Hàm show don vi thanh ly =====================
         function loadNCCs() {
@@ -963,7 +982,7 @@
             var soLuong = document.getElementById(idSoLuong).value;
             var giaSach = document.getElementById(idGiaSach).value;
 
-            if (!tenSach.trim() || !theLoai.trim() || !ngonNgu.trim() || !tacGia.trim() || !nhaXB.trim() || !namXB.trim()) {
+            if (!tenSach.trim() || theLoai === "Chọn thể loại" || ngonNgu === "Chọn ngôn ngữ" || !tacGia.trim() || !nhaXB.trim() || !namXB.trim()) {
                 document.getElementById("contentModalError").innerHTML = "Hãy nhập đủ thông tin sách!";
                 $("#ModalError").modal("show");
             } else if (!Number.isInteger(Number(soLuong)) || soLuong <= 0) {
@@ -1045,6 +1064,8 @@
                 $("#showChiTietSachModal").modal("hide");
                     renderListSachNhap();
                 updateTongTien();
+                resetInputModal(); // Gọi hàm làm mới modal
+
             }
         }
 
